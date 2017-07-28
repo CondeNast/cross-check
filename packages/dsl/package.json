@@ -5,7 +5,7 @@
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>"
   ],
-  "repository": "https://github.com/tildeio/validatinos-dsl",
+  "repository": "https://github.com/tildeio/validations-dsl",
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
   "types": "dist/types/index.d.ts",
