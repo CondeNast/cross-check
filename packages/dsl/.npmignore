@@ -1,0 +1,4 @@
+.vscode
+.travis.yml
+dist/tests
+tests

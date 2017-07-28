@@ -1,0 +1,25 @@
+{
+  "name": "@validations/dsl",
+  "version": "0.5.0",
+  "description": "A DSL for building validations.",
+  "contributors": [
+    "Godfrey Chan <godfrey@tilde.io>"
+  ],
+  "repository": "https://github.com/tildeio/validatinos-dsl",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/modules/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "preversion": "npm run test",
+    "prepare": "npm run build",
+    "build": "./scripts/build",
+    "test": "./scripts/build && ./scripts/test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/qunit": "^2.0.31",
+    "qunitjs": "^2.4.0",
+    "typescript": "^2.4.2"
+  },
+  "dependencies": {}
+}

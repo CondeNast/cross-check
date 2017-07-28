@@ -1,0 +1,3 @@
+#!/bin/sh
+
+qunit dist/tests/test/**-test.js
