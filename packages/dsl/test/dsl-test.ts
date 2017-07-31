@@ -1,4 +1,4 @@
-import dsl, { on, validates, ValidationDescriptors } from '../src';
+import dsl, { on, validates, ValidationDescriptors } from '@validations/dsl';
 
 QUnit.module('DSL');
 

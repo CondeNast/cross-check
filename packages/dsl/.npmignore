@@ -1,4 +1,7 @@
 .vscode
 .travis.yml
-dist/tests
-tests
+dist/**/test
+dist/**/node_modules
+test
+scripts
+tsconfig.json
