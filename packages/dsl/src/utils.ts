@@ -2,6 +2,14 @@ export type Option<T> = T | null;
 
 export type Opaque = {} | void | null | undefined;
 
+export interface Dict<T = Opaque> {
+  [key: string]: T;
+}
+
+export function dict<T = Opaque>(): Dict<T> {
+  return Object.create(null);
+}
+
 export type Nested<T> = T | NestedArray<T>;
 export interface NestedArray<T> extends Array<Nested<T>> {};
 

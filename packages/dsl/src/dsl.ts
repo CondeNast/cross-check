@@ -1,11 +1,13 @@
-import { Nested, Option, assert, flatten } from './utils';
+import { Dict, Nested, Option, assert, dict, flatten } from './utils';
 
-export default function normalize(fields: FieldsDSL): ValidationDescriptor[] {
-  let descriptors: ValidationDescriptor[] = [];
+export default function normalize(fields: FieldsDSL): ValidationDescriptors {
+  let descriptors: ValidationDescriptors = dict();
 
   for (let field of Object.keys(fields)) {
+    let validators: ValidationDescriptor[] = descriptors[field] = [];
+
     for (let builder of flatten(fields[field])) {
-      descriptors.push(builder.build(field));
+      validators.push(builder.build(field));
     }
   }
 
@@ -21,9 +23,7 @@ export function on(...contexts: string[]): ValidationContextDSL {
   return new ValidationContext(contexts);
 }
 
-export interface FieldsDSL {
-  [key: string]: Nested<ValidationBuilderDSL>;
-}
+export type FieldsDSL = Dict<Nested<ValidationBuilderDSL>>;
 
 export interface ValidationBuilderDSL {
   keys(...keys: string[]): ValidationBuilderDSL;
@@ -34,6 +34,8 @@ export interface ValidationBuilderDSL {
 export interface ValidationContextDSL {
   do(validations: Nested<ValidationBuilderDSL>): Nested<ValidationBuilderDSL>;
 }
+
+export type ValidationDescriptors = Dict<ValidationDescriptor[]>;
 
 export interface ValidationDescriptor {
   field: string;
