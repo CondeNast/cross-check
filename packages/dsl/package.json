@@ -1,6 +1,6 @@
 {
   "name": "@validations/dsl",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "A DSL for building validations.",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>"
