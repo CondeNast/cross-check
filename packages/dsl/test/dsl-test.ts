@@ -16,16 +16,16 @@ QUnit.test('basic DSL', assert => {
       {
         field: 'name',
         validator: { name: 'presence', args: [] },
-        keys: null,
-        contexts: null
+        keys: [],
+        contexts: []
       }
     ],
     email: [
       {
         field: 'email',
         validator: { name: 'presence', args: [] },
-        keys: null,
-        contexts: null
+        keys: [],
+        contexts: []
       }, {
         field: 'email',
         validator: {
@@ -34,8 +34,8 @@ QUnit.test('basic DSL', assert => {
             { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }
           ]
         },
-        keys: null,
-        contexts: null
+        keys: [],
+        contexts: []
       }
     ]
   };
@@ -64,21 +64,21 @@ QUnit.test('dependent keys', assert => {
         field: 'name',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
-        contexts: null
+        contexts: []
       }
     ],
     email: [
       {
         field: 'email',
         validator: { name: 'presence', args: [] },
-        keys: null,
-        contexts: null
+        keys: [],
+        contexts: []
       },
       {
         field: 'email',
         validator: { name: 'email', args: [] },
-        keys: null,
-        contexts: null
+        keys: [],
+        contexts: []
       }
     ],
     emailConfirmation: [
@@ -86,7 +86,7 @@ QUnit.test('dependent keys', assert => {
         field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
-        contexts: null
+        contexts: []
       }
     ]
   };
@@ -113,7 +113,7 @@ QUnit.test('validation contexts', assert => {
       {
         field: 'name',
         validator: { name: 'presence', args: [] },
-        keys: null,
+        keys: [],
         contexts: ['create', 'update']
       }
     ],
@@ -121,13 +121,13 @@ QUnit.test('validation contexts', assert => {
       {
         field: 'email',
         validator: { name: 'presence', args: [] },
-        keys: null,
+        keys: [],
         contexts: ['create']
       },
       {
         field: 'email',
         validator: { name: 'email', args: [] },
-        keys: null,
+        keys: [],
         contexts: ['create']
       }
     ]

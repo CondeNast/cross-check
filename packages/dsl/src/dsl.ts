@@ -1,4 +1,4 @@
-import { Dict, Nested, Option, assert, dict, flatten } from './utils';
+import { Dict, Nested, Opaque, assert, dict, flatten } from './utils';
 
 export default function normalize(fields: FieldsDSL): ValidationDescriptors {
   let descriptors: ValidationDescriptors = dict();
@@ -37,19 +37,19 @@ export interface ValidationContextDSL {
 
 export type ValidationDescriptors = Dict<ValidationDescriptor[]>;
 
-export interface ValidationDescriptor {
+export type ValidationDescriptor = Readonly<{
   field: string;
-  validator: { name: string, args: any[] },
-  keys: Option<string[]>;
-  contexts: Option<string[]>;
-}
+  validator: Readonly<{ name: string, args: ReadonlyArray<Opaque> }>,
+  keys: ReadonlyArray<string>;
+  contexts: ReadonlyArray<string>;
+}>;
 
 class ValidationBuilder implements ValidationBuilderDSL {
   constructor(
     private _name: string,
-    private _args: any[],
-    private _keys: Option<string[]> = null,
-    private _contexts: Option<string[]> = null
+    private _args: Opaque[],
+    private _keys: string[] = [],
+    private _contexts: string[] = []
   ) {
   }
 
@@ -64,19 +64,7 @@ class ValidationBuilder implements ValidationBuilderDSL {
   }
 
   build(field: string): ValidationDescriptor {
-    let {
-      _name: name,
-      _args: args,
-      _keys: keys,
-     _contexts: contexts
-    } = this;
-
-    return {
-      field,
-      validator: { name, args },
-      keys,
-      contexts
-    };
+    return descriptor(field, this._name, this._args, this._keys, this._contexts);
   }
 
   private _clone(callback: (builder: ValidationBuilder) => void): ValidationBuilder {
@@ -91,6 +79,15 @@ class ValidationBuilder implements ValidationBuilderDSL {
 
     return builder;
   }
+}
+
+function descriptor(field: string, name: string, _args: Opaque[], _keys: string[], _contexts: string[]): ValidationDescriptor {
+  let args = Object.freeze(_args);
+  let validator = Object.freeze({ name, args });
+  let keys = Object.freeze(_keys);
+  let contexts = Object.freeze(_contexts);
+
+  return Object.freeze({ field, validator, keys, contexts });
 }
 
 class ValidationContext implements ValidationContextDSL {
