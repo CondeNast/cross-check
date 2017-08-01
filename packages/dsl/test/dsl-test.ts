@@ -135,3 +135,67 @@ QUnit.test('validation contexts', assert => {
 
   assert.deepEqual(validations, expected);
 });
+
+
+QUnit.test('"keys" does not mutate previously defined builder', assert => {
+  let presence = validates('presence');
+  let presenceWithKeys = presence.keys('firstName', 'lastName');
+
+  let validations = dsl({
+    name: presence,
+    nickname: presenceWithKeys
+  });
+
+  let expected: ValidationDescriptors = {
+    name: [
+      {
+        field: 'name',
+        validator: { name: 'presence', args: [] },
+        keys: [],
+        contexts: []
+      }
+    ],
+    nickname: [
+      {
+        field: 'nickname',
+        validator: { name: 'presence', args: [] },
+        keys: ['firstName', 'lastName'],
+        contexts: []
+      }
+    ]
+  };
+
+  assert.deepEqual(validations, expected);
+});
+
+
+QUnit.test('"on" does not mutate previously defined builder', assert => {
+  let presence = validates('presence');
+  let presenceWithContext = presence.on('create');
+
+  let validations = dsl({
+    name: presence,
+    email: presenceWithContext
+  });
+
+  let expected: ValidationDescriptors = {
+    name: [
+      {
+        field: 'name',
+        validator: { name: 'presence', args: [] },
+        keys: [],
+        contexts: []
+      }
+    ],
+    email: [
+      {
+        field: 'email',
+        validator: { name: 'presence', args: [] },
+        keys: [],
+        contexts: ['create']
+      }
+    ]
+  };
+
+  assert.deepEqual(validations, expected);
+});
