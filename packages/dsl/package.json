@@ -14,12 +14,15 @@
     "prepare": "npm run build",
     "pretest": "npm run build",
     "build": "./scripts/build",
-    "test": "qunit dist/commonjs/test/**-test.js"
+    "test": "qunit dist/commonjs/test/**-test.js",
+    "docs": "typedoc --out docs src/ --mode file",
+    "publish-docs": "./scripts/publish-docs"
   },
   "license": "MIT",
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "qunitjs": "^2.4.0",
+    "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
   },
   "dependencies": {}

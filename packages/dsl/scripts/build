@@ -3,8 +3,8 @@
 rm -rf dist &&
 
 tsc --project . --target esnext --module es2015 --outDir dist/modules --declaration --declarationDir dist/types &&
-tsc --project . --target es2015 --lib esnext --downlevelIteration --module amd --outDir dist/amd &&
-tsc --project . --target es2015 --lib esnext --downlevelIteration --module commonjs --outDir dist/commonjs &&
+tsc --project . --target es2015 --lib esnext,dom --downlevelIteration --module amd --outDir dist/amd &&
+tsc --project . --target es2015 --lib esnext,dom --downlevelIteration --module commonjs --outDir dist/commonjs &&
 
 mkdir -p dist/commonjs/node_modules/@validations &&
 ln -s ../../src dist/commonjs/node_modules/@validations/dsl
