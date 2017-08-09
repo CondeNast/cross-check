@@ -2,11 +2,11 @@
 
 A DSL for building validations. Extracted from/inpsired by [ember-cp-validations](http://offirgolan.github.io/ember-cp-validations/).
 
-##Install and test
+## Install and test
 `npm install`
 `npm test`
 
-##Documentation
+## Documentation
 
 https://tildeio.github.io/validations-dsl
 
