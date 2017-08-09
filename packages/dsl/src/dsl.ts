@@ -29,6 +29,7 @@ export interface ValidationBuilderDSL {
   keys(...keys: string[]): ValidationBuilderDSL;
   on(...contexts: string[]): ValidationBuilderDSL;
   build(field: string): ValidationDescriptor;
+  merge(field: string, descriptors: ValidationDescriptors): ValidationDescriptors;
 }
 
 export interface ValidationContextDSL {
@@ -65,6 +66,10 @@ class ValidationBuilder implements ValidationBuilderDSL {
 
   build(field: string): ValidationDescriptor {
     return descriptor(field, this._name, this._args, this._keys, this._contexts);
+  }
+
+  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
+    throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
   }
 
   private _clone(callback: (builder: ValidationBuilder) => void): ValidationBuilder {
