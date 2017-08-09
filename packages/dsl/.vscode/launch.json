@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Run Tests",
       "preLaunchTask": "build",
-      "program": "${workspaceRoot}/node_modules/.bin/qunit",
+      "program": "${workspaceRoot}/node_modules/qunitjs/bin/qunit",
       "args": [
         "dist/commonjs/test/**/*-test.js"
       ],

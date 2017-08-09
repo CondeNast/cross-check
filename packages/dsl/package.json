@@ -7,13 +7,13 @@
   ],
   "repository": "https://github.com/tildeio/validations-dsl",
   "main": "dist/commonjs/src/index.js",
-  "module": "dist/modules/src/index.js",
+  "module": "dist/es2015/src/index.js",
   "types": "dist/types/src/index.d.ts",
   "scripts": {
     "preversion": "npm run test",
     "prepare": "npm run build",
     "pretest": "npm run build",
-    "build": "./scripts/build",
+    "build": "node ./scripts/build.js",
     "test": "qunit dist/commonjs/test/**-test.js",
     "docs": "typedoc --out docs src/ --mode file",
     "publish-docs": "./scripts/publish-docs"
@@ -24,6 +24,7 @@
     "qunitjs": "^2.4.0",
     "@types/lodash": "^4.14.71",
     "lodash": "^4.17.4",
+    "shelljs": "^0.7.8",
     "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
   },
