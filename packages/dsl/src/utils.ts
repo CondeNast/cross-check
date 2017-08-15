@@ -6,6 +6,10 @@ export interface Dict<T = Opaque> {
   [key: string]: T;
 }
 
+export interface Constructor<T> {
+  new(...args: any[]): T;
+}
+
 export function dict<T = Opaque>(): Dict<T> {
   return Object.create(null);
 }

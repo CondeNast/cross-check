@@ -29,7 +29,7 @@ function buildValidators(extensionField: string, existingDescriptors: Validation
   let validators: ValidationDescriptor[] = existingDescriptors[extensionField] = [];
 
   for (let builder of flatten(extensions[extensionField])) {
-    validators.push(builder.build(extensionField));
+    validators.push(...flatten(builder.build(extensionField)));
   }
   return validators;
 }
@@ -62,7 +62,7 @@ export class Append implements ValidationBuilderDSL {
     let validators: ValidationDescriptor[] = existing[field];
 
     for (let builder of flatten(this.validations)) {
-      validators.push(builder.build(field));
+      validators.push(...flatten(builder.build(field)));
     }
 
     existing[field] = validators;
@@ -99,7 +99,7 @@ export class Replace implements ValidationBuilderDSL {
     let validators: ValidationDescriptor[] = [];
 
     for (let builder of flatten(this.validations)) {
-      validators.push(builder.build(field));
+      validators.push(...flatten(builder.build(field)));
     }
 
     existing[field] = validators;

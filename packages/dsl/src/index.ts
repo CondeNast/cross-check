@@ -1,8 +1,10 @@
 export {
   default,
+  multi,
   on,
   validates,
   FieldsDSL,
+  MultiValidationDSL,
   ValidationDescriptors,
   ValidationBuilderDSL,
   ValidationDescriptor

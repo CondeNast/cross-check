@@ -1,14 +1,53 @@
-import dsl, { on, validates, ValidationDescriptors, multi } from '@validations/dsl';
+import dsl, {
+  validates, multi, ValidationDescriptors, on
+} from '@validations/dsl';
 
-QUnit.module('DSL');
+import { Multi } from './support';
 
-QUnit.test('basic DSL', assert => {
+const { present, presence, email } = Multi;
+
+QUnit.module('multi() - basic');
+
+QUnit.test('a multi buildable', assert => {
+  let numeric = present(validates('numeric'));
+
   let validations = dsl({
-    name: validates('presence'),
-    email: [
-      validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+    name: presence,
+    age: numeric
+  });
+
+  let expected: ValidationDescriptors = {
+    name: [
+      {
+        field: 'name',
+        validator: { name: 'presence', args: [] },
+        keys: [],
+        contexts: []
+      }
+    ],
+    age: [
+      {
+        field: 'age',
+        validator: { name: 'presence', args: [] },
+        keys: [],
+        contexts: []
+      },
+      {
+        field: 'age',
+        validator: { name: 'numeric', args: [] },
+        keys: [],
+        contexts: []
+      }
     ]
+  };
+
+  assert.deepEqual(validations, expected);
+});
+
+QUnit.test('the basic scenario', assert => {
+  let validations = dsl({
+    name: presence,
+    email: email(['.com', '.net', '.org', '.edu', '.gov'])
   });
 
   let expected: ValidationDescriptors = {
@@ -49,13 +88,12 @@ QUnit.test('dependent keys', assert => {
     /must provide at least one dependent key/
   );
 
+  let confirmation = multi().add(presence).add(validates('confirmation'));
+
   let validations = dsl({
-    name: validates('presence').keys('firstName', 'lastName'),
-    email: [
-      validates('presence'),
-      validates('email'),
-    ],
-    emailConfirmation: validates('confirmation').keys('email')
+    name: presence.keys('firstName', 'lastName'),
+    email: email(),
+    emailConfirmation: confirmation.keys('email')
   });
 
   let expected: ValidationDescriptors = {
@@ -84,6 +122,12 @@ QUnit.test('dependent keys', assert => {
     emailConfirmation: [
       {
         field: 'emailConfirmation',
+        validator: { name: 'presence', args: [] },
+        keys: ['email'],
+        contexts: []
+      },
+      {
+        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
@@ -101,11 +145,8 @@ QUnit.test('validation contexts', assert => {
   );
 
   let validations = dsl({
-    name: validates('presence').on('create', 'update'),
-    email: on('create').do([
-      validates('presence'),
-      validates('email'),
-    ]),
+    name: presence.on('create', 'update'),
+    email: on('create').do(email()),
   });
 
   let expected: ValidationDescriptors = {
@@ -136,10 +177,8 @@ QUnit.test('validation contexts', assert => {
   assert.deepEqual(validations, expected);
 });
 
-
 QUnit.test('"keys" does not mutate previously defined builder', assert => {
-  let presence = validates('presence');
-  let presenceWithKeys = presence.keys('firstName', 'lastName');
+  let presenceWithKeys = multi().add(presence.keys('firstName', 'lastName'));
 
   let validations = dsl({
     name: presence,
@@ -168,10 +207,8 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
   assert.deepEqual(validations, expected);
 });
 
-
 QUnit.test('"on" does not mutate previously defined builder', assert => {
-  let presence = validates('presence');
-  let presenceWithContext = presence.on('create');
+  let presenceWithContext = multi().add(presence.on('create'));
 
   let validations = dsl({
     name: presence,
@@ -193,6 +230,65 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create']
+      }
+    ]
+  };
+
+  assert.deepEqual(validations, expected);
+});
+
+QUnit.test('nested multis', assert => {
+  let string = present(validates('string'));
+  let email = multi().add(string).add(validates('email'));
+  let confirmation = present(validates('confirmation'));
+
+  let validations = dsl({
+    name: presence.keys('firstName', 'lastName'),
+    email: email.keys('name').on('create'),
+    emailConfirmation: confirmation.keys('email')
+  });
+
+  let expected: ValidationDescriptors = {
+    name: [
+      {
+        field: 'name',
+        validator: { name: 'presence', args: [] },
+        keys: ['firstName', 'lastName'],
+        contexts: []
+      }
+    ],
+    email: [
+      {
+        field: 'email',
+        validator: { name: 'presence', args: [] },
+        keys: ['name'],
+        contexts: ['create']
+      },
+      {
+        field: 'email',
+        validator: { name: 'string', args: [] },
+        keys: ['name'],
+        contexts: ['create']
+      },
+      {
+        field: 'email',
+        validator: { name: 'email', args: [] },
+        keys: ['name'],
+        contexts: ['create']
+      }
+    ],
+    emailConfirmation: [
+      {
+        field: 'emailConfirmation',
+        validator: { name: 'presence', args: [] },
+        keys: ['email'],
+        contexts: []
+      },
+      {
+        field: 'emailConfirmation',
+        validator: { name: 'confirmation', args: [] },
+        keys: ['email'],
+        contexts: []
       }
     ]
   };
