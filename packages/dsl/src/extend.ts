@@ -1,135 +1,130 @@
 import { ValidationBuilderDSL, ValidationDescriptor, ValidationDescriptors } from './dsl';
-import { Dict, Nested, assert, flatten } from './utils';
-import { cloneDeep } from 'lodash';
+import { Dict, Nested, assert, flatten, dict, Maybe } from './utils';
+
+export interface ValidationExtensionsDSL {
+  merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
+}
+
+export type Extension = ValidationExtensionsDSL | Nested<ValidationBuilderDSL>;
+
+export type FieldsExtensionsDSL = Dict<Extension>;
 
 export default function extend(parent: ValidationDescriptors, extensions: FieldsExtensionsDSL): ValidationDescriptors {
-  let existingDescriptors: ValidationDescriptors = cloneDeep(parent);
+  let extended: ValidationDescriptors = dict();
 
-  for (let extensionField of Object.keys(extensions)) {
-    if (parent[extensionField]) {
-      existingDescriptors = mergeExtensions(extensionField, existingDescriptors, extensions);
-    } else {
-      existingDescriptors[extensionField] = buildValidators(extensionField, existingDescriptors, extensions);
+  let fields = new Set([...Object.keys(parent), ...Object.keys(extensions)]);
+
+  for (let field of fields) {
+    let extension = normalize(extensions[field]);
+    let descriptors = extension.merge(field, parent[field] || []);
+
+    if (descriptors.length) {
+      extended[field] = descriptors;
     }
   }
 
-  return existingDescriptors;
+  return extended;
 }
 
-export type FieldsExtensionsDSL = Dict<Nested<ValidationBuilderDSL>>;
-
-function mergeExtensions(extensionField: string, existingDescriptors: ValidationDescriptors, extensions: FieldsExtensionsDSL): ValidationDescriptors {
-  for (let merger of flatten(extensions[extensionField])) {
-    existingDescriptors = merger.merge(extensionField, existingDescriptors);
+function normalize(extension: Extension = new Keep()): ValidationExtensionsDSL {
+  if (isValidationExtension(extension)) {
+    return extension;
+  } else {
+    return new NewField(extension);
   }
-  return existingDescriptors;
 }
 
-function buildValidators(extensionField: string, existingDescriptors: ValidationDescriptors, extensions: FieldsExtensionsDSL): ValidationDescriptor[] {
-  let validators: ValidationDescriptor[] = existingDescriptors[extensionField] = [];
-
-  for (let builder of flatten(extensions[extensionField])) {
-    validators.push(...flatten(builder.build(extensionField)));
-  }
-  return validators;
+function isValidationExtension(value: Extension): value is ValidationExtensionsDSL {
+  return typeof (value as any)['merge'] === 'function';
 }
 
-export function append(validations: Nested<ValidationBuilderDSL>) {
+export function append(validations: Nested<ValidationBuilderDSL>): ValidationExtensionsDSL {
   return new Append(validations);
 }
 
-export class Append implements ValidationBuilderDSL {
-  constructor(private validations: Nested<ValidationBuilderDSL>) {
-  }
+class Append implements ValidationExtensionsDSL {
+  constructor(private validations: Nested<ValidationBuilderDSL>) {}
 
-  keys(...keys: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
+  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+    if (existing.length === 0) {
+      throw new Error(`cannot use \`append()\` when there are no existing validations defined for \`${field}\``);
+    }
 
-  on(...contexts: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
-
-  build(field: string): ValidationDescriptor {
-    throw new Error(`cannot use \`append()\` when there are no existing validations defined for \`${field}\``);
-  }
-
-  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (Array.isArray(this.validations) && this.validations.length === 0) {
       throw new Error(`cannot use \`append()\` to add zero validations for \`${field}\``);
     }
 
-    let validators: ValidationDescriptor[] = existing[field];
+    let descriptors = [...existing];
 
     for (let builder of flatten(this.validations)) {
-      validators.push(...flatten(builder.build(field)));
+      descriptors.push(...flatten(builder.build(field)));
     }
 
-    existing[field] = validators;
-
-    return existing;
+    return descriptors;
   }
 }
 
-export function replace(validations: Nested<ValidationBuilderDSL>) {
+export function replace(validations: Nested<ValidationBuilderDSL>): ValidationExtensionsDSL {
   return new Replace(validations);
 }
 
-export class Replace implements ValidationBuilderDSL {
-  constructor(private validations: Nested<ValidationBuilderDSL>) {
-  }
+class Replace implements ValidationExtensionsDSL {
+  constructor(private validations: Nested<ValidationBuilderDSL>) {}
 
-  keys(...keys: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
+  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+    if (existing.length === 0) {
+      throw new Error(`cannot use \`replace()\` when there are no existing validations defined for \`${field}\``);
+    }
 
-  on(...contexts: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
-
-  build(field: string): ValidationDescriptor {
-    throw new Error(`cannot use \`replace()\` when there are no existing validations defined for \`${field}\``);
-  }
-
-  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (Array.isArray(this.validations) && this.validations.length === 0) {
       throw new Error(`cannot use \`replace()\` to remove all validations for \`${field}\``);
     }
 
-    let validators: ValidationDescriptor[] = [];
+    let descriptors: ValidationDescriptor[] = [];
 
     for (let builder of flatten(this.validations)) {
-      validators.push(...flatten(builder.build(field)));
+      descriptors.push(...flatten(builder.build(field)));
     }
 
-    existing[field] = validators;
+    return descriptors;
+  }
+}
 
+class NewField implements ValidationExtensionsDSL {
+  constructor(private validations: Nested<ValidationBuilderDSL>) {}
+
+  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+    if (existing.length > 0) {
+      throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
+    }
+
+    let descriptors: ValidationDescriptor[] = [];
+
+    for (let builder of flatten(this.validations)) {
+      descriptors.push(...flatten(builder.build(field)));
+    }
+
+    return descriptors;
+  }
+}
+
+class Keep implements ValidationExtensionsDSL {
+  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     return existing;
   }
 }
 
-export function remove() {
+export function remove(): ValidationExtensionsDSL {
   return new Remove();
 }
 
-export class Remove implements ValidationBuilderDSL {
-  constructor() {
-  }
+class Remove implements ValidationExtensionsDSL {
+  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+    if (existing.length === 0) {
+      throw new Error(`cannot use \`remove()\` when there are no existing validations defined for \`${field}\``);
+    }
 
-  keys(...keys: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
-
-  on(...contexts: string[]): ValidationBuilderDSL {
-    throw `not implemented`;
-  }
-
-  build(field: string): ValidationDescriptor {
-    throw new Error(`cannot use \`remove()\` when there are no existing validations defined for \`${field}\``);
-  }
-
-  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
-    delete existing[field];
-    return existing;
+    return [];
   }
 }
+

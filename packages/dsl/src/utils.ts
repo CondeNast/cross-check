@@ -1,9 +1,9 @@
 export type Option<T> = T | null;
-
+export type Maybe<T> = T | undefined;
 export type Opaque = {} | void | null | undefined;
 
 export interface Dict<T = Opaque> {
-  [key: string]: T;
+  [key: string]: Maybe<T>;
 }
 
 export interface Constructor<T> {

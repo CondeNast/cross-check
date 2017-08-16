@@ -6,7 +6,7 @@ export default function normalize(fields: FieldsDSL): ValidationDescriptors {
   for (let field of Object.keys(fields)) {
     let validators: ValidationDescriptor[] = descriptors[field] = [];
 
-    for (let builder of flatten(fields[field])) {
+    for (let builder of flatten(fields[field]!)) {
       validators.push(...flatten(builder.build(field)));
     }
   }
@@ -29,7 +29,6 @@ export interface ValidationBuilderDSL {
   keys(...keys: string[]): ValidationBuilderDSL;
   on(...contexts: string[]): ValidationBuilderDSL;
   build(field: string): Nested<ValidationDescriptor>;
-  merge(field: string, descriptors: ValidationDescriptors): ValidationDescriptors;
 }
 
 export interface ValidationContextDSL {
@@ -45,15 +44,10 @@ export type ValidationDescriptor = Readonly<{
   contexts: ReadonlyArray<string>;
 }>;
 
-
 abstract class CustomValidationBuilder implements ValidationBuilderDSL {
   abstract build(field: string): Nested<Readonly<ValidationDescriptor>>;
   abstract keys(...keys: string[]): this;
   abstract on(...contexts: string[]): this;
-
-  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
-    throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
-  }
 }
 
 class MultiValidationBuilder extends CustomValidationBuilder {
@@ -82,7 +76,7 @@ class MultiValidationBuilder extends CustomValidationBuilder {
     return new Class(validations);
   }
 
-  build(field: string): Nested<Readonly<ValidationDescriptor>> {
+  build(field: string): Nested<ValidationDescriptor> {
     return this.validations.map(validation => validation.build(field));
   }
 }
@@ -117,10 +111,6 @@ class ValidationBuilder extends CustomValidationBuilder {
 
   build(field: string): Readonly<ValidationDescriptor> {
     return descriptor(field, this.name, this.args, this.keyList, this.contexts);
-  }
-
-  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
-    throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
   }
 
   protected clone(callback: (builder: this) => void): this {

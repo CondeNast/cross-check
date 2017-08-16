@@ -22,8 +22,6 @@
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "qunitjs": "^2.4.0",
-    "@types/lodash": "^4.14.71",
-    "lodash": "^4.17.4",
     "shelljs": "^0.7.8",
     "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
