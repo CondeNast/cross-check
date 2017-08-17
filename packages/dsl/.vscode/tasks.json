@@ -4,22 +4,48 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build",
+      "label": "Type Check",
       "type": "npm",
-      "script": "build",
+      "script": "problems",
+      "problemMatcher": "$tsc",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared"
+      },
       "group": {
         "kind": "build",
         "isDefault": true
       }
     },
     {
-      "label": "test",
+      "label": "Full Build",
       "type": "npm",
-      "script": "test",
+      "script": "build",
+      "group": "build"
+    },
+    {
+      "label": "Build Tests",
+      "type": "npm",
+      "script": "build-tests",
+      "group": "build"
+    },
+    {
+      "label": "TDD",
+      "type": "npm",
+      "script": "tdd",
+      "isBackground": true,
       "group": {
         "kind": "test",
         "isDefault": true
       }
+    },
+    {
+      "label": "Run Tests",
+      "type": "npm",
+      "script": "test",
+      "group": "test"
     }
   ]
 }

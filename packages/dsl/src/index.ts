@@ -17,3 +17,5 @@ export {
   remove,
   FieldsExtensionsDSL
 } from './extend';
+
+export * from './utils';

@@ -1,4 +1,4 @@
-import { Nested, flatten } from '../src/utils';
+import { Nested, flatten } from '@validations/dsl';
 
 QUnit.module('Utils');
 
