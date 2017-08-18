@@ -1,10 +1,8 @@
 import dsl, {
-  validates, multi, ValidationDescriptors, on
+  ValidationDescriptors, multi, on, validates
 } from '@validations/dsl';
 
-import { Multi } from './support';
-
-const { present, presence, email } = Multi;
+import { email, presence, present } from './support';
 
 QUnit.module('multi() - basic');
 
@@ -238,13 +236,13 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
 });
 
 QUnit.test('nested multis', assert => {
-  let string = present(validates('string'));
-  let email = multi().add(string).add(validates('email'));
+  let validatesString = present(validates('string'));
+  let validatesEmail = multi().add(validatesString).add(validates('email'));
   let confirmation = present(validates('confirmation'));
 
   let validations = dsl({
     name: presence.keys('firstName', 'lastName'),
-    email: email.keys('name').on('create'),
+    email: validatesEmail.keys('name').on('create'),
     emailConfirmation: confirmation.keys('email')
   });
 

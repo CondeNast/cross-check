@@ -1,4 +1,4 @@
-import dsl, { on, validates, ValidationDescriptors } from '@validations/dsl';
+import dsl, { ValidationDescriptors, on, validates } from '@validations/dsl';
 
 QUnit.module('DSL');
 
@@ -136,7 +136,6 @@ QUnit.test('validation contexts', assert => {
   assert.deepEqual(validations, expected);
 });
 
-
 QUnit.test('"keys" does not mutate previously defined builder', assert => {
   let presence = validates('presence');
   let presenceWithKeys = presence.keys('firstName', 'lastName');
@@ -167,7 +166,6 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
 
   assert.deepEqual(validations, expected);
 });
-
 
 QUnit.test('"on" does not mutate previously defined builder', assert => {
   let presence = validates('presence');

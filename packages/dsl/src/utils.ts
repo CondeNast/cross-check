@@ -15,7 +15,7 @@ export function dict<T = Opaque>(): Dict<T> {
 }
 
 export type Nested<T> = T | NestedArray<T>;
-export interface NestedArray<T> extends Array<Nested<T>> {};
+export interface NestedArray<T> extends Array<Nested<T>> {}
 
 export function *flatten<T>(nested: Nested<T>): Iterable<T> {
   if (Array.isArray(nested)) {

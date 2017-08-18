@@ -1,5 +1,5 @@
 import { ValidationBuilderDSL, ValidationDescriptor, ValidationDescriptors } from './dsl';
-import { Dict, Nested, assert, flatten, dict, Maybe } from './utils';
+import { Dict, Maybe, Nested, assert, dict, flatten } from './utils';
 
 export interface ValidationExtensionsDSL {
   merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
@@ -35,7 +35,7 @@ function normalize(extension: Extension = new Keep()): ValidationExtensionsDSL {
 }
 
 function isValidationExtension(value: Extension): value is ValidationExtensionsDSL {
-  return typeof (value as any)['merge'] === 'function';
+  return typeof (value as any).merge === 'function';
 }
 
 export function append(validations: Nested<ValidationBuilderDSL>): ValidationExtensionsDSL {
@@ -95,6 +95,7 @@ class NewField implements ValidationExtensionsDSL {
 
   merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     if (existing.length > 0) {
+      // tslint:disable-next-line:max-line-length
       throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
     }
 
@@ -127,4 +128,3 @@ class Remove implements ValidationExtensionsDSL {
     return [];
   }
 }
-

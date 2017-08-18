@@ -9,8 +9,14 @@
   "main": "dist/commonjs/src/index.js",
   "module": "dist/modules/src/index.js",
   "types": "dist/types/src/index.d.ts",
+  "ember-addon": {
+    "main": "ember-addon.js"
+  },
+  "keywords": [
+    "ember-addon"
+  ],
   "scripts": {
-    "problems": "tsc -p tsconfig.json --noEmit",
+    "problems": "node ./scripts/problems.js",
     "preversion": "npm run test",
     "prepack": "ember build -prod",
     "build": "ember build -prod",
@@ -26,10 +32,12 @@
     "broccoli-funnel": "^1.2.0",
     "broccoli-merge-trees": "^2.0.0",
     "broccoli-typescript-compiler": "^2.0.0",
+    "ember-cli": "^2.14.2",
     "qunitjs": "^2.4.0",
+    "shelljs": "^0.7.8",
+    "tslint": "^5.6.0",
     "typedoc": "^0.8.0",
     "typescript": "^2.4.2",
-    "ember-cli": "^2.14.2",
     "webpack": "^3.5.5"
   },
   "dependencies": {}

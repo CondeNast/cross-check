@@ -1,10 +1,8 @@
-import dsl, { extend, replace, append, remove, validates, ValidationDescriptors, multi } from '@validations/dsl';
+import dsl, { ValidationDescriptors, append, extend, multi, remove, replace, validates } from '@validations/dsl';
 
-import { Multi } from './support';
+import { confirmation, email, presence, present } from './support';
 
 QUnit.module('multi() - extensions');
-
-const { present, presence, confirmation, email } = Multi;
 
 QUnit.test('introducing new fields', assert => {
   let parent = dsl({
@@ -15,7 +13,7 @@ QUnit.test('introducing new fields', assert => {
   let password = present(validates('password', { lowerCase: true, upperCase: true, numbers: true, symbols: true }));
 
   let child = extend(parent, {
-    password: password,
+    password,
     passwordConfirmation: confirmation.keys('password')
   });
 
@@ -86,6 +84,7 @@ QUnit.test('must use append/replace to modify existing validations', assert => {
     extend(parent, {
       name: validates('length', 6)
     });
+  // tslint:disable-next-line:max-line-length
   }, /`name` already has existing validations; use `append\(\)` or `replace\(\)` to add or completely replace validations/);
 });
 

@@ -1,4 +1,4 @@
-import dsl, { extend, replace, append, remove, validates, ValidationDescriptors } from '@validations/dsl';
+import dsl, { ValidationDescriptors, append, extend, remove, replace, validates } from '@validations/dsl';
 
 QUnit.module('extensions');
 
@@ -86,6 +86,7 @@ QUnit.test('must use append/replace to modify existing validations', assert => {
     extend(parent, {
       name: validates('length', 6)
     });
+  // tslint:disable-next-line:max-line-length
   }, /`name` already has existing validations; use `append\(\)` or `replace\(\)` to add or completely replace validations/);
 });
 
