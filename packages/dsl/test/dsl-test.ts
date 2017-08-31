@@ -7,7 +7,7 @@ QUnit.test('basic DSL', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ]
   });
 
@@ -53,7 +53,7 @@ QUnit.test('dependent keys', assert => {
     name: validates('presence').keys('firstName', 'lastName'),
     email: [
       validates('presence'),
-      validates('email'),
+      validates('email')
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -104,8 +104,8 @@ QUnit.test('validation contexts', assert => {
     name: validates('presence').on('create', 'update'),
     email: on('create').do([
       validates('presence'),
-      validates('email'),
-    ]),
+      validates('email')
+    ])
   });
 
   let expected: ValidationDescriptors = {

@@ -5,8 +5,8 @@ import { MultiValidationDSL, ValidationBuilderDSL, multi, validates } from '@val
 //
 // It probably makes sense to convert this into a class-based test harness. TODO.
 
-export const confirmation = multi().add(validates('confirmation'));
-export const presence = multi().add(validates('presence'));
+export const confirmation: MultiValidationDSL = multi().add(validates('confirmation'));
+export const presence: MultiValidationDSL = multi().add(validates('presence'));
 
 export function email(tlds?: string[]) {
   let validation = tlds ? validates('email', { tlds }) : validates('email');

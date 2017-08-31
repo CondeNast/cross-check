@@ -7,7 +7,7 @@ QUnit.module('multi() - extensions');
 QUnit.test('introducing new fields', assert => {
   let parent = dsl({
     name: presence,
-    email: email(['.com', '.net', '.org', '.edu', '.gov']),
+    email: email(['.com', '.net', '.org', '.edu', '.gov'])
   });
 
   let password = present(validates('password', { lowerCase: true, upperCase: true, numbers: true, symbols: true }));

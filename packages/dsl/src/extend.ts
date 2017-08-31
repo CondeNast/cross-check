@@ -1,5 +1,5 @@
 import { ValidationBuilderDSL, ValidationDescriptor, ValidationDescriptors } from './dsl';
-import { Dict, Maybe, Nested, assert, dict, flatten } from './utils';
+import { Dict, Nested, dict, flatten } from './utils';
 
 export interface ValidationExtensionsDSL {
   merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
@@ -110,7 +110,7 @@ class NewField implements ValidationExtensionsDSL {
 }
 
 class Keep implements ValidationExtensionsDSL {
-  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(_field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     return existing;
   }
 }

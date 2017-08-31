@@ -7,7 +7,7 @@ QUnit.test('introducing new fields', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ]
   });
 
@@ -95,7 +95,7 @@ QUnit.test('append new validations when none exist', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -113,7 +113,7 @@ QUnit.test('append existing validations with no validations', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -130,7 +130,7 @@ QUnit.test('append new validations', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -201,7 +201,7 @@ QUnit.test('replacing existing validations when none exist', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -219,7 +219,7 @@ QUnit.test('replacing existing validations with no validations', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -235,7 +235,7 @@ QUnit.test('replacing existing validations', assert => {
   let parent = dsl({
     name: validates('presence'),
     email: [
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -243,7 +243,7 @@ QUnit.test('replacing existing validations', assert => {
   let child = extend(parent, {
     email: replace([
       validates('presence'),
-      validates('email', { tlds: ['.com'] }),
+      validates('email', { tlds: ['.com'] })
     ]),
     emailConfirmation: replace([
       validates('presence')
@@ -290,7 +290,7 @@ QUnit.test('removing existing validations when none exist', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -308,7 +308,7 @@ QUnit.test('removing existing validations', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -316,7 +316,7 @@ QUnit.test('removing existing validations', assert => {
   let child = extend(parent, {
     email: replace([
       validates('presence'),
-      validates('email', { tlds: ['.com'] }),
+      validates('email', { tlds: ['.com'] })
     ]),
     emailConfirmation: remove()
   });
@@ -353,7 +353,7 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     name: validates('presence'),
     email: [
       validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }),
+      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
     ],
     emailConfirmation: validates('confirmation').keys('email')
   });
@@ -395,7 +395,7 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
   let child = extend(parent, {
     email: replace([
       validates('presence'),
-      validates('email', { tlds: ['.com'] }),
+      validates('email', { tlds: ['.com'] })
     ]),
     emailConfirmation: append([
       validates('presence')
