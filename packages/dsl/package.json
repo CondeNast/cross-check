@@ -29,16 +29,13 @@
   "license": "MIT",
   "devDependencies": {
     "@types/qunit": "^2.0.31",
-    "broccoli-funnel": "^1.2.0",
-    "broccoli-merge-trees": "^2.0.0",
-    "broccoli-typescript-compiler": "^2.0.0",
     "ember-cli": "^2.14.2",
+    "libkit": "^0.5.1",
     "qunitjs": "^2.4.0",
     "shelljs": "^0.7.8",
-    "tslint": "^5.6.0",
+    "tslint": "^5.7.0",
     "typedoc": "^0.8.0",
-    "typescript": "^2.4.2",
-    "webpack": "^3.5.5"
+    "typescript": "^2.4.2"
   },
   "dependencies": {}
 }

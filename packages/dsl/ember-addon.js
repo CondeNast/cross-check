@@ -1,19 +1,7 @@
 'use strict';
 
-const path = require('path');
+const { addon } = require('libkit');
 
-module.exports = {
-  name: '@validations/dsl',
-
-  setupPreprocessorRegistry(type, registry) {
-    if (type === 'self') {
-      this.treePaths.addon = path.join(__dirname, 'dist/modules/src/');
-
-      registry.add('js', {
-        name: 'babel-with-app-settings',
-        ext: 'js',
-        toTree: tree => this.project.findAddonByName('ember-cli-babel').transpileTree(tree)
-      });
-    }
-  }
-}
+module.exports = addon({
+  name: '@validations/dsl'
+});
