@@ -1,4 +1,5 @@
-import { Constructor, Dict, Nested, Opaque, assert, dict, flatten } from './utils';
+import { Constructor, Dict, assert, dict, unknown } from 'ts-std';
+import { Nested, flatten } from './utils';
 
 export default function normalize(fields: FieldsDSL): ValidationDescriptors {
   let descriptors: ValidationDescriptors = dict();
@@ -39,7 +40,7 @@ export type ValidationDescriptors = Dict<ValidationDescriptor[]>;
 
 export type ValidationDescriptor = Readonly<{
   field: string;
-  validator: Readonly<{ name: string, args: ReadonlyArray<Opaque> }>,
+  validator: Readonly<{ name: string, args: ReadonlyArray<unknown> }>,
   keys: ReadonlyArray<string>;
   contexts: ReadonlyArray<string>;
 }>;
@@ -92,7 +93,7 @@ export function multi(): MultiValidationDSL {
 class ValidationBuilder extends CustomValidationBuilder {
   constructor(
     protected name: string,
-    protected args: Opaque[],
+    protected args: unknown[],
     protected keyList: string[] = [],
     protected contexts: string[] = []
   ) {
@@ -132,7 +133,7 @@ class ValidationBuilder extends CustomValidationBuilder {
 function descriptor(
   field: string,
   name: string,
-  _args: Opaque[],
+  _args: unknown[],
   _keys: string[],
   _contexts: string[]
 ): ValidationDescriptor {

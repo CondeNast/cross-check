@@ -37,5 +37,7 @@
     "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "ts-std": "^0.5.3"
+  }
 }

@@ -1,18 +1,4 @@
-export type Option<T> = T | null;
 export type Maybe<T> = T | undefined;
-export type Opaque = {} | void | null | undefined;
-
-export interface Dict<T = Opaque> {
-  [key: string]: Maybe<T>;
-}
-
-export interface Constructor<T> {
-  new(...args: any[]): T;
-}
-
-export function dict<T = Opaque>(): Dict<T> {
-  return Object.create(null);
-}
 
 export type Nested<T> = T | NestedArray<T>;
 export interface NestedArray<T> extends Array<Nested<T>> {}
@@ -25,15 +11,4 @@ export function *flatten<T>(nested: Nested<T>): Iterable<T> {
   } else {
     yield nested;
   }
-}
-
-class AssertionFailed extends Error {
-  constructor(message?: string) {
-    super(message ? `Assertion failed: ${message}` : 'Assertion failed.');
-  }
-}
-
-/* TODO: use babel-plugin-debug-macros */
-export function assert(cond: any, message?: string) {
-  if (!cond) throw new AssertionFailed(message);
 }

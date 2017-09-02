@@ -1,5 +1,6 @@
 import { ValidationBuilderDSL, ValidationDescriptor, ValidationDescriptors } from './dsl';
-import { Dict, Nested, dict, flatten } from './utils';
+import { Nested, flatten } from './utils';
+import { Dict, dict } from 'ts-std';
 
 export interface ValidationExtensionsDSL {
   merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
