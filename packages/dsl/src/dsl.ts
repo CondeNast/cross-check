@@ -1,22 +1,17 @@
 import { Constructor, Dict, assert, dict, unknown } from 'ts-std';
-import { Nested, flatten } from './utils';
 
 export default function normalize(fields: FieldsDSL): ValidationDescriptors {
   let descriptors: ValidationDescriptors = dict();
 
   for (let field of Object.keys(fields)) {
-    let validators: ValidationDescriptor[] = descriptors[field] = [];
-
-    for (let builder of flatten(fields[field]!)) {
-      validators.push(...flatten(builder.build(field)));
-    }
+    descriptors[field] = build(fields[field]!, field);
   }
 
   return descriptors;
 }
 
-export function validates(name: string, ...args: any[]): ValidationBuilderDSL {
-  return new ValidationBuilder(name, args);
+export function validates(name: string, ...args: any[]): ValidationBuilder {
+  return new SingleValidationBuilder(name, args);
 }
 
 export function on(...contexts: string[]): ValidationContextDSL {
@@ -24,39 +19,41 @@ export function on(...contexts: string[]): ValidationContextDSL {
   return new ValidationContext(contexts);
 }
 
-export type FieldsDSL = Dict<Nested<ValidationBuilderDSL>>;
+export type ValidationDSL = ValidationBuilder | ValidationBuilder[];
 
-export interface ValidationBuilderDSL {
-  keys(...keys: string[]): ValidationBuilderDSL;
-  on(...contexts: string[]): ValidationBuilderDSL;
-  build(field: string): Nested<ValidationDescriptor>;
+export type FieldsDSL = Readonly<Dict<ValidationDSL>>;
+
+export interface ValidationBuilder {
+  keys(...keys: string[]): ValidationBuilder;
+  on(...contexts: string[]): ValidationBuilder;
+  build(field: string): ValidationDescriptor[];
 }
 
 export interface ValidationContextDSL {
-  do(validations: Nested<ValidationBuilderDSL>): Nested<ValidationBuilderDSL>;
+  do(validations: ReadonlyArray<ValidationBuilder>): ValidationBuilder[];
 }
 
 export type ValidationDescriptors = Dict<ValidationDescriptor[]>;
 
 export type ValidationDescriptor = Readonly<{
   field: string;
-  validator: Readonly<{ name: string, args: ReadonlyArray<unknown> }>,
+  validator: Readonly<{ name: string, args: ReadonlyArray<unknown> }>;
   keys: ReadonlyArray<string>;
   contexts: ReadonlyArray<string>;
 }>;
 
-abstract class CustomValidationBuilder implements ValidationBuilderDSL {
-  abstract build(field: string): Nested<Readonly<ValidationDescriptor>>;
+abstract class AbstractValidationBuilder implements ValidationBuilder {
+  abstract build(field: string): ValidationDescriptor[];
   abstract keys(...keys: string[]): this;
   abstract on(...contexts: string[]): this;
 }
 
-class MultiValidationBuilder extends CustomValidationBuilder {
-  constructor(protected validations: ValidationBuilderDSL[] = []) {
+class MultiValidationBuilder extends AbstractValidationBuilder {
+  constructor(protected validations: ValidationBuilder[] = []) {
     super();
   }
 
-  add(validation: ValidationBuilderDSL): this {
+  add(validation: ValidationBuilder): this {
     let Class = this.constructor as Constructor<this>;
 
     return new Class([...this.validations, validation]);
@@ -77,20 +74,24 @@ class MultiValidationBuilder extends CustomValidationBuilder {
     return new Class(validations);
   }
 
-  build(field: string): Nested<ValidationDescriptor> {
-    return this.validations.map(validation => validation.build(field));
+  build(field: string): ValidationDescriptor[] {
+    let out = [];
+    for (let validation of this.validations) {
+      out.push(...validation.build(field));
+    }
+    return out;
   }
 }
 
-export interface MultiValidationDSL extends ValidationBuilderDSL {
-  add(validation: ValidationBuilderDSL): MultiValidationDSL;
+export interface MultiValidationDSL extends ValidationBuilder {
+  add(validation: ValidationBuilder): MultiValidationDSL;
 }
 
 export function multi(): MultiValidationDSL {
   return new MultiValidationBuilder();
 }
 
-class ValidationBuilder extends CustomValidationBuilder {
+class SingleValidationBuilder extends AbstractValidationBuilder {
   constructor(
     protected name: string,
     protected args: unknown[],
@@ -110,8 +111,8 @@ class ValidationBuilder extends CustomValidationBuilder {
     return this.clone(b => b.contexts = contexts);
   }
 
-  build(field: string): Readonly<ValidationDescriptor> {
-    return descriptor(field, this.name, this.args, this.keyList, this.contexts);
+  build(field: string): Array<Readonly<ValidationDescriptor>> {
+    return [descriptor(field, this.name, this.args, this.keyList, this.contexts)];
   }
 
   protected clone(callback: (builder: this) => void): this {
@@ -149,13 +150,27 @@ class ValidationContext implements ValidationContextDSL {
   constructor(private contexts: string[]) {
   }
 
-  do(nested: Nested<ValidationBuilderDSL>): ValidationBuilderDSL[] {
-    let validations: ValidationBuilderDSL[] = [];
+  do(nested: ReadonlyArray<ValidationBuilder>): ValidationBuilder[] {
+    let validations: ValidationBuilder[] = [];
 
-    for (let builder of flatten(nested)) {
+    for (let builder of nested) {
       validations.push(builder.on(...this.contexts));
     }
 
     return validations;
+  }
+}
+
+export function build(builders: ValidationDSL, field: string): ValidationDescriptor[] {
+  if (Array.isArray(builders)) {
+    let descriptors = [];
+
+    for (let builder of builders) {
+      descriptors.push(...builder.build(field));
+    }
+
+    return descriptors;
+  } else {
+    return builders.build(field);
   }
 }

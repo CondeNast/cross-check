@@ -6,7 +6,7 @@ export {
   FieldsDSL,
   MultiValidationDSL,
   ValidationDescriptors,
-  ValidationBuilderDSL,
+  ValidationBuilder,
   ValidationDescriptor
 } from './dsl';
 
@@ -17,5 +17,3 @@ export {
   remove,
   FieldsExtensionsDSL
 } from './extend';
-
-export * from './utils';

@@ -144,7 +144,7 @@ QUnit.test('validation contexts', assert => {
 
   let validations = dsl({
     name: presence.on('create', 'update'),
-    email: on('create').do(email())
+    email: on('create').do([email()])
   });
 
   let expected: ValidationDescriptors = {

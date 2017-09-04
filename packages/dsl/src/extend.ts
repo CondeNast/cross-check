@@ -1,12 +1,11 @@
 import { Dict, dict } from 'ts-std';
-import { ValidationBuilderDSL, ValidationDescriptor, ValidationDescriptors } from './dsl';
-import { Nested, flatten } from './utils';
+import { ValidationDSL, ValidationDescriptor, ValidationDescriptors, build } from './dsl';
 
 export interface ValidationExtensionsDSL {
   merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
 }
 
-export type Extension = ValidationExtensionsDSL | Nested<ValidationBuilderDSL>;
+export type Extension = ValidationExtensionsDSL | ValidationDSL;
 
 export type FieldsExtensionsDSL = Dict<Extension>;
 
@@ -39,12 +38,12 @@ function isValidationExtension(value: Extension): value is ValidationExtensionsD
   return typeof (value as any).merge === 'function';
 }
 
-export function append(validations: Nested<ValidationBuilderDSL>): ValidationExtensionsDSL {
+export function append(validations: ValidationDSL): ValidationExtensionsDSL {
   return new Append(validations);
 }
 
 class Append implements ValidationExtensionsDSL {
-  constructor(private validations: Nested<ValidationBuilderDSL>) {}
+  constructor(private validations: ValidationDSL) {}
 
   merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     if (existing.length === 0) {
@@ -55,22 +54,16 @@ class Append implements ValidationExtensionsDSL {
       throw new Error(`cannot use \`append()\` to add zero validations for \`${field}\``);
     }
 
-    let descriptors = [...existing];
-
-    for (let builder of flatten(this.validations)) {
-      descriptors.push(...flatten(builder.build(field)));
-    }
-
-    return descriptors;
+    return [...existing, ...build(this.validations, field)];
   }
 }
 
-export function replace(validations: Nested<ValidationBuilderDSL>): ValidationExtensionsDSL {
+export function replace(validations: ValidationDSL): ValidationExtensionsDSL {
   return new Replace(validations);
 }
 
 class Replace implements ValidationExtensionsDSL {
-  constructor(private validations: Nested<ValidationBuilderDSL>) {}
+  constructor(private validations: ValidationDSL) {}
 
   merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     if (existing.length === 0) {
@@ -81,18 +74,12 @@ class Replace implements ValidationExtensionsDSL {
       throw new Error(`cannot use \`replace()\` to remove all validations for \`${field}\``);
     }
 
-    let descriptors: ValidationDescriptor[] = [];
-
-    for (let builder of flatten(this.validations)) {
-      descriptors.push(...flatten(builder.build(field)));
-    }
-
-    return descriptors;
+    return build(this.validations, field);
   }
 }
 
 class NewField implements ValidationExtensionsDSL {
-  constructor(private validations: Nested<ValidationBuilderDSL>) {}
+  constructor(private validations: ValidationDSL) {}
 
   merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
     if (existing.length > 0) {
@@ -100,13 +87,7 @@ class NewField implements ValidationExtensionsDSL {
       throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
     }
 
-    let descriptors: ValidationDescriptor[] = [];
-
-    for (let builder of flatten(this.validations)) {
-      descriptors.push(...flatten(builder.build(field)));
-    }
-
-    return descriptors;
+    return build(this.validations, field);
   }
 }
 

@@ -1,4 +1,4 @@
-import { MultiValidationDSL, ValidationBuilderDSL, multi, validates } from '@validations/dsl';
+import { MultiValidationDSL, ValidationBuilder, multi, validates } from '@validations/dsl';
 
 // this namespace provides multi() versions of the key testing validators so it's easy
 // to confirm that all of the functionality works with them.
@@ -13,6 +13,6 @@ export function email(tlds?: string[]) {
   return present(validation);
 }
 
-export function present(validator: ValidationBuilderDSL) {
+export function present(validator: ValidationBuilder) {
   return multi().add(presence).add(validator);
 }
