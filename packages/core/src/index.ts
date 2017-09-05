@@ -1,3 +1,1 @@
-export default function hello() {
-  return 'Hello from @validations/core';
-}
+export * from './descriptor';
