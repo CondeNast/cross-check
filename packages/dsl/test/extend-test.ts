@@ -1,4 +1,5 @@
-import dsl, { ValidationDescriptors, append, extend, remove, replace, validates } from '@validations/dsl';
+import { FieldValidationDescriptors } from '@validations/core';
+import dsl, { append, extend, remove, replace, validates } from '@validations/dsl';
 
 QUnit.module('extensions');
 
@@ -19,10 +20,9 @@ QUnit.test('introducing new fields', assert => {
     passwordConfirmation: validates('confirmation').keys('password')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -30,12 +30,10 @@ QUnit.test('introducing new fields', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: {
           name: 'email',
           args: [
@@ -48,12 +46,10 @@ QUnit.test('introducing new fields', assert => {
     ],
     password: [
       {
-        field: 'password',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'password',
         validator: {
           name: 'password',
           args: [
@@ -66,7 +62,6 @@ QUnit.test('introducing new fields', assert => {
     ],
     passwordConfirmation: [
       {
-        field: 'passwordConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['password'],
         contexts: []
@@ -143,22 +138,19 @@ QUnit.test('append new validations', assert => {
     email: append(validates('length', 6))
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       },
       {
-        field: 'name',
         validator: { name: 'length', args: [6] },
         keys: [],
         contexts: []
       },
       {
-        field: 'name',
         validator: { name: 'uniqueness', args: [] },
         keys: [],
         contexts: ['create']
@@ -166,18 +158,15 @@ QUnit.test('append new validations', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: { name: 'email', args: [{ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }] },
         keys: [],
         contexts: []
       },
       {
-        field: 'email',
         validator: { name: 'length', args: [6] },
         keys: [],
         contexts: []
@@ -185,7 +174,6 @@ QUnit.test('append new validations', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
@@ -250,10 +238,9 @@ QUnit.test('replacing existing validations', assert => {
     ])
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -261,12 +248,10 @@ QUnit.test('replacing existing validations', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: { name: 'email', args: [{ tlds: ['.com'] }] },
         keys: [],
         contexts: []
@@ -274,7 +259,6 @@ QUnit.test('replacing existing validations', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -321,10 +305,9 @@ QUnit.test('removing existing validations', assert => {
     emailConfirmation: remove()
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -332,12 +315,10 @@ QUnit.test('removing existing validations', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: { name: 'email', args: [{ tlds: ['.com'] }] },
         keys: [],
         contexts: []
@@ -358,10 +339,9 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     emailConfirmation: validates('confirmation').keys('email')
   });
 
-  let expectedParent: ValidationDescriptors = {
+  let expectedParent: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -369,12 +349,10 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: { name: 'email', args: [{ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }] },
         keys: [],
         contexts: []
@@ -382,7 +360,6 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
@@ -402,10 +379,9 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     ])
   });
 
-  let expectedChild: ValidationDescriptors = {
+  let expectedChild: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -413,12 +389,10 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: { name: 'email', args: [{ tlds: ['.com'] }] },
         keys: [],
         contexts: []
@@ -426,13 +400,11 @@ QUnit.test('extending existing validations does not mutate parent', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
       },
       {
-        field: 'emailConfirmation',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []

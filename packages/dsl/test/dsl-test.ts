@@ -1,4 +1,5 @@
-import dsl, { ValidationDescriptors, on, validates } from '@validations/dsl';
+import { FieldValidationDescriptors } from '@validations/core';
+import dsl, { validates } from '@validations/dsl';
 
 QUnit.module('DSL');
 
@@ -11,10 +12,9 @@ QUnit.test('basic DSL', assert => {
     ]
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -22,12 +22,10 @@ QUnit.test('basic DSL', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: {
           name: 'email',
           args: [
@@ -58,10 +56,9 @@ QUnit.test('dependent keys', assert => {
     emailConfirmation: validates('confirmation').keys('email')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
         contexts: []
@@ -69,13 +66,11 @@ QUnit.test('dependent keys', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       },
       {
-        field: 'email',
         validator: { name: 'email', args: [] },
         keys: [],
         contexts: []
@@ -83,7 +78,6 @@ QUnit.test('dependent keys', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
@@ -101,17 +95,18 @@ QUnit.test('validation contexts', assert => {
   );
 
   let validations = dsl({
-    name: validates('presence').on('create', 'update'),
-    email: on('create').do([
-      validates('presence'),
-      validates('email')
-    ])
+    name:
+      validates('presence')
+        .on('create', 'update'),
+    email:
+      validates('presence')
+        .and(validates('email'))
+        .on('create')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create', 'update']
@@ -119,13 +114,11 @@ QUnit.test('validation contexts', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create']
       },
       {
-        field: 'email',
         validator: { name: 'email', args: [] },
         keys: [],
         contexts: ['create']
@@ -145,10 +138,9 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
     nickname: presenceWithKeys
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -156,7 +148,6 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
     ],
     nickname: [
       {
-        field: 'nickname',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
         contexts: []
@@ -176,10 +167,9 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
     email: presenceWithContext
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -187,7 +177,6 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create']

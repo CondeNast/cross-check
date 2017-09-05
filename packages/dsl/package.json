@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "ember-cli": "^2.14.2",
-    "libkit": "^0.5.9",
+    "libkit": "^0.5.10",
     "qunitjs": "^2.4.0",
     "shelljs": "^0.7.8",
     "tslint": "^5.7.0",
@@ -38,6 +38,7 @@
     "typescript": "^2.4.2"
   },
   "dependencies": {
-    "ts-std": "^0.5.3"
+    "@validations/core": "file:../validations-core",
+    "ts-std": "^0.5.6"
   }
 }

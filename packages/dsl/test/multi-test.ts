@@ -1,7 +1,5 @@
-import dsl, {
-  ValidationDescriptors, multi, on, validates
-} from '@validations/dsl';
-
+import { FieldValidationDescriptors } from '@validations/core';
+import dsl, { validates } from '@validations/dsl';
 import { email, presence, present } from './support';
 
 QUnit.module('multi() - basic');
@@ -14,10 +12,9 @@ QUnit.test('a multi buildable', assert => {
     age: numeric
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -25,13 +22,11 @@ QUnit.test('a multi buildable', assert => {
     ],
     age: [
       {
-        field: 'age',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       },
       {
-        field: 'age',
         validator: { name: 'numeric', args: [] },
         keys: [],
         contexts: []
@@ -48,10 +43,9 @@ QUnit.test('the basic scenario', assert => {
     email: email(['.com', '.net', '.org', '.edu', '.gov'])
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -59,12 +53,10 @@ QUnit.test('the basic scenario', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       }, {
-        field: 'email',
         validator: {
           name: 'email',
           args: [
@@ -86,7 +78,7 @@ QUnit.test('dependent keys', assert => {
     /must provide at least one dependent key/
   );
 
-  let confirmation = multi().add(presence).add(validates('confirmation'));
+  let confirmation = presence.and(validates('confirmation'));
 
   let validations = dsl({
     name: presence.keys('firstName', 'lastName'),
@@ -94,10 +86,9 @@ QUnit.test('dependent keys', assert => {
     emailConfirmation: confirmation.keys('email')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
         contexts: []
@@ -105,13 +96,11 @@ QUnit.test('dependent keys', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
       },
       {
-        field: 'email',
         validator: { name: 'email', args: [] },
         keys: [],
         contexts: []
@@ -119,13 +108,11 @@ QUnit.test('dependent keys', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'presence', args: [] },
         keys: ['email'],
         contexts: []
       },
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []
@@ -144,13 +131,12 @@ QUnit.test('validation contexts', assert => {
 
   let validations = dsl({
     name: presence.on('create', 'update'),
-    email: on('create').do([email()])
+    email: email().on('create')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create', 'update']
@@ -158,13 +144,11 @@ QUnit.test('validation contexts', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create']
       },
       {
-        field: 'email',
         validator: { name: 'email', args: [] },
         keys: [],
         contexts: ['create']
@@ -176,17 +160,16 @@ QUnit.test('validation contexts', assert => {
 });
 
 QUnit.test('"keys" does not mutate previously defined builder', assert => {
-  let presenceWithKeys = multi().add(presence.keys('firstName', 'lastName'));
+  let presenceWithKeys = presence.keys('firstName', 'lastName');
 
   let validations = dsl({
     name: presence,
     nickname: presenceWithKeys
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -194,7 +177,6 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
     ],
     nickname: [
       {
-        field: 'nickname',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
         contexts: []
@@ -206,17 +188,16 @@ QUnit.test('"keys" does not mutate previously defined builder', assert => {
 });
 
 QUnit.test('"on" does not mutate previously defined builder', assert => {
-  let presenceWithContext = multi().add(presence.on('create'));
+  let presenceWithContext = presence.on('create');
 
   let validations = dsl({
     name: presence,
     email: presenceWithContext
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: []
@@ -224,7 +205,6 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: [],
         contexts: ['create']
@@ -237,7 +217,7 @@ QUnit.test('"on" does not mutate previously defined builder', assert => {
 
 QUnit.test('nested multis', assert => {
   let validatesString = present(validates('string'));
-  let validatesEmail = multi().add(validatesString).add(validates('email'));
+  let validatesEmail = validatesString.and(validates('email'));
   let confirmation = present(validates('confirmation'));
 
   let validations = dsl({
@@ -246,10 +226,9 @@ QUnit.test('nested multis', assert => {
     emailConfirmation: confirmation.keys('email')
   });
 
-  let expected: ValidationDescriptors = {
+  let expected: FieldValidationDescriptors = {
     name: [
       {
-        field: 'name',
         validator: { name: 'presence', args: [] },
         keys: ['firstName', 'lastName'],
         contexts: []
@@ -257,19 +236,16 @@ QUnit.test('nested multis', assert => {
     ],
     email: [
       {
-        field: 'email',
         validator: { name: 'presence', args: [] },
         keys: ['name'],
         contexts: ['create']
       },
       {
-        field: 'email',
         validator: { name: 'string', args: [] },
         keys: ['name'],
         contexts: ['create']
       },
       {
-        field: 'email',
         validator: { name: 'email', args: [] },
         keys: ['name'],
         contexts: ['create']
@@ -277,13 +253,11 @@ QUnit.test('nested multis', assert => {
     ],
     emailConfirmation: [
       {
-        field: 'emailConfirmation',
         validator: { name: 'presence', args: [] },
         keys: ['email'],
         contexts: []
       },
       {
-        field: 'emailConfirmation',
         validator: { name: 'confirmation', args: [] },
         keys: ['email'],
         contexts: []

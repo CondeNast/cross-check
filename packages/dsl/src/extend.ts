@@ -1,16 +1,18 @@
+import { FieldValidationDescriptors, ValidationDescriptors } from '@validations/core';
 import { Dict, dict } from 'ts-std';
-import { ValidationDSL, ValidationDescriptor, ValidationDescriptors, build } from './dsl';
+import { ValidationBuilders } from './builders';
+import { build } from './internal';
 
 export interface ValidationExtensionsDSL {
-  merge(field: string, descriptors: ValidationDescriptor[]): ValidationDescriptor[];
+  merge(field: string, descriptors: ValidationDescriptors): ValidationDescriptors;
 }
 
-export type Extension = ValidationExtensionsDSL | ValidationDSL;
+export type Extension = ValidationExtensionsDSL | ValidationBuilders;
 
 export type FieldsExtensionsDSL = Dict<Extension>;
 
-export default function extend(parent: ValidationDescriptors, extensions: FieldsExtensionsDSL): ValidationDescriptors {
-  let extended: ValidationDescriptors = dict();
+export default function extend(parent: FieldValidationDescriptors, extensions: FieldsExtensionsDSL): FieldValidationDescriptors {
+  let extended = dict<ValidationDescriptors>();
 
   let fields = new Set([...Object.keys(parent), ...Object.keys(extensions)]);
 
@@ -38,14 +40,14 @@ function isValidationExtension(value: Extension): value is ValidationExtensionsD
   return typeof (value as any).merge === 'function';
 }
 
-export function append(validations: ValidationDSL): ValidationExtensionsDSL {
+export function append(validations: ValidationBuilders): ValidationExtensionsDSL {
   return new Append(validations);
 }
 
 class Append implements ValidationExtensionsDSL {
-  constructor(private validations: ValidationDSL) {}
+  constructor(private validations: ValidationBuilders) {}
 
-  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (existing.length === 0) {
       throw new Error(`cannot use \`append()\` when there are no existing validations defined for \`${field}\``);
     }
@@ -54,18 +56,18 @@ class Append implements ValidationExtensionsDSL {
       throw new Error(`cannot use \`append()\` to add zero validations for \`${field}\``);
     }
 
-    return [...existing, ...build(this.validations, field)];
+    return [...existing, ...build(this.validations)];
   }
 }
 
-export function replace(validations: ValidationDSL): ValidationExtensionsDSL {
+export function replace(validations: ValidationBuilders): ValidationExtensionsDSL {
   return new Replace(validations);
 }
 
 class Replace implements ValidationExtensionsDSL {
-  constructor(private validations: ValidationDSL) {}
+  constructor(private validations: ValidationBuilders) {}
 
-  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (existing.length === 0) {
       throw new Error(`cannot use \`replace()\` when there are no existing validations defined for \`${field}\``);
     }
@@ -74,25 +76,25 @@ class Replace implements ValidationExtensionsDSL {
       throw new Error(`cannot use \`replace()\` to remove all validations for \`${field}\``);
     }
 
-    return build(this.validations, field);
+    return build(this.validations);
   }
 }
 
 class NewField implements ValidationExtensionsDSL {
-  constructor(private validations: ValidationDSL) {}
+  constructor(private validations: ValidationBuilders) {}
 
-  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (existing.length > 0) {
       // tslint:disable-next-line:max-line-length
       throw new Error(`\`${field}\` already has existing validations; use \`append()\` or \`replace()\` to add or completely replace validations`);
     }
 
-    return build(this.validations, field);
+    return build(this.validations);
   }
 }
 
 class Keep implements ValidationExtensionsDSL {
-  merge(_field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(_field: string, existing: ValidationDescriptors): ValidationDescriptors {
     return existing;
   }
 }
@@ -102,7 +104,7 @@ export function remove(): ValidationExtensionsDSL {
 }
 
 class Remove implements ValidationExtensionsDSL {
-  merge(field: string, existing: ValidationDescriptor[]): ValidationDescriptor[] {
+  merge(field: string, existing: ValidationDescriptors): ValidationDescriptors {
     if (existing.length === 0) {
       throw new Error(`cannot use \`remove()\` when there are no existing validations defined for \`${field}\``);
     }
