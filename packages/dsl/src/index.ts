@@ -1,4 +1,2 @@
-export { default } from './dsl';
-export * from './extend';
-export { default as extend } from './extend';
+export { default as default } from './build';
 export * from './builders';

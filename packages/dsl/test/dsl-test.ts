@@ -1,188 +1,150 @@
-import { FieldValidationDescriptors } from '@validations/core';
-import dsl, { validates } from '@validations/dsl';
+import { ValidationDescriptors } from '@validations/core';
+import validates from '@validations/dsl';
+import { email, factory, presence, uniqueness } from './support';
 
 QUnit.module('DSL');
 
 QUnit.test('basic DSL', assert => {
-  let validations = dsl({
-    name: validates('presence'),
-    email: [
-      validates('presence'),
-      validates('email', { tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
-    ]
-  });
+  let validations = validates(
+    presence(),
+    email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] })
+  );
 
-  let expected: FieldValidationDescriptors = {
-    name: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: []
-      }
-    ],
-    email: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: []
-      }, {
-        validator: {
-          name: 'email',
-          args: [
-            { tlds: ['.com', '.net', '.org', '.edu', '.gov'] }
-          ]
-        },
-        keys: [],
-        contexts: []
-      }
-    ]
-  };
+  let expected: ValidationDescriptors = [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: []
+    }, {
+      factory: factory('email'),
+      options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
+      contexts: []
+    }
+  ];
 
   assert.deepEqual(validations, expected);
 });
 
-QUnit.test('dependent keys', assert => {
-  assert.throws(
-    () => validates('foo').keys(),
-    /must provide at least one dependent key/
+QUnit.test('chaining', assert => {
+  let validations = validates(
+    presence()
+      .and(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
+      .and(uniqueness())
   );
 
-  let validations = dsl({
-    name: validates('presence').keys('firstName', 'lastName'),
-    email: [
-      validates('presence'),
-      validates('email')
-    ],
-    emailConfirmation: validates('confirmation').keys('email')
-  });
-
-  let expected: FieldValidationDescriptors = {
-    name: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: ['firstName', 'lastName'],
-        contexts: []
-      }
-    ],
-    email: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: []
-      },
-      {
-        validator: { name: 'email', args: [] },
-        keys: [],
-        contexts: []
-      }
-    ],
-    emailConfirmation: [
-      {
-        validator: { name: 'confirmation', args: [] },
-        keys: ['email'],
-        contexts: []
-      }
-    ]
-  };
+  let expected: ValidationDescriptors = [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: []
+    }, {
+      factory: factory('email'),
+      options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
+      contexts: []
+    }, {
+      factory: factory('uniqueness'),
+      options: undefined,
+      contexts: []
+    }
+  ];
 
   assert.deepEqual(validations, expected);
 });
 
 QUnit.test('validation contexts', assert => {
   assert.throws(
-    () => validates('foo').on(),
+    () => presence().on(),
     /must provide at least one validation context/
   );
 
-  let validations = dsl({
-    name:
-      validates('presence')
-        .on('create', 'update'),
-    email:
-      validates('presence')
-        .and(validates('email'))
-        .on('create')
-  });
+  let validations = validates(
+    presence().and(email({ tlds: ['.com'] })).on('create', 'update'),
+    uniqueness().on('create')
+  );
 
-  let expected: FieldValidationDescriptors = {
-    name: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: ['create', 'update']
-      }
-    ],
-    email: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: ['create']
-      },
-      {
-        validator: { name: 'email', args: [] },
-        keys: [],
-        contexts: ['create']
-      }
-    ]
-  };
+  let expected: ValidationDescriptors = [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: ['create', 'update']
+    }, {
+      factory: factory('email'),
+      options: { tlds: ['.com'] },
+      contexts: ['create', 'update']
+    }, {
+      factory: factory('uniqueness'),
+      options: undefined,
+      contexts: ['create']
+    }
+  ];
 
   assert.deepEqual(validations, expected);
 });
 
-QUnit.test('"keys" does not mutate previously defined builder', assert => {
-  let presence = validates('presence');
-  let presenceWithKeys = presence.keys('firstName', 'lastName');
+QUnit.test('"and" does not mutate previously defined builder', assert => {
+  let present = presence();
+  let presentAndEmail = present.and(email({ tlds: ['.com'] }));
+  let presentAndUnique = present.and(uniqueness());
 
-  let validations = dsl({
-    name: presence,
-    nickname: presenceWithKeys
-  });
+  assert.deepEqual(validates(present), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+    contexts: []
+    }
+  ]);
 
-  let expected: FieldValidationDescriptors = {
-    name: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: []
-      }
-    ],
-    nickname: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: ['firstName', 'lastName'],
-        contexts: []
-      }
-    ]
-  };
+  assert.deepEqual(validates(presentAndEmail), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: []
+    }, {
+      factory: factory('email'),
+      options: { tlds: ['.com'] },
+      contexts: []
+    }
+  ]);
 
-  assert.deepEqual(validations, expected);
+  assert.deepEqual(validates(presentAndUnique), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: []
+    }, {
+      factory: factory('uniqueness'),
+      options: undefined,
+      contexts: []
+    }
+  ]);
 });
 
 QUnit.test('"on" does not mutate previously defined builder', assert => {
-  let presence = validates('presence');
-  let presenceWithContext = presence.on('create');
+  let present = presence();
+  let presentOnCreate = present.on('create');
+  let presentOnUpdate = present.on('update');
 
-  let validations = dsl({
-    name: presence,
-    email: presenceWithContext
-  });
+  assert.deepEqual(validates(present), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+    contexts: []
+    }
+  ]);
 
-  let expected: FieldValidationDescriptors = {
-    name: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: []
-      }
-    ],
-    email: [
-      {
-        validator: { name: 'presence', args: [] },
-        keys: [],
-        contexts: ['create']
-      }
-    ]
-  };
+  assert.deepEqual(validates(presentOnCreate), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: ['create']
+    }
+  ]);
 
-  assert.deepEqual(validations, expected);
+  assert.deepEqual(validates(presentOnUpdate), [
+    {
+      factory: factory('presence'),
+      options: undefined,
+      contexts: ['update']
+    }
+  ]);
 });

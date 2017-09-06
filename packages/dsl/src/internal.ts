@@ -2,22 +2,18 @@
  * The functions in this file should not be re-exported from index.ts
  */
 
-import { ValidationDescriptor, ValidationDescriptors } from '@validations/core';
-import { isReadonlyArray, unknown } from 'ts-std';
+import { ValidationDescriptor, ValidationDescriptors, ValidatorFactory } from '@validations/core';
+import { unknown } from 'ts-std';
 
 /** @internal */
 export function descriptor(
-  name: string,
-  _args: unknown[],
-  _keys: string[],
+  factory: ValidatorFactory,
+  options: unknown,
   _contexts: string[]
 ): ValidationDescriptor {
-  let args = Object.freeze(_args);
-  let validator = Object.freeze({ name, args });
-  let keys = Object.freeze(_keys);
   let contexts = Object.freeze(_contexts);
 
-  return Object.freeze({ validator, keys, contexts });
+  return Object.freeze({ factory, options, contexts });
 }
 
 /** @internal */
@@ -26,16 +22,12 @@ export interface Buildable {
 }
 
 /** @internal */
-export function build(builders: Buildable | ReadonlyArray<Buildable>): ValidationDescriptors {
-  if (isReadonlyArray(builders)) {
-    let descriptors = [];
+export function build(...builders: Buildable[]): ValidationDescriptors {
+  let descriptors = [];
 
-    for (let builder of builders) {
-      descriptors.push(...builder.build());
-    }
-
-    return descriptors;
-  } else {
-    return builders.build();
+  for (let builder of builders) {
+    descriptors.push(...builder.build());
   }
+
+  return descriptors;
 }

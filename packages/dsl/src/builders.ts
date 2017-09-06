@@ -1,4 +1,4 @@
-import { ValidationDescriptors } from '@validations/core';
+import { ValidationDescriptors, ValidatorFactory } from '@validations/core';
 import { Dict, assert, unknown } from 'ts-std';
 import { Buildable, descriptor } from './internal';
 
@@ -8,7 +8,6 @@ export type FieldValidationBuilders = Readonly<Dict<ValidationBuilders>>;
 
 export interface ValidationBuilder {
   and(validation: ValidationBuilder): ValidationBuilder;
-  keys(...keys: string[]): ValidationBuilder;
   on(...contexts: string[]): ValidationBuilder;
 }
 
@@ -20,11 +19,6 @@ export class ValidationBuilder implements Buildable {
 
   and(validation: ValidationBuilder): ValidationBuilder {
     return new ValidationBuilder([...this.validations, ...validation.validations]);
-  }
-
-  keys(...keys: string[]): ValidationBuilder {
-    let validations = this.validations.map(validation => validation.keys(...keys));
-    return new ValidationBuilder(validations);
   }
 
   on(...contexts: string[]): ValidationBuilder {
@@ -45,16 +39,10 @@ export class ValidationBuilder implements Buildable {
 
 class SingleValidationBuilder {
   constructor(
-    protected name: string,
-    protected args: unknown[],
-    protected keyList: string[] = [],
+    protected factory: ValidatorFactory,
+    protected options: unknown,
     protected contexts: string[] = []
   ) {}
-
-  keys(...keys: string[]): SingleValidationBuilder {
-    assert(keys.length > 0, 'must provide at least one dependent key');
-    return this.clone(b => b.keyList = keys);
-  }
 
   on(...contexts: string[]): SingleValidationBuilder {
     assert(contexts.length > 0, 'must provide at least one validation context');
@@ -62,14 +50,13 @@ class SingleValidationBuilder {
   }
 
   build(): ValidationDescriptors {
-    return [descriptor(this.name, this.args, this.keyList, this.contexts)];
+    return [descriptor(this.factory, this.options, this.contexts)];
   }
 
   protected clone(callback: (builder: SingleValidationBuilder) => void): SingleValidationBuilder {
     let builder = new SingleValidationBuilder(
-      this.name,
-      this.args,
-      this.keyList,
+      this.factory,
+      this.options,
       this.contexts
     );
 
@@ -79,6 +66,6 @@ class SingleValidationBuilder {
   }
 }
 
-export function validates(this: void, name: string, ...args: unknown[]): ValidationBuilder {
-  return new ValidationBuilder([ new SingleValidationBuilder(name, args) ]);
+export function validates<Options>(factory: ValidatorFactory<Options>, options: Options): ValidationBuilder {
+  return new ValidationBuilder([ new SingleValidationBuilder(factory, options) ]);
 }
