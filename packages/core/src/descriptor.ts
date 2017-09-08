@@ -8,7 +8,7 @@ export interface ErrorMessage {
   args: unknown;
 }
 
-export interface ValidationError<Message extends ErrorMessage> {
+export interface ValidationError<Message extends ErrorMessage = ErrorMessage> {
   path: ErrorPath;
   message: Message;
 }
@@ -20,7 +20,7 @@ export interface Environment {
 export type ValidatorFactory<Options = unknown, Message extends ErrorMessage = ErrorMessage> =
   (env: Environment, options: Options) => Validator<Message>;
 
-export type Validator<Message extends ErrorMessage> =
+export type Validator<Message extends ErrorMessage = ErrorMessage> =
   (value: unknown) => Task<Array<ValidationError<Message>>>;
 
 export type ValidationDescriptor<Options = unknown> = Readonly<{
