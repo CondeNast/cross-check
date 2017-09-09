@@ -1,6 +1,7 @@
-import { ValidationDescriptors, ValidatorFactory } from '@validations/core';
+import { ValidationDescriptor, ValidatorFactory } from '@validations/core';
 import { Dict, assert, unknown } from 'ts-std';
-import { Buildable, descriptor } from './internal';
+import { and, chain } from './combinators';
+import { build, descriptor } from './internal';
 
 export type ValidationBuilders = ValidationBuilder | ReadonlyArray<ValidationBuilder>;
 
@@ -8,49 +9,76 @@ export type FieldValidationBuilders = Readonly<Dict<ValidationBuilders>>;
 
 export interface ValidationBuilder {
   and(validation: ValidationBuilder): ValidationBuilder;
+  chain(validation: ValidationBuilder): ValidationBuilder;
   on(...contexts: string[]): ValidationBuilder;
+  build(): ValidationDescriptor;
 }
 
 /** @internal */
-export class ValidationBuilder implements Buildable {
-  constructor(private validations: ReadonlyArray<SingleValidationBuilder>) {
-    this.validations = validations;
+export class AndBuilder implements ValidationBuilder {
+  constructor(private validations: ReadonlyArray<ValidationBuilder>, private contexts: ReadonlyArray<string> = []) {
+  }
+
+  on(...contexts: string[]): ValidationBuilder {
+    return new AndBuilder(this.validations, contexts);
   }
 
   and(validation: ValidationBuilder): ValidationBuilder {
-    return new ValidationBuilder([...this.validations, ...validation.validations]);
+    return new AndBuilder([...this.validations, validation], this.contexts);
+  }
+
+  chain(validation: ValidationBuilder): ValidationBuilder {
+    return new ChainBuilder([this, validation]);
+  }
+
+  build(): ValidationDescriptor {
+    return descriptor(and, build(...this.validations), this.contexts);
+  }
+}
+
+export class ChainBuilder implements ValidationBuilder {
+  constructor(private validations: ReadonlyArray<ValidationBuilder>, private contexts: ReadonlyArray<string> = []) {
+  }
+
+  on(...contexts: string[]): ValidationBuilder {
+    return new AndBuilder(this.validations, contexts);
+  }
+
+  and(validation: ValidationBuilder): ValidationBuilder {
+    return new AndBuilder([this, validation], this.contexts);
+  }
+
+  chain(validation: ValidationBuilder): ValidationBuilder {
+    return new ChainBuilder([...this.validations, validation], this.contexts);
+  }
+
+  build(): ValidationDescriptor {
+    return descriptor(chain, build(...this.validations), this.contexts);
+  }
+}
+
+class SingleValidationBuilder implements ValidationBuilder {
+  constructor(
+    protected factory: ValidatorFactory,
+    protected options: unknown,
+    protected contexts: ReadonlyArray<string> = []
+  ) {}
+
+  and(validation: ValidationBuilder): ValidationBuilder {
+    return new AndBuilder([this, validation], this.contexts);
+  }
+
+  chain(validation: ValidationBuilder): ValidationBuilder {
+    return new ChainBuilder([this, validation], this.contexts);
   }
 
   on(...contexts: string[]): ValidationBuilder {
     assert(contexts.length > 0, 'must provide at least one validation context');
-
-    let validations = this.validations.map(validation => validation.on(...contexts));
-    return new ValidationBuilder(validations);
-  }
-
-  build(): ValidationDescriptors {
-    let out = [];
-    for (let validation of this.validations) {
-      out.push(...validation.build());
-    }
-    return out;
-  }
-}
-
-class SingleValidationBuilder {
-  constructor(
-    protected factory: ValidatorFactory,
-    protected options: unknown,
-    protected contexts: string[] = []
-  ) {}
-
-  on(...contexts: string[]): SingleValidationBuilder {
-    assert(contexts.length > 0, 'must provide at least one validation context');
     return this.clone(b => b.contexts = contexts);
   }
 
-  build(): ValidationDescriptors {
-    return [descriptor(this.factory, this.options, this.contexts)];
+  build(): ValidationDescriptor {
+    return descriptor(this.factory, this.options, this.contexts);
   }
 
   protected clone(callback: (builder: SingleValidationBuilder) => void): SingleValidationBuilder {
@@ -67,5 +95,5 @@ class SingleValidationBuilder {
 }
 
 export function validates<Options>(factory: ValidatorFactory<Options>, options: Options): ValidationBuilder {
-  return new ValidationBuilder([ new SingleValidationBuilder(factory, options) ]);
+  return new SingleValidationBuilder(factory, options);
 }

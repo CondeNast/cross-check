@@ -1,5 +1,5 @@
 import { ValidationDescriptors } from '@validations/core';
-import validates from '@validations/dsl';
+import validates, { and, chain } from '@validations/dsl';
 import { email, factory, presence, uniqueness } from './support';
 
 QUnit.module('DSL');
@@ -25,7 +25,7 @@ QUnit.test('basic DSL', assert => {
   assert.deepEqual(validations, expected);
 });
 
-QUnit.test('chaining', assert => {
+QUnit.test('and', assert => {
   let validations = validates(
     presence()
       .and(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
@@ -34,16 +34,54 @@ QUnit.test('chaining', assert => {
 
   let expected: ValidationDescriptors = [
     {
-      factory: factory('presence'),
-      options: undefined,
+      factory: and,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('email'),
+          options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
+          contexts: []
+        }, {
+          factory: factory('uniqueness'),
+          options: undefined,
+          contexts: []
+        }
+      ],
       contexts: []
-    }, {
-      factory: factory('email'),
-      options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
-      contexts: []
-    }, {
-      factory: factory('uniqueness'),
-      options: undefined,
+    }
+  ];
+
+  assert.deepEqual(validations, expected);
+});
+
+QUnit.test('chain', assert => {
+  let validations = validates(
+    presence()
+      .chain(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
+      .chain(uniqueness())
+  );
+
+  let expected: ValidationDescriptors = [
+    {
+      factory: chain,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('email'),
+          options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
+          contexts: []
+        }, {
+          factory: factory('uniqueness'),
+          options: undefined,
+          contexts: []
+        }
+      ],
       contexts: []
     }
   ];
@@ -64,14 +102,19 @@ QUnit.test('validation contexts', assert => {
 
   let expected: ValidationDescriptors = [
     {
-      factory: factory('presence'),
-      options: undefined,
+      factory: and,
+      options: [{
+        factory: factory('presence'),
+        options: undefined,
+        contexts: []
+      }, {
+        factory: factory('email'),
+        options: { tlds: ['.com'] },
+        contexts: []
+      }],
       contexts: ['create', 'update']
-    }, {
-      factory: factory('email'),
-      options: { tlds: ['.com'] },
-      contexts: ['create', 'update']
-    }, {
+    },
+    {
       factory: factory('uniqueness'),
       options: undefined,
       contexts: ['create']
@@ -90,30 +133,92 @@ QUnit.test('"and" does not mutate previously defined builder', assert => {
     {
       factory: factory('presence'),
       options: undefined,
-    contexts: []
+      contexts: []
     }
   ]);
 
   assert.deepEqual(validates(presentAndEmail), [
     {
-      factory: factory('presence'),
-      options: undefined,
-      contexts: []
-    }, {
-      factory: factory('email'),
-      options: { tlds: ['.com'] },
+      factory: and,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('email'),
+          options: { tlds: ['.com'] },
+          contexts: []
+        }
+      ],
       contexts: []
     }
   ]);
 
   assert.deepEqual(validates(presentAndUnique), [
     {
+      factory: and,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('uniqueness'),
+          options: undefined,
+          contexts: []
+        }
+      ],
+      contexts: []
+    }
+  ]);
+});
+
+QUnit.test('"chain" does not mutate previously defined builder', assert => {
+  let present = presence();
+  let presentAndEmail = present.chain(email({ tlds: ['.com'] }));
+  let presentAndUnique = present.chain(uniqueness());
+
+  assert.deepEqual(validates(present), [
+    {
       factory: factory('presence'),
       options: undefined,
       contexts: []
-    }, {
-      factory: factory('uniqueness'),
-      options: undefined,
+    }
+  ]);
+
+  assert.deepEqual(validates(presentAndEmail), [
+    {
+      factory: chain,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('email'),
+          options: { tlds: ['.com'] },
+          contexts: []
+        }
+      ],
+      contexts: []
+    }
+  ]);
+
+  assert.deepEqual(validates(presentAndUnique), [
+    {
+      factory: chain,
+      options: [
+        {
+          factory: factory('presence'),
+          options: undefined,
+          contexts: []
+        }, {
+          factory: factory('uniqueness'),
+          options: undefined,
+          contexts: []
+        }
+      ],
       contexts: []
     }
   ]);
