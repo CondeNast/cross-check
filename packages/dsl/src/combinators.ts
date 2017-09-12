@@ -1,14 +1,12 @@
-import { Environment, ValidationDescriptors, ValidationError, Validator } from '@validations/core';
+import { Environment, ValidationDescriptor, ValidationError, Validator, validate } from '@validations/core';
 import { Task } from 'no-show';
 import { unknown } from 'ts-std';
 
-export function chain(env: Environment, options: ValidationDescriptors): Validator {
-  let validators = options.map(desc => desc.factory(env, desc.options));
-
+export function chain<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
   return ((value: unknown): Task<ValidationError[]> => {
     return new Task(async run => {
-      for (let validator of validators) {
-        let errors = await run(validator(value));
+      for (let descriptor of descriptors) {
+        let errors = await run(validate(env, value, descriptor));
         if (errors.length) return errors;
       }
 
@@ -17,19 +15,17 @@ export function chain(env: Environment, options: ValidationDescriptors): Validat
   });
 }
 
-export function and(env: Environment, options: ValidationDescriptors): Validator {
-  let validators = options.map(desc => desc.factory(env, desc.options));
-
+export function and<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
   return ((value: unknown): Task<ValidationError[]> => {
-    let out: ValidationError[] = [];
+    let result: ValidationError[] = [];
 
     return new Task(async run => {
-      for (let validator of validators) {
-        let errors = await run(validator(value));
-        out.push(...errors);
+      for (let descriptor of descriptors) {
+        let errors = await run(validate(env, value, descriptor));
+        result.push(...errors);
       }
 
-      return out;
+      return [];
     });
   });
 }
