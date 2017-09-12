@@ -17,12 +17,12 @@ export interface Environment {
   get(object: unknown, key: string): unknown;
 }
 
-export type ValidatorFactory<Options> = (env: Environment, options: Options) => Validator;
+export type ValidatorFactory<T, Options> = (env: Environment, options: Options) => Validator<T>;
 
-export type Validator = (value: unknown) => Task<ValidationError[]>;
+export type Validator<T = unknown> = (value: T) => Task<ValidationError[]>;
 
-export type ValidationDescriptor<Options = unknown> = Readonly<{
-  factory: ValidatorFactory<Options>;
+export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
+  factory: ValidatorFactory<T, Options>;
   options: Options;
   contexts: ReadonlyArray<string>;
 }>;
