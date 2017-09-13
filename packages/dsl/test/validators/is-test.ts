@@ -68,7 +68,23 @@ QUnit.test('isFunction', async assert => {
   assert.deepEqual(await run(validators.isFunction(), 'hello') , failure('function'));
 });
 
+QUnit.test('isIndexable', async assert => {
+  assert.deepEqual(await run(validators.isIndexable(), []) , success());
+  assert.deepEqual(await run(validators.isIndexable(), {}) , success());
+  assert.deepEqual(await run(validators.isIndexable(), new (class {})()) , success());
+  assert.deepEqual(await run(validators.isIndexable(), new Date()) , success());
+  // tslint:disable-next-line:no-construct
+  assert.deepEqual(await run(validators.isIndexable(), new String()) , success());
+  assert.deepEqual(await run(validators.isIndexable(), () => { /**/ }) , success());
+  assert.deepEqual(await run(validators.isIndexable(), new Function()) , success());
+
+  assert.deepEqual(await run(validators.isIndexable(), null) , failure('indexable'));
+  assert.deepEqual(await run(validators.isIndexable(), undefined) , failure('indexable'));
+  assert.deepEqual(await run(validators.isIndexable(), 'hello') , failure('indexable'));
+});
+
 QUnit.test('isObject', async assert => {
+  assert.deepEqual(await run(validators.isObject(), []) , success());
   assert.deepEqual(await run(validators.isObject(), {}) , success());
   assert.deepEqual(await run(validators.isObject(), new (class {})()) , success());
   assert.deepEqual(await run(validators.isObject(), new Date()) , success());
@@ -78,6 +94,7 @@ QUnit.test('isObject', async assert => {
   assert.deepEqual(await run(validators.isObject(), null) , failure('object'));
   assert.deepEqual(await run(validators.isObject(), undefined) , failure('object'));
   assert.deepEqual(await run(validators.isObject(), 'hello') , failure('object'));
+  assert.deepEqual(await run(validators.isObject(), () => { /**/ }) , failure('object'));
   assert.deepEqual(await run(validators.isObject(), new Function()) , failure('object'));
 });
 
