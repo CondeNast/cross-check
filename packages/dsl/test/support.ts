@@ -1,7 +1,8 @@
-import { unknown } from 'ts-std';
+import Task from 'no-show';
+import { isIndexable, unknown } from 'ts-std';
 
-import { ValidatorFactory } from '@validations/core';
-import { ValidationBuilder, validates } from '@validations/dsl';
+import { Environment, ValidationError, ValidatorFactory, validate } from '@validations/core';
+import build, { ValidationBuilder, validates } from '@validations/dsl';
 
 export const presence = builder('presence');
 export const str = builder('str');
@@ -16,4 +17,14 @@ function builder<T = unknown>(name: string): () => ValidationBuilder<T>;
 function builder<T, Options>(name: string): (options: Options) => ValidationBuilder<T>;
 function builder(name: string): (options: any) => ValidationBuilder<unknown> {
   return (options: any) => validates(factory(name), options);
+}
+
+export class Env implements Environment {
+  get(object: unknown, key: string): unknown {
+    return isIndexable(object) ? object[key] : undefined;
+  }
+}
+
+export function run<T>(b: ValidationBuilder<T>, value: T): Task<ValidationError[]> {
+  return validate(new Env(), value, build(b));
 }

@@ -31,7 +31,6 @@
     "@types/qunit": "^2.0.31",
     "ember-cli": "^2.14.2",
     "libkit": "^0.5.10",
-    "no-show": "file:../validations-core/node_modules/no-show",
     "qunitjs": "^2.4.0",
     "shelljs": "^0.7.8",
     "tslint": "^5.7.0",
@@ -39,7 +38,10 @@
     "typescript": "^2.4.2"
   },
   "dependencies": {
-    "@validations/core": "file:../validations-core",
-    "ts-std": "^0.5.6"
+    "@validations/core": "^0.7.0"
+  },
+  "peerDependencies": {
+    "no-show": "^0.6.1",
+    "ts-std": "^0.6.0"
   }
 }
