@@ -1,5 +1,5 @@
 import { Task } from 'no-show';
-import { unknown } from 'ts-std';
+import { Option, unknown } from 'ts-std';
 
 export type ErrorPath = ReadonlyArray<string>;
 
@@ -19,7 +19,7 @@ export interface Environment {
 
 export type ValidatorFactory<T, Options> = (env: Environment, options: Options) => Validator<T>;
 
-export type Validator<T = unknown> = (value: T) => Task<ValidationError[]>;
+export type Validator<T = unknown> = (value: T, context: Option<string>) => Task<ValidationError[]>;
 
 export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
   factory: ValidatorFactory<T, Options>;
