@@ -1,6 +1,6 @@
 import { ValidationError } from '@validations/core';
 import { validators } from '@validations/dsl';
-import { run } from '../support';
+import { buildAndRun as run } from '../support';
 
 QUnit.module('Validators (is)');
 

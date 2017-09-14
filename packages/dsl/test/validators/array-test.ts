@@ -1,7 +1,7 @@
 import { ValidationError } from '@validations/core';
 import { ValidationBuilder, validators } from '@validations/dsl';
 import { Option, unknown } from 'ts-std';
-import { run } from '../support';
+import { buildAndRun as run } from '../support';
 
 QUnit.module('Validators (array)');
 

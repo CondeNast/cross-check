@@ -17,15 +17,37 @@ export function chain<T>(env: Environment, descriptors: ReadonlyArray<Validation
 
 export function and<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
   return ((value: unknown): Task<ValidationError[]> => {
-    let result: ValidationError[] = [];
-
     return new Task(async run => {
+      let result: ValidationError[] = [];
+
       for (let descriptor of descriptors) {
         let errors = await run(validate(env, value, descriptor));
         result.push(...errors);
       }
 
-      return [];
+      return result;
+    });
+  });
+}
+
+export type MapErrorTransform = (errors: ValidationError[]) => ValidationError[];
+
+export interface MapErrorOptions<T> {
+  descriptor: ValidationDescriptor<T>;
+  transform: MapErrorTransform;
+}
+
+export function mapError<T>(env: Environment, options: MapErrorOptions<T>): Validator<T> {
+  return ((value: unknown): Task<ValidationError[]> => {
+    return new Task(async run => {
+      let { descriptor, transform } = options;
+      let errors = await run(validate(env, value, descriptor));
+
+      if (errors.length) {
+        return transform(errors);
+      } else {
+        return errors;
+      }
     });
   });
 }

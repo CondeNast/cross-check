@@ -1,7 +1,7 @@
 import Task from 'no-show';
 import { isIndexable, unknown } from 'ts-std';
 
-import { Environment, ValidationError, ValidatorFactory, validate } from '@validations/core';
+import { Environment, ValidationError, ValidatorFactory, validate, ValidationDescriptor } from '@validations/core';
 import build, { ValidationBuilder, validates } from '@validations/dsl';
 
 export const presence = builder('presence');
@@ -25,6 +25,10 @@ export class Env implements Environment {
   }
 }
 
-export function run<T>(b: ValidationBuilder<T>, value: T): Task<ValidationError[]> {
-  return validate(new Env(), value, build(b));
+export function buildAndRun<T>(b: ValidationBuilder<T>, value: T): Task<ValidationError[]> {
+  return run(build(b), value);
+}
+
+export function run<T>(descriptor: ValidationDescriptor<T>, value: T): Task<ValidationError[]> {
+  return validate(new Env(), value, descriptor);
 }

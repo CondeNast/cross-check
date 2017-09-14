@@ -6,7 +6,7 @@ import { ValidatorInstance, factoryFor } from './abstract';
 import { isObject } from './is';
 
 function mapError({ path, message }: ValidationError, key: string): ValidationError {
-  return { path: [...path, key], message };
+  return { path: [key, ...path], message };
 }
 
 export class FieldsValidator implements ValidatorInstance<Indexable> {

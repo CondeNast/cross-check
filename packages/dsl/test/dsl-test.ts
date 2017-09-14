@@ -1,5 +1,5 @@
 import { ValidationDescriptor } from '@validations/core';
-import validates, { and, chain } from '@validations/dsl';
+import validates, { MapErrorTransform, and, chain, mapError } from '@validations/dsl';
 import { email, factory, presence, str, uniqueness } from './support';
 
 QUnit.module('DSL');
@@ -72,6 +72,46 @@ QUnit.test('andThen', assert => {
         contexts: []
       }
     ],
+    contexts: []
+  };
+
+  assert.deepEqual(validations, expected);
+});
+
+QUnit.test('catch', assert => {
+  const mapper: MapErrorTransform = () => [];
+
+  let validations = validates(
+    str()
+      .andThen(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
+      .andThen(uniqueness())
+      .catch(mapper)
+  );
+
+  let expected: ValidationDescriptor = {
+    factory: mapError,
+    options: {
+      transform: mapper,
+      descriptor: {
+        factory: chain,
+        options: [
+          {
+            factory: factory('str'),
+            options: undefined,
+            contexts: []
+          }, {
+            factory: factory('email'),
+            options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
+            contexts: []
+          }, {
+            factory: factory('uniqueness'),
+            options: undefined,
+            contexts: []
+          }
+        ],
+        contexts: []
+      }
+    },
     contexts: []
   };
 
