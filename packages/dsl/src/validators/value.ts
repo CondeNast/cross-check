@@ -1,16 +1,18 @@
 import { Environment, ErrorMessage, ValidationError } from '@validations/core';
 import { Task } from 'no-show';
+import { Option } from 'ts-std';
+import { ValidatorInstance } from './abstract';
 
 export type ValidationResult = ErrorMessage | void;
 
-export abstract class ValueValidator<T, Options> {
+export abstract class ValueValidator<T, Options> implements ValidatorInstance<T> {
   constructor(protected env: Environment, protected options: Options) {}
 
-  abstract validate(value: T): ValidationResult | PromiseLike<ValidationResult>;
+  abstract validate(value: T, context: Option<string>): ValidationResult | PromiseLike<ValidationResult>;
 
-  run(v: T): Task<ValidationError[]> {
+  run(value: T, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
-      let message = await run(this.validate(v));
+      let message = await run(this.validate(value, context));
 
       if (message) {
         return [{ path: [], message }];
