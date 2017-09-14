@@ -38,7 +38,7 @@
     "typescript": "^2.4.2"
   },
   "dependencies": {
-    "@validations/core": "^0.7.0"
+    "@validations/core": "^0.7.1"
   },
   "peerDependencies": {
     "no-show": "^0.6.1",

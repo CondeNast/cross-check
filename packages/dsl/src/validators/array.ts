@@ -1,7 +1,7 @@
 import { Environment, ValidationDescriptor, ValidationError, validate } from '@validations/core';
 import normalize, { ValidationBuilder, validates } from '@validations/dsl';
 import { Task } from 'no-show';
-import { unknown } from 'ts-std';
+import { Option, unknown } from 'ts-std';
 import { ValidatorInstance, factoryFor } from './abstract';
 import { isArray } from './is';
 
@@ -12,12 +12,12 @@ function mapError({ path, message }: ValidationError, index: number): Validation
 export class ItemsValidator implements ValidatorInstance<unknown[]> {
   constructor(protected env: Environment, protected descriptor: ValidationDescriptor) {}
 
-  run(v: unknown[]): Task<ValidationError[]> {
+  run(value: unknown[], context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
-      for (let i = 0; i < v.length; i++) {
-        let suberrors = await run(validate(this.env, v[i], this.descriptor));
+      for (let i = 0; i < value.length; i++) {
+        let suberrors = await run(validate(this.env, value[i], this.descriptor, context));
         errors.push(...suberrors.map(error => mapError(error, i)));
       }
 

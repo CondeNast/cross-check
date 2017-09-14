@@ -1,7 +1,7 @@
 import { Environment, ValidationDescriptor, ValidationError, validate } from '@validations/core';
 import normalize, { ValidationBuilder, validates } from '@validations/dsl';
 import { Task } from 'no-show';
-import { Dict, Indexable, dict, entries, unknown } from 'ts-std';
+import { Dict, Indexable, Option, dict, entries, unknown } from 'ts-std';
 import { ValidatorInstance, factoryFor } from './abstract';
 import { isObject } from './is';
 
@@ -12,12 +12,12 @@ function mapError({ path, message }: ValidationError, key: string): ValidationEr
 export class FieldsValidator implements ValidatorInstance<Indexable> {
   constructor(protected env: Environment, protected descriptors: Dict<ValidationDescriptor>) {}
 
-  run(v: Indexable): Task<ValidationError[]> {
+  run(value: Indexable, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of entries(this.descriptors)) {
-        let suberrors = await run(validate(this.env, this.env.get(v, key), descriptor!));
+        let suberrors = await run(validate(this.env, this.env.get(value, key), descriptor!, context));
         errors.push(...suberrors.map(error => mapError(error, key)));
       }
 
