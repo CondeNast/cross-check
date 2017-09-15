@@ -29,6 +29,26 @@ export function and<T>(env: Environment, descriptors: ReadonlyArray<ValidationDe
   });
 }
 
+export function or<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
+  return ((value, context): Task<ValidationError[]> => {
+    return new Task(async run => {
+      let result: ValidationError[][] = [];
+
+      for (let descriptor of descriptors) {
+        let errors = await run(validate(env, value, descriptor, context));
+
+        if (errors.length === 0) {
+          return [];
+        } else {
+          result.push(errors);
+        }
+      }
+
+      return [{ path: [], message: { key: 'multiple', args: result } }];
+    });
+  });
+}
+
 export type MapErrorTransform = (errors: ValidationError[]) => ValidationError[];
 
 export interface MapErrorOptions<T> {

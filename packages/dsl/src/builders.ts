@@ -1,6 +1,6 @@
 import { ValidationDescriptor, ValidatorFactory } from '@validations/core';
 import { assert, unknown } from 'ts-std';
-import { MapErrorTransform, and, chain, mapError } from './combinators';
+import { MapErrorTransform, and, chain, mapError, or } from './combinators';
 import { descriptor } from './internal';
 
 export function build<T>(buildable: ValidationBuilder<T>): ValidationDescriptor<T> {
@@ -11,7 +11,8 @@ export type ValidationBuilders<T> =
   ValidationBuilder<T> | ReadonlyArray<ValidationBuilder<T>>;
 
 export interface ValidationBuilder<T> {
-  and(validation: ValidationBuilder<T>): ValidationBuilder<T>;
+  andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T>;
+  or(validation: ValidationBuilder<T>): ValidationBuilder<T>;
   andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T>;
   catch(transform: MapErrorTransform): ValidationBuilder<T>;
   on(...contexts: string[]): ValidationBuilder<T>;
@@ -24,8 +25,12 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
   constructor(protected factory: ValidatorFactory<T, Options>, protected options: Options, protected contexts: ReadonlyArray<string> = []) {
   }
 
-  and(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+  andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T> {
     return new AndBuilder(and, [build(this), build(validation)], this.contexts);
+  }
+
+  or(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+    return new OrBuilder(or, [build(this), build(validation)], this.contexts);
   }
 
   andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
@@ -48,8 +53,14 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
 }
 
 class AndBuilder<T> extends BaseValidationBuilder<T, ReadonlyArray<ValidationDescriptor>> {
-  and(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+  andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T> {
     return new AndBuilder(this.factory, [...this.options, build(validation)], this.contexts);
+  }
+}
+
+class OrBuilder<T> extends BaseValidationBuilder<T, ReadonlyArray<ValidationDescriptor>> {
+  or(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+    return new OrBuilder(this.factory, [...this.options, build(validation)], this.contexts);
   }
 }
 
