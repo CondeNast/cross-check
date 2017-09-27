@@ -18,6 +18,72 @@ function failure(type: string): ValidationError[] {
   }];
 }
 
+QUnit.test('isAbsent', async assert => {
+  assert.deepEqual(await run(validators.isAbsent(), 'hello') , failure('absent'));
+  assert.deepEqual(await run(validators.isAbsent(), '') , failure('absent'));
+  assert.deepEqual(await run(validators.isAbsent(), []) , failure('absent'));
+  assert.deepEqual(await run(validators.isAbsent(), false) , failure('absent'));
+  assert.deepEqual(await run(validators.isAbsent(), NaN) , failure('absent'));
+
+  assert.deepEqual(await run(validators.isAbsent(), null) , success());
+  assert.deepEqual(await run(validators.isAbsent(), undefined) , success());
+});
+
+QUnit.test('isPresent', async assert => {
+  assert.deepEqual(await run(validators.isPresent(), 'hello') , success());
+  assert.deepEqual(await run(validators.isPresent(), '') , success());
+  assert.deepEqual(await run(validators.isPresent(), []) , success());
+  assert.deepEqual(await run(validators.isPresent(), false) , success());
+  assert.deepEqual(await run(validators.isPresent(), NaN) , success());
+
+  assert.deepEqual(await run(validators.isPresent(), null) , failure('present'));
+  assert.deepEqual(await run(validators.isPresent(), undefined) , failure('present'));
+});
+
+QUnit.test('isNull', async assert => {
+  assert.deepEqual(await run(validators.isNull(), 'hello') , failure('null'));
+  assert.deepEqual(await run(validators.isNull(), '') , failure('null'));
+  assert.deepEqual(await run(validators.isNull(), []) , failure('null'));
+  assert.deepEqual(await run(validators.isNull(), false) , failure('null'));
+  assert.deepEqual(await run(validators.isNull(), NaN) , failure('null'));
+  assert.deepEqual(await run(validators.isNull(), undefined) , failure('null'));
+
+  assert.deepEqual(await run(validators.isNull(), null) , success());
+});
+
+QUnit.test('isNotNull', async assert => {
+  assert.deepEqual(await run(validators.isNotNull(), 'hello') , success());
+  assert.deepEqual(await run(validators.isNotNull(), '') , success());
+  assert.deepEqual(await run(validators.isNotNull(), []) , success());
+  assert.deepEqual(await run(validators.isNotNull(), false) , success());
+  assert.deepEqual(await run(validators.isNotNull(), NaN) , success());
+  assert.deepEqual(await run(validators.isNotNull(), undefined) , success());
+
+  assert.deepEqual(await run(validators.isNotNull(), null) , failure('not-null'));
+});
+
+QUnit.test('isUndefined', async assert => {
+  assert.deepEqual(await run(validators.isUndefined(), 'hello') , failure('undefined'));
+  assert.deepEqual(await run(validators.isUndefined(), '') , failure('undefined'));
+  assert.deepEqual(await run(validators.isUndefined(), []) , failure('undefined'));
+  assert.deepEqual(await run(validators.isUndefined(), false) , failure('undefined'));
+  assert.deepEqual(await run(validators.isUndefined(), NaN) , failure('undefined'));
+  assert.deepEqual(await run(validators.isUndefined(), null) , failure('undefined'));
+
+  assert.deepEqual(await run(validators.isUndefined(), undefined) , success());
+});
+
+QUnit.test('isNotUndefined', async assert => {
+  assert.deepEqual(await run(validators.isNotUndefined(), 'hello') , success());
+  assert.deepEqual(await run(validators.isNotUndefined(), '') , success());
+  assert.deepEqual(await run(validators.isNotUndefined(), []) , success());
+  assert.deepEqual(await run(validators.isNotUndefined(), false) , success());
+  assert.deepEqual(await run(validators.isNotUndefined(), NaN) , success());
+  assert.deepEqual(await run(validators.isNotUndefined(), null) , success());
+
+  assert.deepEqual(await run(validators.isNotUndefined(), undefined) , failure('not-undefined'));
+});
+
 QUnit.test('isNumber', async assert => {
   assert.deepEqual(await run(validators.isNumber(), 5) , success());
   assert.deepEqual(await run(validators.isNumber(), 3.14) , success());
