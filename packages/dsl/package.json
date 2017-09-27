@@ -38,10 +38,11 @@
     "typescript": "^2.4.2"
   },
   "dependencies": {
-    "@validations/core": "^0.7.1"
+    "@validations/core": "^0.7.1",
+    "ts-std": "^0.6.1"
   },
   "peerDependencies": {
     "no-show": "^0.6.1",
-    "ts-std": "^0.6.0"
+    "ts-std": "^0.6.1"
   }
 }

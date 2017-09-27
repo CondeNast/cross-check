@@ -1,5 +1,5 @@
 import { ErrorMessage } from '@validations/core';
-import { isIndexable as indexable, unknown } from 'ts-std';
+import { Absent, Present, isIndexable as indexable, unknown } from 'ts-std';
 import { ValidationBuilder, validates } from '../builders';
 import { factoryFor } from './abstract';
 import { ValueValidator } from './value';
@@ -22,8 +22,6 @@ function isTypeOf<To>(typeOf: string): () => ValidationBuilder<unknown> {
   return is((value: unknown): value is To => typeof value === typeOf, typeOf);
 }
 
-export type Absent = null | undefined;
-export type Present = number | string | boolean | symbol | object;
 export type NotNull = Present | undefined;
 export type NotUndefined = Present | null;
 
@@ -32,7 +30,7 @@ export const isPresent = is((value: unknown): value is Present => (value !== nul
 export const isNull = is((value: unknown): value is null => value === null, 'null');
 export const isNotNull = is((value: unknown): value is NotNull => value !== null, 'not-null');
 export const isUndefined = is((value: unknown): value is undefined => value === undefined, 'undefined');
-export const isNotUndefined = is((value: unknown): value is undefined => value !== undefined, 'not-undefined');
+export const isNotUndefined = is((value: unknown): value is NotUndefined => value !== undefined, 'not-undefined');
 
 export const isNumber = isTypeOf('number');
 export const isBoolean = isTypeOf('boolean');
