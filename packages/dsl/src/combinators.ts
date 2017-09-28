@@ -1,7 +1,10 @@
-import { Environment, ValidationDescriptor, ValidationError, Validator, validate } from '@validations/core';
+import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory, validate } from '@validations/core';
 import { Task } from 'no-show';
 
-export function chain<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
+export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
+export type CombinatorFactory<T> = ValidatorFactory<T, ValidationDescriptors<T>>;
+
+export function chain<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
   return ((value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       for (let descriptor of descriptors) {
@@ -14,7 +17,7 @@ export function chain<T>(env: Environment, descriptors: ReadonlyArray<Validation
   });
 }
 
-export function and<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
+export function and<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
   return ((value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       let result: ValidationError[] = [];
@@ -29,7 +32,7 @@ export function and<T>(env: Environment, descriptors: ReadonlyArray<ValidationDe
   });
 }
 
-export function or<T>(env: Environment, descriptors: ReadonlyArray<ValidationDescriptor<T>>): Validator<T> {
+export function or<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
   return ((value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       let result: ValidationError[][] = [];
@@ -69,4 +72,24 @@ export function mapError<T>(env: Environment, options: MapErrorOptions<T>): Vali
       }
     });
   });
+}
+
+export function muteAll(): MapErrorTransform {
+  return () => [];
+}
+
+export function muteType(type: string): MapErrorTransform {
+  return errors => errors.filter(error => error.message.key !== type);
+}
+
+export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
+  return errors => errors.filter(error => !matchPath(path, error.path, exact));
+}
+
+function matchPath(expected: ErrorPath, actual: ErrorPath, exact = false) {
+  if (exact && (expected.length === actual.length) || !exact && (expected.length <= actual.length)) {
+    return expected.every((part, i) => part === actual[i]);
+  } else {
+    return false;
+  }
 }
