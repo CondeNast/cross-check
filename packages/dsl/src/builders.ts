@@ -1,14 +1,27 @@
 import { ValidationDescriptor, ValidatorFactory } from '@validations/core';
 import { assert, unknown } from 'ts-std';
-import { MapErrorTransform, and, chain, mapError, or } from './combinators';
+import { MapErrorTransform, ValidationDescriptors, and, chain, mapError, or } from './combinators';
 import { descriptor } from './internal';
 
 export function build<T>(buildable: ValidationBuilder<T>): ValidationDescriptor<T> {
   return buildable.build();
 }
 
-export type ValidationBuilders<T> =
-  ValidationBuilder<T> | ReadonlyArray<ValidationBuilder<T>>;
+export function validates<T, Options>(factory: ValidatorFactory<T, Options>, options: Options): ValidationBuilder<T> {
+  return new BaseValidationBuilder(factory, options);
+}
+
+export function extend<T>({ factory, options, contexts }: ValidationDescriptor<T, unknown>): ValidationBuilder<T> {
+  if (factory  === and) {
+    return new AndBuilder(factory, options as ValidationDescriptors<T>, contexts);
+  } else if (factory === or) {
+    return new OrBuilder(factory, options as ValidationDescriptors<T>, contexts);
+  } else if (factory === chain) {
+    return new ChainBuilder(factory, options as ValidationDescriptors<T>, contexts);
+  } else {
+    return new BaseValidationBuilder(factory, options, contexts);
+  }
+}
 
 export interface ValidationBuilder<T> {
   andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T>;
@@ -68,8 +81,4 @@ class ChainBuilder<T> extends BaseValidationBuilder<T, ReadonlyArray<ValidationD
   andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
     return new ChainBuilder(this.factory, [...this.options, build(validation)], this.contexts);
   }
-}
-
-export function validates<T, Options>(factory: ValidatorFactory<T, Options>, options: Options): ValidationBuilder<T> {
-  return new BaseValidationBuilder(factory, options);
 }

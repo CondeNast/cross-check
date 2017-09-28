@@ -1,5 +1,5 @@
 import { ValidationDescriptor } from '@validations/core';
-import validates, { MapErrorTransform, and, chain, mapError, or } from '@validations/dsl';
+import validates, { MapErrorTransform, and, chain, extend, mapError, or } from '@validations/dsl';
 import { email, factory, presence, str, uniqueness } from './support';
 
 QUnit.module('DSL');
@@ -173,6 +173,56 @@ QUnit.test('validation contexts', assert => {
   };
 
   assert.deepEqual(validations, expected);
+});
+
+QUnit.test('extend', assert => {
+  let mapper: MapErrorTransform = () => [];
+
+  let validations = validates(
+    presence().andThen(str())
+  );
+
+  let extended = validates(
+    extend(validations)
+      .andThen(email({ tlds: ['.com'] }))
+      .andAlso(uniqueness().on('create'))
+      .catch(mapper)
+  );
+
+  let expected: ValidationDescriptor = {
+    factory: mapError,
+    options: {
+      transform: mapper,
+      descriptor: {
+        factory: and,
+        options: [{
+          factory: chain,
+          options: [{
+            factory: factory('presence'),
+            options: undefined,
+            contexts: []
+          }, {
+            factory: factory('str'),
+            options: undefined,
+            contexts: []
+          }, {
+            factory: factory('email'),
+            options: { tlds: ['.com'] },
+            contexts: []
+          }],
+          contexts: []
+        }, {
+          factory: factory('uniqueness'),
+          options: undefined,
+          contexts: ['create']
+        }],
+        contexts: []
+      }
+    },
+    contexts: []
+  };
+
+  assert.deepEqual(extended, expected);
 });
 
 QUnit.test('"andAlso" does not mutate previously defined builder', assert => {
