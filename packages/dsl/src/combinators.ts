@@ -23,8 +23,7 @@ export function and<T>(env: Environment, descriptors: ValidationDescriptors<T>):
       let result: ValidationError[] = [];
 
       for (let descriptor of descriptors) {
-        let errors = await run(validate(env, value, descriptor, context));
-        result.push(...errors);
+        mergeErrors(result, await run(validate(env, value, descriptor, context)));
       }
 
       return result;
@@ -86,7 +85,19 @@ export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
   return errors => errors.filter(error => !matchPath(path, error.path, exact));
 }
 
-function matchPath(expected: ErrorPath, actual: ErrorPath, exact = false) {
+function mergeErrors(base: ValidationError[], additions: ValidationError[]): void {
+  additions.forEach(addition => {
+    if (base.every(error => !matchError(error, addition))) {
+      base.push(addition);
+    }
+  });
+}
+
+function matchError(a: ValidationError, b: ValidationError): boolean {
+  return matchPath(a.path, b.path, true) && (a.message.key === b.message.key);
+}
+
+function matchPath(expected: ErrorPath, actual: ErrorPath, exact = false): boolean {
   if (exact && (expected.length === actual.length) || !exact && (expected.length <= actual.length)) {
     return expected.every((part, i) => part === actual[i]);
   } else {

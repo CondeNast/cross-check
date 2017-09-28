@@ -50,6 +50,8 @@ QUnit.test('and', async assert => {
   assert.deepEqual(await runMulti(and, [success()]), []);
   assert.deepEqual(await runMulti(and, [fail('reason')]), [error('reason')]);
   assert.deepEqual(await runMulti(and, [success(), fail('reason 1'), success(), fail('reason 2'), success()]), [error('reason 1'), error('reason 2')]);
+  assert.deepEqual(await runMulti(and, [fail('reason'), fail('reason'), fail('reason')]), [error('reason')]);
+  assert.deepEqual(await runMulti(and, [fail('reason', ['foo']), fail('reason', ['bar'])]), [error('reason', null, ['foo']), error('reason', null, ['bar'])]);
 });
 
 QUnit.test('or', async assert => {
@@ -57,12 +59,14 @@ QUnit.test('or', async assert => {
   assert.deepEqual(await runMulti(or, [fail('reason')]), [error('multiple', [[error('reason')]])]);
   assert.deepEqual(await runMulti(or, [success(), fail('reason 1'), success(), fail('reason 2'), success()]), []);
   assert.deepEqual(await runMulti(or, [fail('reason 1'), fail('reason 2'), fail('reason 3')]), [error('multiple', [[error('reason 1')], [error('reason 2')], [error('reason 3')]])]);
+  assert.deepEqual(await runMulti(or, [fail('reason'), fail('reason'), fail('reason')]), [error('multiple', [[error('reason')], [error('reason')], [error('reason')]])]);
 });
 
 QUnit.test('chain', async assert => {
   assert.deepEqual(await runMulti(chain, [success()]), []);
   assert.deepEqual(await runMulti(chain, [fail('reason')]), [error('reason')]);
   assert.deepEqual(await runMulti(chain, [success(), fail('reason 1'), success(), fail('reason 2'), success()]), [error('reason 1')]);
+  assert.deepEqual(await runMulti(chain, [fail('reason'), fail('reason'), fail('reason')]), [error('reason')]);
 });
 
 QUnit.test('mapError', async assert => {
