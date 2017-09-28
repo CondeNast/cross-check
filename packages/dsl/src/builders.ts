@@ -12,7 +12,9 @@ export function validates<T, Options>(factory: ValidatorFactory<T, Options>, opt
 }
 
 export function extend<T>({ factory, options, contexts }: ValidationDescriptor<T, unknown>): ValidationBuilder<T> {
-  if (factory  === and) {
+  if (contexts.length > 0) {
+    return new OnBuilder(factory, options as ValidationDescriptors<T>, contexts);
+  } else if (factory  === and) {
     return new AndBuilder(factory, options as ValidationDescriptors<T>, contexts);
   } else if (factory === or) {
     return new OrBuilder(factory, options as ValidationDescriptors<T>, contexts);
@@ -55,9 +57,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
   }
 
   on(...contexts: string[]): ValidationBuilder<T> {
-    assert(!!contexts.length, 'You must provide at least one validation context');
-    let Class = this.constructor as typeof BaseValidationBuilder;
-    return new Class(this.factory, this.options, contexts);
+    return new OnBuilder(this.factory, this.options, contexts);
   }
 
   build(): Readonly<{ factory: ValidatorFactory<T, unknown>; options: unknown; contexts: ReadonlyArray<string>; }> {
@@ -80,5 +80,16 @@ class OrBuilder<T> extends BaseValidationBuilder<T, ReadonlyArray<ValidationDesc
 class ChainBuilder<T> extends BaseValidationBuilder<T, ReadonlyArray<ValidationDescriptor>> {
   andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
     return new ChainBuilder(this.factory, [...this.options, build(validation)], this.contexts);
+  }
+}
+
+class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
+  constructor(factory: ValidatorFactory<T, Options>, options: Options, contexts: ReadonlyArray<string>) {
+    assert(!!contexts.length, 'You must provide at least one validation context');
+    super(factory, options, contexts);
+  }
+
+  on(...contexts: string[]): ValidationBuilder<T> {
+    return new OnBuilder(this.factory, this.options, contexts);
   }
 }

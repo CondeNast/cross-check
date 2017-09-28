@@ -155,21 +155,33 @@ QUnit.test('validation contexts', assert => {
   );
 
   let validations = validates(
-    str().andAlso(email({ tlds: ['.com'] })).on('create', 'update')
+    str()
+      .andAlso(email({ tlds: ['.com'] }))
+      .on('create', 'update')
+      .andAlso(uniqueness().on('update'))
+      .on('create', 'update', 'destroy')
   );
 
   let expected: ValidationDescriptor = {
     factory: and,
-    options: [{
-      factory: factory('str'),
-      options: undefined,
-      contexts: []
+    options:[{
+      factory: and,
+      options: [{
+        factory: factory('str'),
+        options: undefined,
+        contexts: []
+      }, {
+        factory: factory('email'),
+        options: { tlds: ['.com'] },
+        contexts: []
+      }],
+      contexts: ['create', 'update']
     }, {
-      factory: factory('email'),
-      options: { tlds: ['.com'] },
-      contexts: []
+      factory: factory('uniqueness'),
+      options: undefined,
+      contexts: ['update']
     }],
-    contexts: ['create', 'update']
+    contexts: ['create', 'update', 'destroy']
   };
 
   assert.deepEqual(validations, expected);
