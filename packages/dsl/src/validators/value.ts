@@ -5,7 +5,7 @@ import { ValidatorInstance } from './abstract';
 
 export type ValidationResult = ErrorMessage | void;
 
-export abstract class ValueValidator<T, Options> implements ValidatorInstance<T> {
+export abstract class ValueValidator<T, Options = void> implements ValidatorInstance<T> {
   constructor(protected env: Environment, protected options: Options) {}
 
   abstract validate(value: T, context: Option<string>): ValidationResult | PromiseLike<ValidationResult>;

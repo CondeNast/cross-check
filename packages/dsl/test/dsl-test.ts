@@ -164,7 +164,7 @@ QUnit.test('validation contexts', assert => {
 
   let expected: ValidationDescriptor = {
     factory: and,
-    options:[{
+    options: [{
       factory: and,
       options: [{
         factory: factory('str'),

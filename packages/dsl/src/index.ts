@@ -4,4 +4,11 @@ export * from './combinators';
 import * as validators from './validators';
 export { validators };
 
-export { ValueValidator, builderFor, factoryFor } from './validators';
+export {
+  BasicValidator,
+  ValidatorClass,
+  ValidatorInstance,
+  ValueValidator,
+  builderFor,
+  factoryFor
+} from './validators';
