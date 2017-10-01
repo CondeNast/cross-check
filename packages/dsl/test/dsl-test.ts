@@ -1,6 +1,10 @@
 import { ValidationDescriptor } from '@validations/core';
-import validates, { MapErrorTransform, and, chain, extend, mapError, or } from '@validations/dsl';
+import validates, { MapErrorTransform, and, chain, extend, factoryForCallback, mapError, or } from '@validations/dsl';
 import { email, factory, presence, str, uniqueness } from './support';
+
+function validationCallback() {
+  /* no-op */
+}
 
 QUnit.module('DSL');
 
@@ -23,6 +27,7 @@ QUnit.test('andAlso', assert => {
     str()
       .andAlso(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .andAlso(uniqueness())
+      .andAlso(validationCallback)
   );
 
   let expected: ValidationDescriptor = {
@@ -40,6 +45,10 @@ QUnit.test('andAlso', assert => {
         factory: factory('uniqueness'),
         options: undefined,
         contexts: []
+      }, {
+        factory: factoryForCallback,
+        options: validationCallback,
+        contexts: []
       }
     ],
     contexts: []
@@ -53,6 +62,7 @@ QUnit.test('or', assert => {
     str()
       .or(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .or(uniqueness())
+      .or(validationCallback)
   );
 
   let expected: ValidationDescriptor = {
@@ -70,6 +80,10 @@ QUnit.test('or', assert => {
         factory: factory('uniqueness'),
         options: undefined,
         contexts: []
+      }, {
+        factory: factoryForCallback,
+        options: validationCallback,
+        contexts: []
       }
     ],
     contexts: []
@@ -83,6 +97,7 @@ QUnit.test('andThen', assert => {
     str()
       .andThen(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .andThen(uniqueness())
+      .andThen(validationCallback)
   );
 
   let expected: ValidationDescriptor = {
@@ -99,6 +114,10 @@ QUnit.test('andThen', assert => {
       }, {
         factory: factory('uniqueness'),
         options: undefined,
+        contexts: []
+      }, {
+        factory: factoryForCallback,
+        options: validationCallback,
         contexts: []
       }
     ],

@@ -2,9 +2,31 @@ import { ValidationDescriptor, ValidatorFactory } from '@validations/core';
 import { assert, unknown } from 'ts-std';
 import { MapErrorTransform, ValidationDescriptors, and, chain, mapError, or } from './combinators';
 import { descriptor } from './internal';
+import { ValidationCallback, factoryForCallback } from './validators/callback';
 
-export function build<T>(buildable: ValidationBuilder<T>): ValidationDescriptor<T> {
-  return buildable.build();
+export type Buildable<T> = ValidationCallback<T> | ValidationBuilder<T>;
+
+export interface ValidationBuilder<T> {
+  andAlso(validation: Buildable<T>): ValidationBuilder<T>;
+  or(validation: Buildable<T>): ValidationBuilder<T>;
+  andThen<U extends T>(validation: Buildable<U>): ValidationBuilder<T>;
+  catch(transform: MapErrorTransform): ValidationBuilder<T>;
+  on(...contexts: string[]): ValidationBuilder<T>;
+
+  /* @internal */
+  build(): ValidationDescriptor<T>;
+}
+
+export function build<T>(buildable: Buildable<T>): ValidationDescriptor<T> {
+  if (isCallback(buildable)) {
+    return {
+      factory: factoryForCallback,
+      options: buildable,
+      contexts: []
+    };
+  } else {
+    return buildable.build();
+  }
 }
 
 export function validates<T, Options>(factory: ValidatorFactory<T, Options>, options: Options): ValidationBuilder<T> {
@@ -25,30 +47,23 @@ export function extend<T>({ factory, options, contexts }: ValidationDescriptor<T
   }
 }
 
-export interface ValidationBuilder<T> {
-  andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T>;
-  or(validation: ValidationBuilder<T>): ValidationBuilder<T>;
-  andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T>;
-  catch(transform: MapErrorTransform): ValidationBuilder<T>;
-  on(...contexts: string[]): ValidationBuilder<T>;
-
-  /** @internal */
-  build(): ValidationDescriptor<T>;
+function isCallback<T>(buildable: Buildable<T>): buildable is ValidationCallback<T> {
+  return typeof buildable === 'function';
 }
 
 class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
   constructor(protected factory: ValidatorFactory<T, Options>, protected options: Options, protected contexts: ReadonlyArray<string> = []) {
   }
 
-  andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+  andAlso(validation: Buildable<T>): ValidationBuilder<T> {
     return new AndBuilder(and, [build(this), build(validation)], this.contexts);
   }
 
-  or(validation: ValidationBuilder<T>): ValidationBuilder<T> {
+  or(validation: Buildable<T>): ValidationBuilder<T> {
     return new OrBuilder(or, [build(this), build(validation)], this.contexts);
   }
 
-  andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
+  andThen<U extends T>(validation: Buildable<U>): ValidationBuilder<T> {
     return new ChainBuilder(chain, [build(this), build(validation)], this.contexts);
   }
 
