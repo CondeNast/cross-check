@@ -102,13 +102,70 @@ The `validate` function takes a context as a parameter, and the core validation 
 
 Validators themselves don't need to know about these contexts, the `validate` loop is responsible for ignoring rules that don't apply to the requested context.
 
-### Extending Existing Validation Rules
-
-> TODO
-
 ## The Environment
 
-> TODO
+Once you have constructed a validation descriptor, you validate a value by calling `validate(environment, value, descriptor, context)`.
+
+The first parameter, `environment`, is an object that gets passed into each validation function.
+
+### The `get` Function
+
+The `Environment`'s only mandatory method is `get`. It takes an object and key and returns another value.
+
+The simplest environment is therefore:
+
+```ts
+const SimpleEnvironment = {
+  get(obj, key) {
+    return obj && obj[key];
+  }
+}
+```
+
+As described above, this allows users of frameworks like Ember and Knockout, as well as libraries like Immutable.js, to describe how to look up properties.
+
+Validators implemented using `@validations/dsl` automatically use this interface to look up sub-properties, which means that normally-written validators will work just fine in many environments.
+
+### Service Functions
+
+It is sometimes desirable to pass additional context into validators. For example, your application might have a configuration service that defines how strict a validation needs to be.
+
+You can implement a specialized `Environment`:
+
+```ts
+const AppEnvironment {
+  get(obj, key) {
+    return obj && obj[key];
+  }
+
+  config = {
+    strict: true
+  }
+}
+```
+
+Then, a validator that wants to use that service simply depends on the specialized environment. If you're using TypeScript, the type signature tells the whole story:
+
+```ts
+function format(env: AppEnvironment, options: RegExp) {
+  return value => {
+    return new Task(async run => {
+      if (env.config.strict && options.test(value)) return;
+      if (!env.config.strict && options.test(value.trim())) return;
+
+      return [{ path: [], message: { key: 'format', args: options }}];
+    });
+  }
+}
+```
+
+### Specialized Environments, Philosophy
+
+By looking at the definition of this validator factory, you can tell that it can only be used with an implementation of `AppEnvironment`.
+
+General-purpose validators should avoid relying on specialized environments, but applications should use them to be explicit about validator dependencies.
+
+If an application wants to reuse some validator definitions in another implementation (such as a native app), the specialized environment definition will fully describe what the other implementation needs to do in order to use validator definitions built for the application.
 
 ## Validaton Contexts
 
@@ -141,7 +198,6 @@ const emailDescriptor = {
   options: { regexp: /\d{4}/ },
   contexts: []
 };
-
 ```
 
 ## Error Messages
