@@ -20,7 +20,7 @@
     "test": "ember test",
     "tdd": "ember test --server"
   },
-  "license": "Apache",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "ember-cli": "^2.14.2",
