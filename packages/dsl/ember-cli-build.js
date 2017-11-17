@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = require('libkit').build({
-  name: '@validations/dsl'
+  name: '@cross-check/dsl'
 });

@@ -1,5 +1,5 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from '@validations/core';
-import normalize, { ValidationBuilder, validates } from '@validations/dsl';
+import { Environment, ValidationDescriptor, ValidationError, validate } from '@cross-check/core';
+import normalize, { ValidationBuilder, validates } from '@cross-check/dsl';
 import { Task } from 'no-show';
 import { Dict, Indexable, Option, dict, entries, unknown } from 'ts-std';
 import { ValidatorInstance, factoryFor } from './abstract';
@@ -9,6 +9,14 @@ function mapError({ path, message }: ValidationError, key: string): ValidationEr
   return { path: [key, ...path], message };
 }
 
+/**
+ * @api primitive
+ * 
+ * The class that powers the `fields()` validator function.
+ * 
+ * Use this if you want to refine this validator and implement your own
+ * custom `fields()`.
+ */
 export class FieldsValidator implements ValidatorInstance<Indexable> {
   constructor(protected env: Environment, protected descriptors: Dict<ValidationDescriptor>) {}
 
@@ -30,6 +38,9 @@ export function fields<T>(builders: Dict<ValidationBuilder<T>>): ValidationBuild
   return validates(factoryFor(FieldsValidator), normalizeFields(builders));
 }
 
+/**
+ * @api public
+ */
 export function object(builders: Dict<ValidationBuilder<unknown>>): ValidationBuilder<unknown> {
   return isObject().andThen(fields(builders));
 }

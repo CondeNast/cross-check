@@ -1,5 +1,5 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from '@validations/core';
-import normalize, { ValidationBuilder } from '@validations/dsl';
+import { Environment, ValidationDescriptor, ValidationError, validate } from '@cross-check/core';
+import normalize, { ValidationBuilder } from '@cross-check/dsl';
 import { Task } from 'no-show';
 import { Option, unknown } from 'ts-std';
 import { ValidatorInstance, builderFor } from './abstract';

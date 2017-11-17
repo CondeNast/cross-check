@@ -1,4 +1,4 @@
-import { ErrorMessage } from '@validations/core';
+import { ErrorMessage } from '@cross-check/core';
 import { Absent, Present, isIndexable as indexable, unknown } from 'ts-std';
 import { ValidationBuilder, validates } from '../builders';
 import { factoryFor } from './abstract';

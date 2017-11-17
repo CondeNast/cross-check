@@ -1,4 +1,4 @@
-import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory, validate } from '@validations/core';
+import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory, validate } from '@cross-check/core';
 import { Task } from 'no-show';
 
 export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;

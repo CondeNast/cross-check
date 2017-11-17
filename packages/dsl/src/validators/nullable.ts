@@ -1,4 +1,4 @@
-import { ValidationError } from '@validations/core';
+import { ValidationError } from '@cross-check/core';
 import { assert } from 'ts-std';
 import { ValidationBuilder } from '../builders';
 import { isAbsent, isNull } from './is';

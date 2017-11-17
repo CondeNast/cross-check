@@ -1,4 +1,4 @@
-import { Environment, ValidationError, Validator, ValidatorFactory } from '@validations/core';
+import { Environment, ValidationError, Validator, ValidatorFactory } from '@cross-check/core';
 import { Task } from 'no-show';
 import { Option } from 'ts-std';
 import { ValidationBuilder, validates } from '../builders';

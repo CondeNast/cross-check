@@ -1,5 +1,5 @@
-import { ValidationError } from '@validations/core';
-import { validators } from '@validations/dsl';
+import { ValidationError } from '@cross-check/core';
+import { validators } from '@cross-check/dsl';
 import { Option, unknown } from 'ts-std';
 import { buildAndRun as run } from '../support';
 

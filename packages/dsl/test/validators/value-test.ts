@@ -1,5 +1,5 @@
-import { ErrorMessage, ValidationError } from '@validations/core';
-import { ValueValidator, builderFor, validators } from '@validations/dsl';
+import { ErrorMessage, ValidationError } from '@cross-check/core';
+import { ValueValidator, builderFor, validators } from '@cross-check/dsl';
 import { buildAndRun as run } from '../support';
 
 QUnit.module('Validators (value)');

@@ -1,4 +1,4 @@
-import { Environment, ErrorMessage, Validator } from '@validations/core';
+import { Environment, ErrorMessage, Validator } from '@cross-check/core';
 import { Task } from 'no-show';
 
 export type ValidationResult = ErrorMessage | void;

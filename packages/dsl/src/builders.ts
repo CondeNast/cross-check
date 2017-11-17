@@ -1,4 +1,4 @@
-import { ValidationDescriptor, ValidatorFactory } from '@validations/core';
+import { ValidationDescriptor, ValidatorFactory } from '@cross-check/core';
 import { assert, unknown } from 'ts-std';
 import { MapErrorTransform, ValidationDescriptors, and, chain, mapError, or } from './combinators';
 import { descriptor } from './internal';
@@ -124,9 +124,9 @@ export interface ValidationBuilder<T> {
  * or validation callback, and converts it into a validation descriptor.
  * 
  * Validation descriptors can be passed into `validates()`, a function provided
- * by the `@validations/core` library.
+ * by the `@cross-check/core` library.
  * 
- * In essence, `@validations/dsl` provides a builder API for conveniently
+ * In essence, `@cross-check/dsl` provides a builder API for conveniently
  * constructing validation descriptors, which can then be used directly by
  * the core validation library.
  */

@@ -1,5 +1,5 @@
-import { ValidationDescriptor } from '@validations/core';
-import validates, { MapErrorTransform, and, chain, extend, factoryForCallback, mapError, or } from '@validations/dsl';
+import { ValidationDescriptor } from '@cross-check/core';
+import validates, { MapErrorTransform, and, chain, extend, factoryForCallback, mapError, or } from '@cross-check/dsl';
 import { email, factory, presence, str, uniqueness } from './support';
 
 function validationCallback() {

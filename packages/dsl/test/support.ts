@@ -1,8 +1,8 @@
 import Task from 'no-show';
 import { isIndexable, unknown } from 'ts-std';
 
-import { Environment, ValidationDescriptor, ValidationError, ValidatorFactory, validate } from '@validations/core';
-import build, { Buildable, ValidationBuilder, validates } from '@validations/dsl';
+import { Environment, ValidationDescriptor, ValidationError, ValidatorFactory, validate } from '@cross-check/core';
+import build, { Buildable, ValidationBuilder, validates } from '@cross-check/dsl';
 
 export const presence = builder('presence');
 export const str = builder('str');

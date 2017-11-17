@@ -1,4 +1,4 @@
-import { ErrorMessage, ValidationError } from '@validations/core';
+import { ErrorMessage, ValidationError } from '@cross-check/core';
 import { buildAndRun as run } from '../support';
 
 QUnit.module('Validators (callback)');

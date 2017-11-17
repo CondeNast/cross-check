@@ -3,7 +3,7 @@
 const path = require('path');
 
 module.exports = {
-  name: '@validations/dsl',
+  name: '@cross-check/dsl',
 
   setupPreprocessorRegistry(type, registry) {
     if (type === 'self') {

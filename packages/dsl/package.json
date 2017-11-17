@@ -1,5 +1,5 @@
 {
-  "name": "@validations/dsl",
+  "name": "@cross-check/dsl",
   "version": "0.7.6",
   "description": "A DSL for building validations.",
   "contributors": [
@@ -38,12 +38,12 @@
     "typescript": "^2.4.2"
   },
   "dependencies": {
-    "@validations/core": "^0.7.2",
+    "@cross-check/core": "^0.7.2",
     "no-show": "^0.6.2",
     "ts-std": "^0.6.2"
   },
   "peerDependencies": {
-    "@validations/core": "^0.7.2",
+    "@cross-check/core": "^0.7.2",
     "no-show": "^0.6.2",
     "ts-std": "^0.6.2"
   }

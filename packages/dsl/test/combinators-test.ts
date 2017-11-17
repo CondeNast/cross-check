@@ -1,5 +1,5 @@
-import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory } from '@validations/core';
-import { MapErrorTransform, and, chain, mapError, muteAll, mutePath, muteType, or } from '@validations/dsl';
+import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory } from '@cross-check/core';
+import { MapErrorTransform, and, chain, mapError, muteAll, mutePath, muteType, or } from '@cross-check/dsl';
 import Task from 'no-show';
 import { unknown } from 'ts-std';
 import { run } from './support';

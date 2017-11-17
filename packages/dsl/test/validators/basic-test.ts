@@ -1,5 +1,5 @@
-import { ValidationError } from '@validations/core';
-import { BasicValidator, builderFor } from '@validations/dsl';
+import { ValidationError } from '@cross-check/core';
+import { BasicValidator, builderFor } from '@cross-check/dsl';
 import { Indexable, unknown } from 'ts-std';
 import { buildAndRun as run } from '../support';
 
@@ -77,10 +77,10 @@ QUnit.test('PackageJSONValidator', async assert => {
   }
 
   assert.deepEqual(await run(packageJSON(), {}), [...packageNameFailure(), ...authorshipFailure()]);
-  assert.deepEqual(await run(packageJSON(), { name: '@validations/dsl' }), authorshipFailure());
+  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl' }), authorshipFailure());
   assert.deepEqual(await run(packageJSON(), { author: 'Godfrey' }), packageNameFailure());
   assert.deepEqual(await run(packageJSON(), { contributors: ['Godfrey', 'Yehuda'] }), packageNameFailure());
 
-  assert.deepEqual(await run(packageJSON(), { name: '@validations/dsl', author: 'Godfrey' }), success());
-  assert.deepEqual(await run(packageJSON(), { name: '@validations/dsl', contributors: ['Godfrey', 'Yehuda'] }), success());
+  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl', author: 'Godfrey' }), success());
+  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl', contributors: ['Godfrey', 'Yehuda'] }), success());
 });
