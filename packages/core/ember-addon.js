@@ -3,7 +3,7 @@
 const path = require('path');
 
 module.exports = {
-  name: '@validations/core',
+  name: '@cross-check/core',
 
   setupPreprocessorRegistry(type, registry) {
     if (type === 'self') {
