@@ -26,7 +26,7 @@
     "docs": "typedoc --out docs src/ --mode file",
     "publish-docs": "./scripts/publish-docs"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "ember-cli": "^2.14.2",
