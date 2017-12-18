@@ -30,7 +30,7 @@ This is still a good guiding principle for this library. **A good validation lib
 
 ### Framework Agnostic, But Framework Friendly
 
-cross-check was extracted from the requirements of a working validation system that powered Conde Nast's CMS, which is written in Ember.
+cross-check was extracted from the requirements of a working validation system that powered Condé Nast's CMS, which is written in Ember.
 
 One of the main goals of the extraction was to allow people to define validation rules for their forms without needing to understand Ember or its object model.
 
@@ -197,4 +197,7 @@ const emailDescriptor = {
 
 ## Sponsors
 
-cross-check was originally extracted from Conde Nast's CMS, and the work to extract it and release it as open source was funded by Conde Nast.
+
+<img src="https://user-images.githubusercontent.com/56631/32398027-e2027480-c0a9-11e7-9077-c5ecca7bc39c.png" align="left"  />
+
+cross-check was originally extracted from Condé Nast's CMS, and the work to extract it and release it as open source was funded by [**Condé Nast**](http://bit.ly/cn-rn).
