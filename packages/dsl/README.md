@@ -2,9 +2,9 @@
 
 A low-level validation library. Built on top of [@cross-check/core](https://github.com/tildeio/validations-core). Detailed philosophy about cross-check can be found in `@cross-check/core`.
 
-It was originally extracted from Conde Nast's CMS and sponsored by Conde Nast.
+It was originally extracted from Condé Nast's CMS and sponsored by Condé Nast.
 
-It's largely focused on building a small, flexible, but useful core primitive for composing validations. This library focuses on ensuring that validators can be composed easily in various useful ways. The composition goals were informed by Conde Nast's working system, since the first iteration of this library successfully replaced existing validators in its production system.
+It's largely focused on building a small, flexible, but useful core primitive for composing validations. This library focuses on ensuring that validators can be composed easily in various useful ways. The composition goals were informed by Condé Nast's working system, since the first iteration of this library successfully replaced existing validators in its production system.
 
 The short version of the philosophy of cross-check:
 
@@ -31,4 +31,6 @@ You can also generate documentation locally in `docs/` by running `npm run docs`
 
 ## Sponsors
 
-cross-check was originally extracted from Conde Nast's CMS, and the work to extract it and release it as open source was funded by Conde Nast.
+<img src="https://user-images.githubusercontent.com/56631/32398027-e2027480-c0a9-11e7-9077-c5ecca7bc39c.png" align="left"  />
+
+cross-check was originally extracted from Condé Nast's CMS, and the work to extract it and release it as open source was funded by [**Condé Nast**](http://bit.ly/cn-rn).
