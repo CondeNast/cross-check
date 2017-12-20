@@ -1,5 +1,7 @@
 # @cross-check/core
 
+[![Build Status](https://travis-ci.org/cross-check/core.svg?branch=master)](https://travis-ci.org/cross-check/core)
+
 The core primitive data structures and functions for a validation library.
 
 The primitives in `@cross-check/core` are used to implement `@cross-check/dsl`. In general, you probably want to use that library, even for primitive use-cases.
