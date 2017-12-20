@@ -11,9 +11,9 @@ function mapError({ path, message }: ValidationError, key: string): ValidationEr
 
 /**
  * @api primitive
- * 
+ *
  * The class that powers the `fields()` validator function.
- * 
+ *
  * Use this if you want to refine this validator and implement your own
  * custom `fields()`.
  */

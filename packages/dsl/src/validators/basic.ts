@@ -5,9 +5,9 @@ import { ValidatorInstance } from './abstract';
 
 /**
  * @api primitive
- * 
+ *
  * The most basic, primitive Validator superclass for validating a single value.
- * 
+ *
  * Subclasses should implement `validate()` and can return an array of validation
  * errors. If you only need to return a single error, use `ValueValidator`
  * instead.

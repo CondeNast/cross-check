@@ -21,6 +21,7 @@
     "prepack": "ember build -prod",
     "build": "ember build -prod",
     "build-tests": "ember build",
+    "pretest": "npm run problems",
     "test": "ember test",
     "tdd": "ember test --server",
     "docs": "typedoc --out docs src/ --mode file",
@@ -35,7 +36,7 @@
     "shelljs": "^0.7.8",
     "tslint": "^5.7.0",
     "typedoc": "^0.8.0",
-    "typescript": "^2.4.2"
+    "typescript": "~2.5.3"
   },
   "dependencies": {
     "@cross-check/core": "^0.7.4",

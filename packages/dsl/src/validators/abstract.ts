@@ -5,7 +5,7 @@ import { ValidationBuilder, validates } from '../builders';
 
 /**
  * @api primitive
- * 
+ *
  * An interface that the main validator superclasses (such as `ValueValidator`) implement.
  * An implementation of `ValidatorClass` is passed into `factoryFor` or `builderFor`.
  *
@@ -18,14 +18,14 @@ export interface ValidatorClass<T, Options> {
 
 /**
  * @api primitive
- * 
+ *
  * An instance of a `ValidatorClass`. If `T` is not `unknown`, this validator must
  * come after a previous validator that validates that the input is the expected
  * type.
- * 
+ *
  * For example, if you have a `ValidatorInstance<string>` named `email()`, you
  * should chain it after a `string` validator.
- * 
+ *
  * @typeparam T  a valid input value for this validator instance.
  */
 export interface ValidatorInstance<T> {
@@ -34,9 +34,9 @@ export interface ValidatorInstance<T> {
 
 /**
  * @internal
- * 
+ *
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
- * 
+ *
  */
 export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>): ValidatorFactory<T, Options> {
   return (env: Environment, options: Options): Validator<T> => {
@@ -47,13 +47,13 @@ export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>): Valid
 
 /**
  * @api public
- * 
+ *
  * Turns a `ValidatorClass` into a function that takes options and returns a `ValidationBuilder`.
- * 
+ *
  * Used to convert a subclass of the public validator classes into a builder, so that users can
  * use `andThen`, `andAlso`, `or`, etc. on them, and also so they can be used as the inner value
  * of `array()` or `object()` validators.
- * 
+ *
  * ```ts
  * class PercentValidator extends ValueValidator<number, void> {
  *   validate(value: number): ErrorMessage | void {
@@ -62,7 +62,7 @@ export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>): Valid
  *     }
  *   }
  * }
- * 
+ *
  * export function percent(): ValidationBuilder<number> {
  *   return builderFor(ValueValidator);
  * }
