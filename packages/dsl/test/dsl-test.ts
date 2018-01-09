@@ -1,6 +1,5 @@
-import { ValidationDescriptor } from '@cross-check/core';
 import validates, { MapErrorTransform, and, chain, extend, factoryForCallback, mapError, or } from '@cross-check/dsl';
-import { email, factory, presence, str, uniqueness } from './support';
+import { email, factory, isEmail, presence, str, uniqueness } from './support';
 
 function validationCallback() {
   /* no-op */
@@ -23,14 +22,14 @@ QUnit.test('basic DSL', assert => {
 });
 
 QUnit.test('andAlso', assert => {
-  let validations: ValidationDescriptor = validates(
+  let validations = validates(
     str()
       .andAlso(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .andAlso(uniqueness())
       .andAlso(validationCallback)
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: and,
     options: [
       {
@@ -58,14 +57,14 @@ QUnit.test('andAlso', assert => {
 });
 
 QUnit.test('or', assert => {
-  let validations: ValidationDescriptor = validates(
+  let validations = validates(
     str()
       .or(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .or(uniqueness())
       .or(validationCallback)
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: or,
     options: [
       {
@@ -95,12 +94,12 @@ QUnit.test('or', assert => {
 QUnit.test('andThen', assert => {
   let validations = validates(
     str()
-      .andThen(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
+      .andThen(isEmail({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .andThen(uniqueness())
       .andThen(validationCallback)
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: chain,
     options: [
       {
@@ -108,7 +107,7 @@ QUnit.test('andThen', assert => {
         options: undefined,
         contexts: []
       }, {
-        factory: factory('email'),
+        factory: factory('isEmail'),
         options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
         contexts: []
       }, {
@@ -132,12 +131,12 @@ QUnit.test('catch', assert => {
 
   let validations = validates(
     str()
-      .andThen(email({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
+      .andThen(isEmail({ tlds: ['.com', '.net', '.org', '.edu', '.gov'] }))
       .andThen(uniqueness())
       .catch(mapper)
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: mapError,
     options: {
       transform: mapper,
@@ -149,7 +148,7 @@ QUnit.test('catch', assert => {
             options: undefined,
             contexts: []
           }, {
-            factory: factory('email'),
+            factory: factory('isEmail'),
             options: { tlds: ['.com', '.net', '.org', '.edu', '.gov'] },
             contexts: []
           }, {
@@ -181,7 +180,7 @@ QUnit.test('validation contexts', assert => {
       .on('create', 'update', 'destroy')
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: and,
     options: [{
       factory: and,
@@ -215,12 +214,12 @@ QUnit.test('extend', assert => {
 
   let extended = validates(
     extend(validations)
-      .andThen(email({ tlds: ['.com'] }))
+      .andThen(isEmail({ tlds: ['.com'] }))
       .andAlso(uniqueness().on('create'))
       .catch(mapper)
   );
 
-  let expected: ValidationDescriptor = {
+  let expected = {
     factory: mapError,
     options: {
       transform: mapper,
@@ -237,7 +236,7 @@ QUnit.test('extend', assert => {
             options: undefined,
             contexts: []
           }, {
-            factory: factory('email'),
+            factory: factory('isEmail'),
             options: { tlds: ['.com'] },
             contexts: []
           }],
@@ -346,7 +345,7 @@ QUnit.test('"or" does not mutate previously defined builder', assert => {
 
 QUnit.test('"andThen" does not mutate previously defined builder', assert => {
   let present = presence();
-  let presentAndEmail = present.andThen(email({ tlds: ['.com'] }));
+  let presentAndEmail = present.andThen(isEmail({ tlds: ['.com'] }));
   let presentAndUnique = present.andThen(uniqueness());
 
   assert.deepEqual(validates(present), {
@@ -363,7 +362,7 @@ QUnit.test('"andThen" does not mutate previously defined builder', assert => {
         options: undefined,
         contexts: []
       }, {
-        factory: factory('email'),
+        factory: factory('isEmail'),
         options: { tlds: ['.com'] },
         contexts: []
       }

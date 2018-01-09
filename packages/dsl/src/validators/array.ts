@@ -17,10 +17,10 @@ function mapError({ path, message }: ValidationError, index: number): Validation
  * Use this if you want to refine this validator and implement your own
  * custom `items()`.
  */
-export class ItemsValidator implements ValidatorInstance<unknown[]> {
-  constructor(protected env: Environment, protected descriptor: ValidationDescriptor) {}
+export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
+  constructor(protected env: Environment, protected descriptor: ValidationDescriptor<T>) {}
 
-  run(value: unknown[], context: Option<string>): Task<ValidationError[]> {
+  run(value: T[], context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 

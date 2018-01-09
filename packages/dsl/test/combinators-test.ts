@@ -1,5 +1,5 @@
 import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory } from '@cross-check/core';
-import { MapErrorTransform, and, chain, mapError, muteAll, mutePath, muteType, or } from '@cross-check/dsl';
+import { MapErrorOptions, MapErrorTransform, and, chain, mapError, muteAll, mutePath, muteType, or } from '@cross-check/dsl';
 import Task from 'no-show';
 import { unknown } from 'ts-std';
 import { run } from './support';
@@ -21,7 +21,7 @@ const Fail: ValidatorFactory<unknown, FailOptions> = (_: Environment, { reason, 
 
 function descriptorFor<T>(factory: ValidatorFactory<T, void>): ValidationDescriptor<T>;
 function descriptorFor<T, Options>(factory: ValidatorFactory<T, Options>, options: Options): ValidationDescriptor<T>;
-function descriptorFor<T, Options>(factory: ValidatorFactory<T, Options>, options?: Options): ValidationDescriptor<T> {
+function descriptorFor<T>(factory: ValidatorFactory<T, any>, options?: any): ValidationDescriptor<T> {
   return {
     factory,
     options,
@@ -71,7 +71,7 @@ QUnit.test('chain', async assert => {
 
 QUnit.test('mapError', async assert => {
   function map(descriptor: ValidationDescriptor, transform: MapErrorTransform): Task<ValidationError[]> {
-    return run(descriptorFor(mapError, { descriptor, transform }), null);
+    return run(descriptorFor<unknown, MapErrorOptions<unknown>>(mapError, { descriptor, transform }), null);
   }
 
   function cast(descriptor: ValidationDescriptor): Task<ValidationError[]> {

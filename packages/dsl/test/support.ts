@@ -6,7 +6,8 @@ import build, { Buildable, ValidationBuilder, validates } from '@cross-check/dsl
 
 export const presence = builder('presence');
 export const str = builder('str');
-export const email = builder<string, { tlds: string[] }>('email');
+export const email = builder<unknown, { tlds: string[] }>('email');
+export const isEmail = builder<string, { tlds: string[] }>('isEmail');
 export const uniqueness = builder('uniqueness');
 
 export function factory(name: string): ValidatorFactory<unknown, unknown> {

@@ -17,15 +17,15 @@ function mapError({ path, message }: ValidationError, key: string): ValidationEr
  * Use this if you want to refine this validator and implement your own
  * custom `fields()`.
  */
-export class FieldsValidator implements ValidatorInstance<Indexable> {
-  constructor(protected env: Environment, protected descriptors: Dict<ValidationDescriptor>) {}
+export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
+  constructor(protected env: Environment, protected descriptors: Dict<ValidationDescriptor<T>>) {}
 
-  run(value: Indexable, context: Option<string>): Task<ValidationError[]> {
+  run(value: Indexable<T>, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of entries(this.descriptors)) {
-        let suberrors = await run(validate(this.env, this.env.get(value, key), descriptor!, context));
+        let suberrors = await run(validate(this.env, this.env.get(value, key) as T, descriptor!, context));
         errors.push(...suberrors.map(error => mapError(error, key)));
       }
 
@@ -45,8 +45,8 @@ export function object(builders: Dict<ValidationBuilder<unknown>>): ValidationBu
   return isObject().andThen(fields(builders));
 }
 
-function normalizeFields(builders: Dict<ValidationBuilder<unknown>>): Dict<ValidationDescriptor> {
-  let out = dict<ValidationDescriptor>();
+function normalizeFields<T>(builders: Dict<ValidationBuilder<T>>): Dict<ValidationDescriptor<T>> {
+  let out = dict<ValidationDescriptor<T>>();
 
   for (let [key, value] of entries(builders)) {
     out[key] = normalize(value!);

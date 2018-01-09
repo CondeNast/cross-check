@@ -31,12 +31,12 @@
   "devDependencies": {
     "@types/qunit": "^2.0.31",
     "ember-cli": "^2.14.2",
-    "libkit": "^0.5.17",
+    "libkit": "^0.5.18",
     "qunitjs": "^2.4.0",
     "shelljs": "^0.7.8",
     "tslint": "^5.7.0",
     "typedoc": "^0.8.0",
-    "typescript": "~2.5.3"
+    "typescript": "^2.6.2"
   },
   "dependencies": {
     "@cross-check/core": "^0.7.4",

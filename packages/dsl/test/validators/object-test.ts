@@ -1,6 +1,6 @@
 import { ValidationError } from '@cross-check/core';
-import { validators } from '@cross-check/dsl';
-import { Option, unknown } from 'ts-std';
+import { ValidationBuilder, validators } from '@cross-check/dsl';
+import { Dict, Option, unknown } from 'ts-std';
 import { buildAndRun as run } from '../support';
 
 QUnit.module('Validators (object)');
@@ -24,7 +24,9 @@ QUnit.test('object should fail if passed non-objects', async assert => {
   assert.deepEqual(await run(validators.object({}), 'string-is-not-arr'), [failure(null, 'type', 'object')]);
 });
 
-[validators.fields, validators.object].forEach(builder => {
+type ObjectBuilder = (fields: Dict<ValidationBuilder<any>>) => ValidationBuilder<any>;
+
+[validators.fields, validators.object].forEach((builder: ObjectBuilder) => {
   let name = builder.name;
 
   QUnit.test(`simple ${name}`, async assert => {
