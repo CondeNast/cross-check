@@ -1,6 +1,10 @@
-import { Task } from 'no-show';
-import { Option } from 'ts-std';
-import { Environment, ValidationDescriptor, ValidationError } from './descriptor';
+import { Task } from "no-show";
+import { Option } from "ts-std";
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError
+} from "./descriptor";
 
 /**
  * @api public
@@ -20,7 +24,12 @@ import { Environment, ValidationDescriptor, ValidationError } from './descriptor
  *  descriptor can represent multiple composed validations
  * @param context Optionally, a string that represents the saving context
  */
-export function validate<T>(env: Environment, value: T, descriptor: ValidationDescriptor<T>, context: Option<string>): Task<ValidationError[]> {
+export function validate<T>(
+  env: Environment,
+  value: T,
+  descriptor: ValidationDescriptor<T>,
+  context: Option<string>
+): Task<ValidationError[]> {
   return new Task(async run => {
     let { factory, options, contexts } = descriptor;
 
