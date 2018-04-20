@@ -15,9 +15,12 @@ interface OptionsDict extends Dict<Options> {}
 
 type Options = PrimitiveOptions | OptionsArray | OptionsDict;
 
-export function format(descriptor: ValidationDescriptor): string {
+export function format(
+  descriptor: ValidationDescriptor,
+  top: boolean = true
+): string {
   let out = `(${descriptor.name}`;
-  let options = formatOption(descriptor.options);
+  let options = formatOption(descriptor.options, top);
 
   if (options !== null) {
     return `${out} ${options})`;
@@ -26,7 +29,7 @@ export function format(descriptor: ValidationDescriptor): string {
   }
 }
 
-function formatOption(unknownOption: unknown): Option<string> {
+function formatOption(unknownOption: unknown, top: boolean): Option<string> {
   let option = toOption(unknownOption);
 
   if (
@@ -38,9 +41,9 @@ function formatOption(unknownOption: unknown): Option<string> {
   } else if (option instanceof RegExp) {
     return String(option);
   } else if (option === null || option === undefined) {
-    return null;
+    return top ? null : String(option);
   } else if (Array.isArray(option)) {
-    return option.map(formatOption).join(" ");
+    return option.map(o => formatOption(o, false)).join(" ");
   } else if (typeof option === "object") {
     if (isValidationDescriptor(option)) {
       return format(option);
@@ -49,7 +52,7 @@ function formatOption(unknownOption: unknown): Option<string> {
     let out = [];
 
     for (let [key, value] of entries(option)) {
-      out.push(`${key}=${formatOption(value)}`);
+      out.push(`${key}=${formatOption(value, false)}`);
     }
 
     return out.join(" ");
@@ -75,7 +78,7 @@ function isOption(option: unknown): option is Options {
     return true;
   } else if (option instanceof RegExp) {
     return true;
-  } else if (option === null) {
+  } else if (option === null || option === undefined) {
     return true;
   } else if (Array.isArray(option)) {
     return option.every(isOption);

@@ -9,6 +9,15 @@ QUnit.test("formatting a basic validation descriptor", assert => {
 
   assert.equal(format(desc("call", undefined)), "(call)");
 
+  assert.equal(format(desc("call", [undefined])), "(call undefined)");
+
+  assert.equal(format(desc("call", [null])), "(call null)");
+
+  assert.equal(
+    format(desc("call", { x: null, y: undefined })),
+    "(call x=null y=undefined)"
+  );
+
   assert.equal(
     format(desc("call", ["some", "string"])),
     `(call "some" "string")`
