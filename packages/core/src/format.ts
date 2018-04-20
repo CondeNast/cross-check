@@ -1,4 +1,4 @@
-import { Dict, Option, entries, unknown, values } from "ts-std";
+import { Dict, Option, entries, unknown } from "ts-std";
 import { ValidationDescriptor } from "./descriptor";
 
 type PrimitiveOptions =
@@ -7,6 +7,8 @@ type PrimitiveOptions =
   | number
   | boolean
   | RegExp
+  // tslint:disable-next-line:ban-types
+  | Function
   | null
   | undefined;
 
@@ -29,74 +31,110 @@ export function format(
   }
 }
 
-function formatOption(unknownOption: unknown, top: boolean): Option<string> {
-  let option = toOption(unknownOption);
+function formatOption(option: unknown, top: boolean): Option<string> {
+  switch (optionType(option)) {
+    case "String":
+    case "Boolean":
+    case "Number":
+    case "Null":
+      return top ? null : JSON.stringify(option);
+    case "Undefined":
+      return top ? null : "undefined";
+    case "Array":
+      return castOption<"Array">(option)
+        .map(o => formatOption(o, false))
+        .join(" ");
+    case "RegExp":
+      return String(option);
+    case "Dictionary": {
+      let out = [];
 
-  if (
-    typeof option === "string" ||
-    typeof option === "number" ||
-    typeof option === "boolean"
-  ) {
-    return JSON.stringify(option);
-  } else if (option instanceof RegExp) {
-    return String(option);
-  } else if (option === null || option === undefined) {
-    return top ? null : String(option);
-  } else if (Array.isArray(option)) {
-    return option.map(o => formatOption(o, false)).join(" ");
-  } else if (typeof option === "object") {
-    if (isValidationDescriptor(option)) {
-      return format(option);
+      for (let [key, value] of entries(castOption<"Dictionary">(option))) {
+        out.push(`${key}=${formatOption(value, false)}`);
+      }
+
+      return out.length === 0 ? "{}" : out.join(" ");
     }
+    case "Descriptor":
+      return format(castOption<"Descriptor">(option));
+    case "Function":
+      return `function() { ... }`;
+    case "Class": {
+      let c = castOption<"Class">(option);
 
-    let out = [];
-
-    for (let [key, value] of entries(option)) {
-      out.push(`${key}=${formatOption(value, false)}`);
-    }
-
-    return out.join(" ");
-  } else {
-    throw new Error("Unreachable");
-  }
-}
-
-function toOption(option: unknown): Options {
-  if (isOption(option)) {
-    return option;
-  } else {
-    return String(option);
-  }
-}
-
-function isOption(option: unknown): option is Options {
-  if (
-    typeof option === "string" ||
-    typeof option === "number" ||
-    typeof option === "boolean"
-  ) {
-    return true;
-  } else if (option instanceof RegExp) {
-    return true;
-  } else if (option === null || option === undefined) {
-    return true;
-  } else if (Array.isArray(option)) {
-    return option.every(isOption);
-  } else if (typeof option === "object") {
-    if (isValidationDescriptor(option)) {
-      return true;
-    }
-
-    for (let value of values(option)) {
-      if (!isOption(value)) {
-        return false;
+      if (c.name) {
+        return `class ${c.name} { ... }`;
+      } else {
+        return `class { ... }`;
       }
     }
+    case "None":
+      return "[unexpected]";
+  }
+}
 
-    return true;
+interface OptionType {
+  String: string;
+  Number: number;
+  Boolean: boolean;
+  RegExp: RegExp;
+  Null: null;
+  Undefined: undefined;
+  Array: Options[];
+  Dictionary: Dict<Options>;
+  // tslint:disable-next-line:ban-types
+  Function: Function;
+  Class: typeof Object;
+  Descriptor: ValidationDescriptor;
+  None: unknown;
+}
+
+function castOption<K extends keyof OptionType>(
+  option: unknown
+): OptionType[K] {
+  return option as OptionType[K];
+}
+
+function optionType(option: unknown): keyof OptionType {
+  if (Array.isArray(option)) {
+    return "Array";
+  } else if (option === null) {
+    return "Null";
+  } else if (option instanceof RegExp) {
+    return "RegExp";
   }
 
-  return false;
+  switch (typeof option) {
+    case "string":
+      return "String";
+    case "number":
+      return "Number";
+    case "boolean":
+      return "Boolean";
+    case "undefined":
+      return "Undefined";
+    case "function": {
+      if (String(option).indexOf("class") === 0) {
+        return "Class";
+      } else {
+        return "Function";
+      }
+    }
+    case "object":
+      return objectOptionType(option as object);
+    default:
+      return "None";
+  }
+}
+
+function objectOptionType(option: object): keyof OptionType {
+  if (isValidationDescriptor(option)) {
+    return "Descriptor";
+  } else if (Object.getPrototypeOf(option) === Object.prototype) {
+    return "Dictionary";
+  } else {
+    return "None";
+  }
 }
 
 function isValidationDescriptor(

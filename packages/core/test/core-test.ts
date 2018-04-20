@@ -4,40 +4,47 @@ import { ValidationDescriptor } from "./index";
 
 QUnit.module("format");
 
+function assertFormat(
+  assert: typeof QUnit.assert
+): (options: unknown, expected: string) => void {
+  return (options, expected) => {
+    let formatted = format(desc("call", options));
+
+    QUnit.assert.equal(formatted, expected, `${name} ${quickFormat(options)}`);
+  };
+}
+
+function quickFormat(o: unknown): string {
+  if (Array.isArray(o)) {
+    return `[${o.map(quickFormat).join(", ")}]`;
+  } else {
+    return String(o);
+  }
+}
+
 QUnit.test("formatting a basic validation descriptor", assert => {
-  assert.equal(format(desc("call", null)), "(call)");
+  const expectFormat = assertFormat(assert);
 
-  assert.equal(format(desc("call", undefined)), "(call)");
-
-  assert.equal(format(desc("call", [undefined])), "(call undefined)");
-
-  assert.equal(format(desc("call", [null])), "(call null)");
-
-  assert.equal(
-    format(desc("call", { x: null, y: undefined })),
-    "(call x=null y=undefined)"
+  expectFormat(null, "(call)");
+  expectFormat(undefined, "(call)");
+  expectFormat([undefined], "(call undefined)");
+  expectFormat([null], "(call null)");
+  expectFormat([() => null], "(call function() { ... })");
+  expectFormat([class X {}], "(call class X { ... })");
+  expectFormat([/hello world/i], "(call /hello world/i)");
+  expectFormat([{}], "(call {})");
+  expectFormat({ hello: {} }, "(call hello={})");
+  expectFormat([new Set()], "(call [unexpected])");
+  expectFormat({ x: null, y: undefined }, "(call x=null y=undefined)");
+  expectFormat(["some", "string"], `(call "some" "string")`);
+  expectFormat([desc("string"), desc("url")], `(call (string) (url))`);
+  expectFormat(
+    [desc("url", { absolute: true }), desc("present")],
+    "(call (url absolute=true) (present))"
   );
-
-  assert.equal(
-    format(desc("call", ["some", "string"])),
-    `(call "some" "string")`
-  );
-
-  assert.equal(
-    format(desc("or", [desc("string"), desc("url")])),
-    "(or (string) (url))"
-  );
-
-  assert.equal(
-    format(desc("or", [desc("url", { absolute: true }), desc("present")])),
-    "(or (url absolute=true) (present))"
-  );
-
-  assert.equal(
-    format(
-      desc("andThen", [desc("present"), desc("number", { min: 1, max: 4 })])
-    ),
-    "(andThen (present) (number min=1 max=4))"
+  expectFormat(
+    [desc("present"), desc("number", { min: 1, max: 4 })],
+    "(call (present) (number min=1 max=4))"
   );
 });
 
