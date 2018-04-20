@@ -20,7 +20,7 @@
       }
     ],
     "prefer-const": false,
-    "quotemark": [true, "single"],
+    "quotemark": [true, "multiline"],
     "trailing-comma": [true, { "multiline": "never", "singleline": "never" }],
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
     "whitespace": [true,

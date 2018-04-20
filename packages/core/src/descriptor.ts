@@ -1,5 +1,5 @@
-import { Task } from 'no-show';
-import { Option, unknown } from 'ts-std';
+import { Task } from "no-show";
+import { Option, unknown } from "ts-std";
 
 export type ErrorPath = ReadonlyArray<string>;
 
@@ -44,7 +44,10 @@ export interface Environment {
  * A function that takes an environment and validator options and produces a new
  * Validator function. In other words, it curries the environment and options.
  */
-export type ValidatorFactory<T, Options> = (env: Environment, options: Options) => Validator<T>;
+export type ValidatorFactory<T, Options> = (
+  env: Environment,
+  options: Options
+) => Validator<T>;
 
 /**
  * @api primitive
@@ -56,7 +59,10 @@ export type ValidatorFactory<T, Options> = (env: Environment, options: Options) 
  *
  * Primitive validations must use no-show Tasks (which can be cancelled) to manage asynchrony.
  */
-export type Validator<T = unknown> = (value: T, context: Option<string>) => Task<ValidationError[]>;
+export type Validator<T = unknown> = (
+  value: T,
+  context: Option<string>
+) => Task<ValidationError[]>;
 
 /**
  * @api primitive
@@ -64,6 +70,7 @@ export type Validator<T = unknown> = (value: T, context: Option<string>) => Task
  * A low-level representation of a validation.
  */
 export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
+  name: string;
   factory: ValidatorFactory<T, Options>;
   options: Options;
   contexts: ReadonlyArray<string>;
