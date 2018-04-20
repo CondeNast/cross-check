@@ -7,7 +7,8 @@ type PrimitiveOptions =
   | number
   | boolean
   | RegExp
-  | null;
+  | null
+  | undefined;
 
 interface OptionsArray extends Array<PrimitiveOptions> {}
 interface OptionsDict extends Dict<Options> {}
@@ -36,7 +37,7 @@ function formatOption(unknownOption: unknown): Option<string> {
     return JSON.stringify(option);
   } else if (option instanceof RegExp) {
     return String(option);
-  } else if (option === null) {
+  } else if (option === null || option === undefined) {
     return null;
   } else if (Array.isArray(option)) {
     return option.map(formatOption).join(" ");
