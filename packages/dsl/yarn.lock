@@ -3,8 +3,8 @@
 
 
 "@cross-check/core@^0.8.0":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@cross-check/core/-/core-0.8.2.tgz#e4f680c0ad0c873430fd7869c5b2eaae1f0579ae"
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/@cross-check/core/-/core-0.8.3.tgz#23fcb29f57d95906fe077919ebdf994e50c281ee"
   dependencies:
     no-show "^0.6.2"
     ts-std "^0.6.2"
