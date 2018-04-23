@@ -1,11 +1,19 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from '@cross-check/core';
-import normalize, { ValidationBuilder, validates } from '@cross-check/dsl';
-import { Task } from 'no-show';
-import { Dict, Indexable, Option, dict, entries, unknown } from 'ts-std';
-import { ValidatorInstance, factoryFor } from './abstract';
-import { isObject } from './is';
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError,
+  validate
+} from "@cross-check/core";
+import normalize, { ValidationBuilder, validates } from "@cross-check/dsl";
+import { Task } from "no-show";
+import { Dict, Indexable, Option, dict, entries, unknown } from "ts-std";
+import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
+import { isObject } from "./is";
 
-function mapError({ path, message }: ValidationError, key: string): ValidationError {
+function mapError(
+  { path, message }: ValidationError,
+  key: string
+): ValidationError {
   return { path: [key, ...path], message };
 }
 
@@ -18,14 +26,26 @@ function mapError({ path, message }: ValidationError, key: string): ValidationEr
  * custom `fields()`.
  */
 export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
-  constructor(protected env: Environment, protected descriptors: Dict<ValidationDescriptor<T>>) {}
+  static validatorName = "fields";
+
+  constructor(
+    protected env: Environment,
+    protected descriptors: Dict<ValidationDescriptor<T>>
+  ) {}
 
   run(value: Indexable<T>, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of entries(this.descriptors)) {
-        let suberrors = await run(validate(this.env, this.env.get(value, key) as T, descriptor!, context));
+        let suberrors = await run(
+          validate(
+            this.env,
+            this.env.get(value, key) as T,
+            descriptor!,
+            context
+          )
+        );
         errors.push(...suberrors.map(error => mapError(error, key)));
       }
 
@@ -34,18 +54,31 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
   }
 }
 
-export function fields<T>(builders: Dict<ValidationBuilder<T>>): ValidationBuilder<Indexable<T>> {
-  return validates(factoryFor(FieldsValidator), normalizeFields(builders));
+export function fields<T>(
+  builders: Dict<ValidationBuilder<T>>
+): ValidationBuilder<Indexable<T>> {
+  return validates(
+    "fields",
+    factoryFor(FieldsValidator as ValidatorClass<
+      Indexable<T>,
+      Dict<ValidationDescriptor<T>>
+    >),
+    normalizeFields(builders)
+  );
 }
 
 /**
  * @api public
  */
-export function object(builders: Dict<ValidationBuilder<unknown>>): ValidationBuilder<unknown> {
+export function object(
+  builders: Dict<ValidationBuilder<unknown>>
+): ValidationBuilder<unknown> {
   return isObject().andThen(fields(builders));
 }
 
-function normalizeFields<T>(builders: Dict<ValidationBuilder<T>>): Dict<ValidationDescriptor<T>> {
+function normalizeFields<T>(
+  builders: Dict<ValidationBuilder<T>>
+): Dict<ValidationDescriptor<T>> {
   let out = dict<ValidationDescriptor<T>>();
 
   for (let [key, value] of entries(builders)) {

@@ -1,11 +1,25 @@
-import { Environment, ErrorPath, ValidationDescriptor, ValidationError, Validator, ValidatorFactory, validate } from '@cross-check/core';
-import { Task } from 'no-show';
+import {
+  Environment,
+  ErrorPath,
+  ValidationDescriptor,
+  ValidationError,
+  Validator,
+  ValidatorFactory,
+  validate
+} from "@cross-check/core";
+import { Task } from "no-show";
 
 export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
-export type CombinatorFactory<T> = ValidatorFactory<T, ValidationDescriptors<T>>;
+export type CombinatorFactory<T> = ValidatorFactory<
+  T,
+  ValidationDescriptors<T>
+>;
 
-export function chain<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
-  return ((value, context): Task<ValidationError[]> => {
+export function chain<T>(
+  env: Environment,
+  descriptors: ValidationDescriptors<T>
+): Validator<T> {
+  return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       for (let descriptor of descriptors) {
         let errors = await run(validate(env, value, descriptor, context));
@@ -14,25 +28,34 @@ export function chain<T>(env: Environment, descriptors: ValidationDescriptors<T>
 
       return [];
     });
-  });
+  };
 }
 
-export function and<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
-  return ((value, context): Task<ValidationError[]> => {
+export function and<T>(
+  env: Environment,
+  descriptors: ValidationDescriptors<T>
+): Validator<T> {
+  return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       let result: ValidationError[] = [];
 
       for (let descriptor of descriptors) {
-        mergeErrors(result, await run(validate(env, value, descriptor, context)));
+        mergeErrors(
+          result,
+          await run(validate(env, value, descriptor, context))
+        );
       }
 
       return result;
     });
-  });
+  };
 }
 
-export function or<T>(env: Environment, descriptors: ValidationDescriptors<T>): Validator<T> {
-  return ((value, context): Task<ValidationError[]> => {
+export function or<T>(
+  env: Environment,
+  descriptors: ValidationDescriptors<T>
+): Validator<T> {
+  return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       let result: ValidationError[][] = [];
 
@@ -46,31 +69,35 @@ export function or<T>(env: Environment, descriptors: ValidationDescriptors<T>): 
         }
       }
 
-      return [{ path: [], message: { key: 'multiple', args: result } }];
+      return [{ path: [], message: { key: "multiple", args: result } }];
     });
-  });
+  };
 }
 
-export type MapErrorTransform = (errors: ValidationError[]) => ValidationError[];
+export type MapErrorTransform = (
+  errors: ValidationError[]
+) => ValidationError[];
 
 export interface MapErrorOptions<T> {
-  descriptor: ValidationDescriptor<T>;
-  transform: MapErrorTransform;
+  do: ValidationDescriptor<T>;
+  catch: MapErrorTransform;
 }
 
-export function mapError<T>(env: Environment, options: MapErrorOptions<T>): Validator<T> {
-  return ((value, context): Task<ValidationError[]> => {
+export function mapError<T>(
+  env: Environment,
+  options: MapErrorOptions<T>
+): Validator<T> {
+  return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
-      let { descriptor, transform } = options;
-      let errors = await run(validate(env, value, descriptor, context));
+      let errors = await run(validate(env, value, options.do, context));
 
       if (errors.length) {
-        return transform(errors);
+        return options.catch(errors);
       } else {
         return errors;
       }
     });
-  });
+  };
 }
 
 export function muteAll(): MapErrorTransform {
@@ -85,7 +112,10 @@ export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
   return errors => errors.filter(error => !matchPath(path, error.path, exact));
 }
 
-function mergeErrors(base: ValidationError[], additions: ValidationError[]): void {
+function mergeErrors(
+  base: ValidationError[],
+  additions: ValidationError[]
+): void {
   additions.forEach(addition => {
     if (base.every(error => !matchError(error, addition))) {
       base.push(addition);
@@ -94,11 +124,18 @@ function mergeErrors(base: ValidationError[], additions: ValidationError[]): voi
 }
 
 function matchError(a: ValidationError, b: ValidationError): boolean {
-  return matchPath(a.path, b.path, true) && (a.message.key === b.message.key);
+  return matchPath(a.path, b.path, true) && a.message.key === b.message.key;
 }
 
-function matchPath(expected: ErrorPath, actual: ErrorPath, exact = false): boolean {
-  if (exact && (expected.length === actual.length) || !exact && (expected.length <= actual.length)) {
+function matchPath(
+  expected: ErrorPath,
+  actual: ErrorPath,
+  exact = false
+): boolean {
+  if (
+    (exact && expected.length === actual.length) ||
+    (!exact && expected.length <= actual.length)
+  ) {
     return expected.every((part, i) => part === actual[i]);
   } else {
     return false;

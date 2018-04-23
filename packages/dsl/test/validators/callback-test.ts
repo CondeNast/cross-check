@@ -1,12 +1,13 @@
-import { ErrorMessage, ValidationError } from '@cross-check/core';
-import { buildAndRun as run } from '../support';
+import { ErrorMessage, ValidationError, format } from "@cross-check/core";
+import validates from "@cross-check/dsl";
+import { buildAndRun as run } from "../support";
 
-QUnit.module('Validators (callback)');
+QUnit.module("Validators (callback)");
 
-QUnit.test('isAlphaNumeric', async assert => {
+QUnit.test("isAlphaNumeric", async assert => {
   function isAlphaNumeric(str: string): ErrorMessage | void {
     if (!str.match(/^[a-z0-9]+$/i)) {
-      return { key: 'alpha-numeric', args: undefined };
+      return { key: "alpha-numeric", args: undefined };
     }
   }
 
@@ -15,20 +16,27 @@ QUnit.test('isAlphaNumeric', async assert => {
   }
 
   function failure(): ValidationError[] {
-    return [{
-      path: [],
-      message: {
-        key: 'alpha-numeric',
-        args: undefined
+    return [
+      {
+        path: [],
+        message: {
+          key: "alpha-numeric",
+          args: undefined
+        }
       }
-    }];
+    ];
   }
 
-  assert.deepEqual(await run(isAlphaNumeric, 'hello'), success());
-  assert.deepEqual(await run(isAlphaNumeric, '1337'), success());
-  assert.deepEqual(await run(isAlphaNumeric, 'C0DE'), success());
+  assert.equal(
+    format(validates(isAlphaNumeric, "is-alpha-numeric")),
+    `(is-alpha-numeric function() { ... })`
+  );
 
-  assert.deepEqual(await run(isAlphaNumeric, ''), failure());
-  assert.deepEqual(await run(isAlphaNumeric, 'hello-world'), failure());
-  assert.deepEqual(await run(isAlphaNumeric, '._.'), failure());
+  assert.deepEqual(await run(isAlphaNumeric, "hello"), success());
+  assert.deepEqual(await run(isAlphaNumeric, "1337"), success());
+  assert.deepEqual(await run(isAlphaNumeric, "C0DE"), success());
+
+  assert.deepEqual(await run(isAlphaNumeric, ""), failure());
+  assert.deepEqual(await run(isAlphaNumeric, "hello-world"), failure());
+  assert.deepEqual(await run(isAlphaNumeric, "._."), failure());
 });

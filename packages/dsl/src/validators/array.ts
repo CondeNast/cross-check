@@ -1,11 +1,19 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from '@cross-check/core';
-import normalize, { ValidationBuilder } from '@cross-check/dsl';
-import { Task } from 'no-show';
-import { Option, unknown } from 'ts-std';
-import { ValidatorInstance, builderFor } from './abstract';
-import { isArray } from './is';
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError,
+  validate
+} from "@cross-check/core";
+import normalize, { ValidationBuilder } from "@cross-check/dsl";
+import { Task } from "no-show";
+import { Option, unknown } from "ts-std";
+import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
+import { isArray } from "./is";
 
-function mapError({ path, message }: ValidationError, index: number): ValidationError {
+function mapError(
+  { path, message }: ValidationError,
+  index: number
+): ValidationError {
   return { path: [...path, String(index)], message };
 }
 
@@ -18,14 +26,21 @@ function mapError({ path, message }: ValidationError, index: number): Validation
  * custom `items()`.
  */
 export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
-  constructor(protected env: Environment, protected descriptor: ValidationDescriptor<T>) {}
+  static validatorName = "array-items";
+
+  constructor(
+    protected env: Environment,
+    protected descriptor: ValidationDescriptor<T>
+  ) {}
 
   run(value: T[], context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let i = 0; i < value.length; i++) {
-        let suberrors = await run(validate(this.env, value[i], this.descriptor, context));
+        let suberrors = await run(
+          validate(this.env, value[i], this.descriptor, context)
+        );
         errors.push(...suberrors.map(error => mapError(error, i)));
       }
 
@@ -50,8 +65,13 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
  *
  * Generally speaking, you should normally use `array()`.
  */
-export function items<T>(builder: ValidationBuilder<T>): ValidationBuilder<T[]> {
-  return builderFor(ItemsValidator)(normalize(builder));
+export function items<T>(
+  builder: ValidationBuilder<T>
+): ValidationBuilder<T[]> {
+  return builderFor(ItemsValidator as ValidatorClass<
+    T[],
+    ValidationDescriptor<T>
+  >)(normalize(builder));
   // return validates(factoryFor(ItemsValidator), normalize(builder));
 }
 
@@ -68,6 +88,8 @@ export function items<T>(builder: ValidationBuilder<T>): ValidationBuilder<T[]> 
  * If the value itself is not an array, this validation will fail with the error
  * `{ key: 'type', args: 'array' }`.
  */
-export function array(builder: ValidationBuilder<unknown>): ValidationBuilder<unknown> {
+export function array(
+  builder: ValidationBuilder<unknown>
+): ValidationBuilder<unknown> {
   return isArray().andThen(items(builder));
 }

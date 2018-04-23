@@ -1,7 +1,7 @@
-export { build as default } from './builders';
-export * from './builders';
-export * from './combinators';
-import * as validators from './validators';
+export { build as default } from "./builders";
+export * from "./builders";
+export * from "./combinators";
+import * as validators from "./validators";
 export { validators };
 
 export {
@@ -12,4 +12,4 @@ export {
   builderFor,
   factoryFor,
   factoryForCallback
-} from './validators';
+} from "./validators";

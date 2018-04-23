@@ -1,10 +1,10 @@
-import { ValidationError } from '@cross-check/core';
-import { BasicValidator, builderFor } from '@cross-check/dsl';
-import { Indexable, unknown } from 'ts-std';
-import { buildAndRun as run } from '../support';
+import { ValidationError, format } from "@cross-check/core";
+import validates, { BasicValidator, builderFor } from "@cross-check/dsl";
+import { Indexable, unknown } from "ts-std";
+import { buildAndRun as run } from "../support";
 
 function isNotBlank(str: unknown): boolean {
-  return typeof str === 'string' && str.trim() !== '';
+  return typeof str === "string" && str.trim() !== "";
 }
 
 function hasPackageName({ name }: Indexable): boolean {
@@ -19,18 +19,20 @@ function hasContributors({ contributors }: Indexable): boolean {
   return Array.isArray(contributors) && contributors.length > 0;
 }
 
-QUnit.module('Validators (basic)');
+QUnit.module("Validators (basic)");
 
-QUnit.test('PackageJSONValidator', async assert => {
+QUnit.test("PackageJSONValidator", async assert => {
   class PackageJSONValidator extends BasicValidator<Indexable> {
+    static validatorName = "package-json";
+
     validate(json: Indexable): ValidationError[] {
       let errors = [];
 
       if (!hasPackageName(json)) {
         errors.push({
-          path: ['name'],
+          path: ["name"],
           message: {
-            key: 'required',
+            key: "required",
             args: undefined
           }
         });
@@ -40,7 +42,7 @@ QUnit.test('PackageJSONValidator', async assert => {
         errors.push({
           path: [],
           message: {
-            key: 'authorship',
+            key: "authorship",
             args: undefined
           }
         });
@@ -52,35 +54,62 @@ QUnit.test('PackageJSONValidator', async assert => {
 
   const packageJSON = builderFor(PackageJSONValidator);
 
+  assert.equal(format(validates(packageJSON())), `(package-json)`);
+
   function success(): ValidationError[] {
     return [];
   }
 
   function packageNameFailure(): ValidationError[] {
-    return [{
-      path: ['name'],
-      message: {
-        key: 'required',
-        args: undefined
+    return [
+      {
+        path: ["name"],
+        message: {
+          key: "required",
+          args: undefined
+        }
       }
-    }];
+    ];
   }
 
   function authorshipFailure(): ValidationError[] {
-    return [{
-      path: [],
-      message: {
-        key: 'authorship',
-        args: undefined
+    return [
+      {
+        path: [],
+        message: {
+          key: "authorship",
+          args: undefined
+        }
       }
-    }];
+    ];
   }
 
-  assert.deepEqual(await run(packageJSON(), {}), [...packageNameFailure(), ...authorshipFailure()]);
-  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl' }), authorshipFailure());
-  assert.deepEqual(await run(packageJSON(), { author: 'Godfrey' }), packageNameFailure());
-  assert.deepEqual(await run(packageJSON(), { contributors: ['Godfrey', 'Yehuda'] }), packageNameFailure());
+  assert.deepEqual(await run(packageJSON(), {}), [
+    ...packageNameFailure(),
+    ...authorshipFailure()
+  ]);
+  assert.deepEqual(
+    await run(packageJSON(), { name: "@cross-check/dsl" }),
+    authorshipFailure()
+  );
+  assert.deepEqual(
+    await run(packageJSON(), { author: "Godfrey" }),
+    packageNameFailure()
+  );
+  assert.deepEqual(
+    await run(packageJSON(), { contributors: ["Godfrey", "Yehuda"] }),
+    packageNameFailure()
+  );
 
-  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl', author: 'Godfrey' }), success());
-  assert.deepEqual(await run(packageJSON(), { name: '@cross-check/dsl', contributors: ['Godfrey', 'Yehuda'] }), success());
+  assert.deepEqual(
+    await run(packageJSON(), { name: "@cross-check/dsl", author: "Godfrey" }),
+    success()
+  );
+  assert.deepEqual(
+    await run(packageJSON(), {
+      name: "@cross-check/dsl",
+      contributors: ["Godfrey", "Yehuda"]
+    }),
+    success()
+  );
 });

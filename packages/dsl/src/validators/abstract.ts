@@ -1,7 +1,12 @@
-import { Environment, ValidationError, Validator, ValidatorFactory } from '@cross-check/core';
-import { Task } from 'no-show';
-import { Option } from 'ts-std';
-import { ValidationBuilder, validates } from '../builders';
+import {
+  Environment,
+  ValidationError,
+  Validator,
+  ValidatorFactory
+} from "@cross-check/core";
+import { Task } from "no-show";
+import { Option } from "ts-std";
+import { ValidationBuilder, validates } from "../builders";
 
 /**
  * @api primitive
@@ -13,7 +18,8 @@ import { ValidationBuilder, validates } from '../builders';
  * @typeparam Options  the options passed to the constructor of this validator class
  */
 export interface ValidatorClass<T, Options> {
-  new(env: Environment, options: Options): ValidatorInstance<T>;
+  validatorName: string;
+  new (env: Environment, options: Options): ValidatorInstance<T>;
 }
 
 /**
@@ -38,7 +44,9 @@ export interface ValidatorInstance<T> {
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
  *
  */
-export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>): ValidatorFactory<T, Options> {
+export function factoryFor<T, Options>(
+  Class: ValidatorClass<T, Options>
+): ValidatorFactory<T, Options> {
   return (env: Environment, options: Options): Validator<T> => {
     let validator = new Class(env, options);
     return (value, context) => validator.run(value, context);
@@ -68,10 +76,16 @@ export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>): Valid
  * }
  * ```
  */
-export function builderFor<T>(Class: ValidatorClass<T, void>): () => ValidationBuilder<T>;
-export function builderFor<T, Options>(Class: ValidatorClass<T, Options>): (options: Options) => ValidationBuilder<T>;
-export function builderFor<T, Options>(Class: ValidatorClass<T, Options>): (options: Options) => ValidationBuilder<T> {
+export function builderFor<T>(
+  Class: ValidatorClass<T, void>
+): () => ValidationBuilder<T>;
+export function builderFor<T, Options>(
+  Class: ValidatorClass<T, Options>
+): (options: Options) => ValidationBuilder<T>;
+export function builderFor<T, Options>(
+  Class: ValidatorClass<T, Options>
+): (options: Options) => ValidationBuilder<T> {
   let factory = factoryFor(Class);
 
-  return (options: Options) => validates(factory, options);
+  return (options: Options) => validates(Class.validatorName, factory, options);
 }
