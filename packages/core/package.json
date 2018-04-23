@@ -1,6 +1,6 @@
 {
   "name": "@cross-check/core",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "A brand new TypeScript library.",
   "main": "dist/commonjs/src/index.js",
   "module": "dist/modules/src/index.js",
@@ -8,7 +8,9 @@
   "ember-addon": {
     "main": "ember-addon.js"
   },
-  "keywords": ["ember-addon"],
+  "keywords": [
+    "ember-addon"
+  ],
   "scripts": {
     "problems": "node ./scripts/problems.js",
     "preversion": "npm run test",
