@@ -10,6 +10,5 @@ export {
   ValidatorInstance,
   ValueValidator,
   builderFor,
-  factoryFor,
   factoryForCallback
 } from "./validators";

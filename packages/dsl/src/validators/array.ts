@@ -72,7 +72,6 @@ export function items<T>(
     T[],
     ValidationDescriptor<T>
   >)(normalize(builder));
-  // return validates(factoryFor(ItemsValidator), normalize(builder));
 }
 
 /**
