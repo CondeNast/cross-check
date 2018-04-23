@@ -149,15 +149,16 @@ function optionType(option: unknown): keyof OptionType {
 function objectOptionType(option: object): keyof OptionType {
   if (isValidationDescriptor(option)) {
     return "Descriptor";
-  } else if (Object.getPrototypeOf(option) === Object.prototype) {
+  } else if (isPlainObject(option)) {
     return "Dictionary";
-  } else if (
-    Object.keys(option).every(k => optionType((option as any)[k]!) !== "None")
-  ) {
-    return "DescriptorDict";
   } else {
     return "None";
   }
+}
+
+function isPlainObject(obj: object): boolean {
+  let proto = Object.getPrototypeOf(obj);
+  return proto === Object.prototype || proto === null;
 }
 
 function isValidationDescriptor(

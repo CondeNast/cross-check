@@ -14,7 +14,7 @@ function assertFormat(
 
     let formatted = format(d);
 
-    assert.equal(formatted, expected, `${name} ${quickFormat(options)}`);
+    assert.equal(formatted, expected, `${quickFormat(options)}`);
   };
 }
 
@@ -38,7 +38,7 @@ QUnit.test("formatting a basic validation descriptor", assert => {
   expectFormat([/hello world/i], "(call /hello world/i)");
   expectFormat([{}], "(call {})");
   expectFormat({ hello: {} }, "(call hello={})");
-  expectFormat([new Set()], "(call [unexpected])");
+  expectFormat([new Set()], "(call [unknown])");
   expectFormat({ x: null, y: undefined }, "(call x=null y=undefined)");
   expectFormat(["some", "string"], `(call "some" "string")`);
   expectFormat([desc("string"), desc("url")], `(call (string) (url))`);
