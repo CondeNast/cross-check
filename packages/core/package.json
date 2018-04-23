@@ -8,9 +8,7 @@
   "ember-addon": {
     "main": "ember-addon.js"
   },
-  "keywords": [
-    "ember-addon"
-  ],
+  "keywords": ["ember-addon"],
   "scripts": {
     "problems": "node ./scripts/problems.js",
     "preversion": "npm run test",
@@ -24,7 +22,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/qunit": "^2.0.31",
-    "ember-cli": "^2.14.2",
+    "ember-cli": "^3.1.0",
     "libkit": "^0.5.17",
     "qunitjs": "^2.4.0",
     "shelljs": "^0.7.8",

@@ -17,40 +17,58 @@ interface OptionsDict extends Dict<Options> {}
 
 type Options = PrimitiveOptions | OptionsArray | OptionsDict;
 
-export function format(
-  descriptor: ValidationDescriptor,
-  top: boolean = true
-): string {
+export function format(descriptor: ValidationDescriptor<any, any>): string {
   let out = `(${descriptor.name}`;
-  let options = formatOption(descriptor.options, top);
+  let options = formatOption(descriptor.options, Position.Top);
 
   if (options !== null) {
-    return `${out} ${options})`;
+    out = `${out} ${options})`;
   } else {
-    return `${out})`;
+    out = `${out})`;
   }
+
+  if (descriptor.contexts.length) {
+    out += `::on(${descriptor.contexts.join(" ")})`;
+  }
+
+  return out;
 }
 
-function formatOption(option: unknown, top: boolean): Option<string> {
+export enum Position {
+  Top,
+  InArray,
+  InDictionary
+}
+
+function formatOption(option: unknown, position: Position): Option<string> {
   switch (optionType(option)) {
     case "String":
     case "Boolean":
     case "Number":
     case "Null":
-      return top ? null : JSON.stringify(option);
+      return position === Position.Top ? null : JSON.stringify(option);
     case "Undefined":
-      return top ? null : "undefined";
-    case "Array":
-      return castOption<"Array">(option)
-        .map(o => formatOption(o, false))
-        .join(" ");
+      return position === Position.Top ? null : "undefined";
+    case "Array": {
+      let items = castOption<"Array">(option).map(o =>
+        formatOption(o, Position.InArray)
+      );
+
+      switch (position) {
+        case Position.Top:
+          return items.join(" ");
+        default:
+          return `[${items.join(", ")}]`;
+      }
+    }
     case "RegExp":
       return String(option);
-    case "Dictionary": {
+    case "Dictionary":
+    case "DescriptorDict": {
       let out = [];
 
       for (let [key, value] of entries(castOption<"Dictionary">(option))) {
-        out.push(`${key}=${formatOption(value, false)}`);
+        out.push(`${key}=${formatOption(value, Position.InDictionary)}`);
       }
 
       return out.length === 0 ? "{}" : out.join(" ");
@@ -69,7 +87,7 @@ function formatOption(option: unknown, top: boolean): Option<string> {
       }
     }
     case "None":
-      return "[unexpected]";
+      return "[unknown]";
   }
 }
 
@@ -86,6 +104,7 @@ interface OptionType {
   Function: Function;
   Class: typeof Object;
   Descriptor: ValidationDescriptor;
+  DescriptorDict: Dict<ValidationDescriptor>;
   None: unknown;
 }
 
@@ -132,6 +151,10 @@ function objectOptionType(option: object): keyof OptionType {
     return "Descriptor";
   } else if (Object.getPrototypeOf(option) === Object.prototype) {
     return "Dictionary";
+  } else if (
+    Object.keys(option).every(k => optionType((option as any)[k]!) !== "None")
+  ) {
+    return "DescriptorDict";
   } else {
     return "None";
   }

@@ -6,11 +6,15 @@ QUnit.module("format");
 
 function assertFormat(
   assert: typeof QUnit.assert
-): (options: unknown, expected: string) => void {
-  return (options, expected) => {
-    let formatted = format(desc("call", options));
+): (options: unknown, expected: string, contexts?: string[]) => void {
+  return (options, expected, contexts?) => {
+    let d = contexts
+      ? descOn(contexts, "call", options)
+      : desc("call", options);
 
-    QUnit.assert.equal(formatted, expected, `${name} ${quickFormat(options)}`);
+    let formatted = format(d);
+
+    assert.equal(formatted, expected, `${name} ${quickFormat(options)}`);
   };
 }
 
@@ -46,6 +50,8 @@ QUnit.test("formatting a basic validation descriptor", assert => {
     [desc("present"), desc("number", { min: 1, max: 4 })],
     "(call (present) (number min=1 max=4))"
   );
+
+  expectFormat([descOn(["create"], "str")], `(call (str)::on(create))`);
 });
 
 function desc(name: string, options: unknown = null): ValidationDescriptor {
@@ -54,5 +60,18 @@ function desc(name: string, options: unknown = null): ValidationDescriptor {
     factory: () => null as any,
     options,
     contexts: []
+  };
+}
+
+function descOn(
+  contexts: string[],
+  name: string,
+  options: unknown = null
+): ValidationDescriptor {
+  return {
+    name,
+    factory: () => null as any,
+    options,
+    contexts
   };
 }
