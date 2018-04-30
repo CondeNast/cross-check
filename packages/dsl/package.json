@@ -1,8 +1,10 @@
 {
   "name": "@cross-check/dsl",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "A DSL for building validations.",
-  "contributors": ["Godfrey Chan <godfrey@tilde.io>"],
+  "contributors": [
+    "Godfrey Chan <godfrey@tilde.io>"
+  ],
   "repository": "https://github.com/tildeio/validations-dsl",
   "main": "dist/commonjs/src/index.js",
   "module": "dist/modules/src/index.js",
@@ -10,7 +12,9 @@
   "ember-addon": {
     "main": "ember-addon.js"
   },
-  "keywords": ["ember-addon"],
+  "keywords": [
+    "ember-addon"
+  ],
   "scripts": {
     "problems": "node ./scripts/problems.js",
     "preversion": "npm run test",
