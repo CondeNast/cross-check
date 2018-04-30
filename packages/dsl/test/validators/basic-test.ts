@@ -32,8 +32,8 @@ QUnit.test("PackageJSONValidator", async assert => {
         errors.push({
           path: ["name"],
           message: {
-            key: "required",
-            args: undefined
+            name: "required",
+            details: undefined
           }
         });
       }
@@ -42,8 +42,8 @@ QUnit.test("PackageJSONValidator", async assert => {
         errors.push({
           path: [],
           message: {
-            key: "authorship",
-            args: undefined
+            name: "authorship",
+            details: undefined
           }
         });
       }
@@ -65,8 +65,8 @@ QUnit.test("PackageJSONValidator", async assert => {
       {
         path: ["name"],
         message: {
-          key: "required",
-          args: undefined
+          name: "required",
+          details: undefined
         }
       }
     ];
@@ -77,8 +77,8 @@ QUnit.test("PackageJSONValidator", async assert => {
       {
         path: [],
         message: {
-          key: "authorship",
-          args: undefined
+          name: "authorship",
+          details: undefined
         }
       }
     ];

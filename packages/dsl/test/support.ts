@@ -56,5 +56,5 @@ export function run<T>(
   descriptor: ValidationDescriptor<T>,
   value: T
 ): Task<ValidationError[]> {
-  return validate(new Env(), value, descriptor, null);
+  return validate(value, descriptor, null, new Env());
 }

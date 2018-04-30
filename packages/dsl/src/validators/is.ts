@@ -8,17 +8,17 @@ export type Checker<From, To extends From> = (value: From) => value is To;
 
 export function is<From, To extends From>(
   checker: Checker<From, To>,
-  info: string
+  type: string
 ): () => ValidationBuilder<From> {
   class Validator extends ValueValidator<From, void> {
-    static validatorName = `is-${info}`;
+    static validatorName = `is-${type}`;
 
     validate(value: From): ErrorMessage | void {
-      return checker(value) ? undefined : { key: "type", args: info };
+      return checker(value) ? undefined : { name: "type", details: type };
     }
   }
 
-  let builder = validates(`is-${info}`, factoryFor(Validator), undefined);
+  let builder = validates(`is-${type}`, factoryFor(Validator), undefined);
 
   return () => builder;
 }

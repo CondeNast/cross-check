@@ -5,12 +5,12 @@ import { isAbsent, isNull } from "./is";
 
 function unwrapErrors(errors: ValidationError[]) {
   assert(errors.length === 1);
-  assert(errors[0].message.key === "multiple");
+  assert(errors[0].message.name === "multiple");
 
-  let result = errors[0].message.args as ValidationError[][];
+  let result = errors[0].message.details as ValidationError[][];
 
   assert(result.length === 2);
-  assert(result[0][0].message.key === "type");
+  assert(result[0][0].message.name === "type");
 
   return result[1];
 }

@@ -8,9 +8,9 @@ import { unknown } from "ts-std";
 /** @internal */
 export function descriptor<T>(
   name: string,
-  factory: ValidatorFactory<T, unknown>,
+  validator: ValidatorFactory<T, unknown>,
   options: unknown,
   contexts: ReadonlyArray<string>
 ): ValidationDescriptor<T> {
-  return { name, factory, options, contexts };
+  return { name, validator, options, contexts };
 }

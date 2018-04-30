@@ -154,7 +154,7 @@ export function build<T>(
 
     return {
       name,
-      factory: factoryForCallback as ValidatorFactory<T, unknown>,
+      validator: factoryForCallback as ValidatorFactory<T, unknown>,
       options: buildable,
       contexts: []
     };
@@ -207,20 +207,20 @@ export function validates<T, Options>(
  */
 export function extend<T>({
   name,
-  factory,
+  validator,
   options,
   contexts
 }: ValidationDescriptor<T, any>): ValidationBuilder<T> {
-  if (factory === and) {
-    return new AndBuilder("all", factory, options, contexts);
-  } else if (factory === or) {
-    return new OrBuilder("any", factory, options, contexts);
-  } else if (factory === chain) {
-    return new ChainBuilder("pipe", factory, options, contexts);
+  if (validator === and) {
+    return new AndBuilder("all", validator, options, contexts);
+  } else if (validator === or) {
+    return new OrBuilder("any", validator, options, contexts);
+  } else if (validator === chain) {
+    return new ChainBuilder("pipe", validator, options, contexts);
   } else {
     return new BaseValidationBuilder(
       `extends ${name}`,
-      factory,
+      validator,
       options,
       contexts
     );
@@ -295,12 +295,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     return new OnBuilder(this.name, this.factory, this.options, contexts);
   }
 
-  build(): Readonly<{
-    name: string;
-    factory: ValidatorFactory<T, unknown>;
-    options: unknown;
-    contexts: ReadonlyArray<string>;
-  }> {
+  build(): ValidationDescriptor<T> {
     return descriptor(
       this.name,
       this.factory as ValidatorFactory<T, unknown>,

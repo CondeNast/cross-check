@@ -40,10 +40,10 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
       for (let [key, descriptor] of entries(this.descriptors)) {
         let suberrors = await run(
           validate(
-            this.env,
             this.env.get(value, key) as T,
             descriptor!,
-            context
+            context,
+            this.env
           )
         );
         errors.push(...suberrors.map(error => mapError(error, key)));

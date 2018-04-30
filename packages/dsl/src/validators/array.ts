@@ -39,7 +39,7 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
 
       for (let i = 0; i < value.length; i++) {
         let suberrors = await run(
-          validate(this.env, value[i], this.descriptor, context)
+          validate(value[i], this.descriptor, context, this.env)
         );
         errors.push(...suberrors.map(error => mapError(error, i)));
       }

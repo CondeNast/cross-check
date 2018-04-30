@@ -7,7 +7,7 @@ QUnit.module("Validators (callback)");
 QUnit.test("isAlphaNumeric", async assert => {
   function isAlphaNumeric(str: string): ErrorMessage | void {
     if (!str.match(/^[a-z0-9]+$/i)) {
-      return { key: "alpha-numeric", args: undefined };
+      return { name: "alpha-numeric", details: undefined };
     }
   }
 
@@ -20,8 +20,8 @@ QUnit.test("isAlphaNumeric", async assert => {
       {
         path: [],
         message: {
-          key: "alpha-numeric",
-          args: undefined
+          name: "alpha-numeric",
+          details: undefined
         }
       }
     ];

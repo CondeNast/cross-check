@@ -10,7 +10,7 @@ QUnit.test("FormatValidator", async assert => {
 
     validate(value: string): ErrorMessage | void {
       if (!value.match(this.options)) {
-        return { key: "format", args: this.options };
+        return { name: "format", details: this.options };
       }
     }
   }
@@ -28,8 +28,8 @@ QUnit.test("FormatValidator", async assert => {
       {
         path: [],
         message: {
-          key: "format",
-          args: EMAIL_REGEX
+          name: "format",
+          details: EMAIL_REGEX
         }
       }
     ];
@@ -40,8 +40,8 @@ QUnit.test("FormatValidator", async assert => {
       {
         path: [],
         message: {
-          key: "type",
-          args: "string"
+          name: "type",
+          details: "string"
         }
       }
     ];

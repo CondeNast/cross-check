@@ -47,7 +47,7 @@ export interface ValidatorInstance<T> {
 export function factoryFor<T, Options>(
   Class: ValidatorClass<T, Options>
 ): ValidatorFactory<T, Options> {
-  return (env: Environment, options: Options): Validator<T> => {
+  return (options: Options, env: Environment): Validator<T> => {
     let validator = new Class(env, options);
     return (value, context) => validator.run(value, context);
   };

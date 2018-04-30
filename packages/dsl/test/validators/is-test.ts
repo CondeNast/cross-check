@@ -13,8 +13,8 @@ function failure(type: string): ValidationError[] {
     {
       path: [],
       message: {
-        key: "type",
-        args: type
+        name: "type",
+        details: type
       }
     }
   ];

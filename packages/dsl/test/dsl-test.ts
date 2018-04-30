@@ -19,7 +19,7 @@ QUnit.module("DSL");
 QUnit.test("basic DSL", assert => {
   assert.deepEqual(validates(str()), {
     name: "str",
-    factory: factory("str"),
+    validator: factory("str"),
     options: undefined,
     contexts: []
   });
@@ -28,7 +28,7 @@ QUnit.test("basic DSL", assert => {
     validates(email({ tlds: [".com", ".net", ".org", ".edu", ".gov"] })),
     {
       name: "email",
-      factory: factory("email"),
+      validator: factory("email"),
       options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
       contexts: []
     }
@@ -50,29 +50,29 @@ QUnit.test("andAlso", assert => {
 
   let expected = {
     name: "all",
-    factory: and,
+    validator: and,
     options: [
       {
         name: "str",
-        factory: factory("str"),
+        validator: factory("str"),
         options: undefined,
         contexts: []
       },
       {
         name: "email",
-        factory: factory("email"),
+        validator: factory("email"),
         options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       },
       {
         name: "validationCallback",
-        factory: factoryForCallback,
+        validator: factoryForCallback,
         options: validationCallback,
         contexts: []
       }
@@ -98,29 +98,29 @@ QUnit.test("or", assert => {
 
   let expected = {
     name: "any",
-    factory: or,
+    validator: or,
     options: [
       {
         name: "str",
-        factory: factory("str"),
+        validator: factory("str"),
         options: undefined,
         contexts: []
       },
       {
         name: "email",
-        factory: factory("email"),
+        validator: factory("email"),
         options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       },
       {
         name: "validationCallback",
-        factory: factoryForCallback,
+        validator: factoryForCallback,
         options: validationCallback,
         contexts: []
       }
@@ -146,29 +146,29 @@ QUnit.test("andThen", assert => {
 
   let expected = {
     name: "pipe",
-    factory: chain,
+    validator: chain,
     options: [
       {
         name: "str",
-        factory: factory("str"),
+        validator: factory("str"),
         options: undefined,
         contexts: []
       },
       {
         name: "isEmail",
-        factory: factory("isEmail"),
+        validator: factory("isEmail"),
         options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       },
       {
         name: "validationCallback",
-        factory: factoryForCallback,
+        validator: factoryForCallback,
         options: validationCallback,
         contexts: []
       }
@@ -196,28 +196,28 @@ QUnit.test("catch", assert => {
 
   let expected = {
     name: "try",
-    factory: mapError,
+    validator: mapError,
     options: {
       catch: mapper,
       do: {
         name: "pipe",
-        factory: chain,
+        validator: chain,
         options: [
           {
             name: "str",
-            factory: factory("str"),
+            validator: factory("str"),
             options: undefined,
             contexts: []
           },
           {
             name: "isEmail",
-            factory: factory("isEmail"),
+            validator: factory("isEmail"),
             options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
             contexts: []
           },
           {
             name: "uniqueness",
-            factory: factory("uniqueness"),
+            validator: factory("uniqueness"),
             options: undefined,
             contexts: []
           }
@@ -252,21 +252,21 @@ QUnit.test("validation contexts", assert => {
 
   let expected = {
     name: "all",
-    factory: and,
+    validator: and,
     options: [
       {
         name: "all",
-        factory: and,
+        validator: and,
         options: [
           {
             name: "str",
-            factory: factory("str"),
+            validator: factory("str"),
             options: undefined,
             contexts: []
           },
           {
             name: "email",
-            factory: factory("email"),
+            validator: factory("email"),
             options: { tlds: [".com"] },
             contexts: []
           }
@@ -275,7 +275,7 @@ QUnit.test("validation contexts", assert => {
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: ["update"]
       }
@@ -307,32 +307,32 @@ QUnit.test("extend", assert => {
 
   let expected = {
     name: "try",
-    factory: mapError,
+    validator: mapError,
     options: {
       catch: mapper,
       do: {
         name: "all",
-        factory: and,
+        validator: and,
         options: [
           {
             name: "pipe",
-            factory: chain,
+            validator: chain,
             options: [
               {
                 name: "presence",
-                factory: factory("presence"),
+                validator: factory("presence"),
                 options: undefined,
                 contexts: []
               },
               {
                 name: "str",
-                factory: factory("str"),
+                validator: factory("str"),
                 options: undefined,
                 contexts: []
               },
               {
                 name: "isEmail",
-                factory: factory("isEmail"),
+                validator: factory("isEmail"),
                 options: { tlds: [".com"] },
                 contexts: []
               }
@@ -341,7 +341,7 @@ QUnit.test("extend", assert => {
           },
           {
             name: "uniqueness",
-            factory: factory("uniqueness"),
+            validator: factory("uniqueness"),
             options: undefined,
             contexts: ["create"]
           }
@@ -362,7 +362,7 @@ QUnit.test(`"andAlso" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(present), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: []
   });
@@ -381,17 +381,17 @@ QUnit.test(`"andAlso" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(presentAndEmail), {
     name: "all",
-    factory: and,
+    validator: and,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "email",
-        factory: factory("email"),
+        validator: factory("email"),
         options: { tlds: [".com"] },
         contexts: []
       }
@@ -401,17 +401,17 @@ QUnit.test(`"andAlso" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(presentAndUnique), {
     name: "all",
-    factory: and,
+    validator: and,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       }
@@ -439,24 +439,24 @@ QUnit.test(`"or" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(present), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: []
   });
 
   assert.deepEqual(validates(presentAndEmail), {
     name: "any",
-    factory: or,
+    validator: or,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "email",
-        factory: factory("email"),
+        validator: factory("email"),
         options: { tlds: [".com"] },
         contexts: []
       }
@@ -466,17 +466,17 @@ QUnit.test(`"or" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(presentAndUnique), {
     name: "any",
-    factory: or,
+    validator: or,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       }
@@ -504,24 +504,24 @@ QUnit.test(`"andThen" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(present), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: []
   });
 
   assert.deepEqual(validates(presentAndEmail), {
     name: "pipe",
-    factory: chain,
+    validator: chain,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "isEmail",
-        factory: factory("isEmail"),
+        validator: factory("isEmail"),
         options: { tlds: [".com"] },
         contexts: []
       }
@@ -531,17 +531,17 @@ QUnit.test(`"andThen" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(presentAndUnique), {
     name: "pipe",
-    factory: chain,
+    validator: chain,
     options: [
       {
         name: "presence",
-        factory: factory("presence"),
+        validator: factory("presence"),
         options: undefined,
         contexts: []
       },
       {
         name: "uniqueness",
-        factory: factory("uniqueness"),
+        validator: factory("uniqueness"),
         options: undefined,
         contexts: []
       }
@@ -563,21 +563,21 @@ QUnit.test(`"on" does not mutate previously defined builder`, assert => {
 
   assert.deepEqual(validates(present), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: []
   });
 
   assert.deepEqual(validates(presentOnCreate), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: ["create"]
   });
 
   assert.deepEqual(validates(presentOnUpdate), {
     name: "presence",
-    factory: factory("presence"),
+    validator: factory("presence"),
     options: undefined,
     contexts: ["update"]
   });

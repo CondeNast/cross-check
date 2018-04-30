@@ -12,13 +12,13 @@ function success(): ValidationError[] {
 function failure(
   path: Option<string>,
   type: string,
-  args: unknown
+  details: unknown
 ): ValidationError {
   return {
     path: path ? path.split(".") : [],
     message: {
-      key: type,
-      args
+      name: type,
+      details
     }
   };
 }

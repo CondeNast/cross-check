@@ -8,8 +8,8 @@ export type ValidationCallback<T> = (
 ) => ValidationResult | PromiseLike<ValidationResult>;
 
 export function factoryForCallback<T>(
-  env: Environment,
-  cb: ValidationCallback<T>
+  cb: ValidationCallback<T>,
+  env: Environment
 ): Validator<T> {
   return value => {
     return new Task(async run => {

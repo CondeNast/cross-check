@@ -1,5 +1,4 @@
 import {
-  Environment,
   ErrorPath,
   ValidationDescriptor,
   ValidationError,
@@ -32,10 +31,10 @@ interface FailOptions {
   path: ErrorPath;
 }
 
-const Fail: ValidatorFactory<unknown, FailOptions> = (
-  _: Environment,
-  { reason, path }: FailOptions
-) => {
+const Fail: ValidatorFactory<unknown, FailOptions> = ({
+  reason,
+  path
+}: FailOptions) => {
   return () =>
     new Task<ValidationError[]>(async () => [error(reason, null, path)]);
 };
@@ -51,12 +50,12 @@ function descriptorFor<T, Options>(
 ): ValidationDescriptor<T>;
 function descriptorFor<T>(
   name: string,
-  factory: ValidatorFactory<T, any>,
+  validator: ValidatorFactory<T, any>,
   options?: any
 ): ValidationDescriptor<T> {
   return {
     name,
-    factory,
+    validator,
     options,
     contexts: []
   };
@@ -64,14 +63,14 @@ function descriptorFor<T>(
 
 function error(
   reason: string,
-  args: unknown = null,
+  details: unknown = null,
   path: ErrorPath = []
 ): ValidationError {
   return {
     path,
     message: {
-      key: reason,
-      args
+      name: reason,
+      details
     }
   };
 }
