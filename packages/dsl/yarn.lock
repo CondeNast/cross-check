@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@cross-check/core@^0.8.0":
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/@cross-check/core/-/core-0.8.3.tgz#23fcb29f57d95906fe077919ebdf994e50c281ee"
+"@cross-check/core@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@cross-check/core/-/core-0.9.0.tgz#6eb81616cc859915644f4cdecfa5688da71d5086"
   dependencies:
     no-show "^0.6.2"
     ts-std "^0.6.2"
