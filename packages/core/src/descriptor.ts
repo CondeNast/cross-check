@@ -12,8 +12,8 @@ export type ErrorPath = ReadonlyArray<string>;
  * internationalize the error message or use it in other localization contexts.
  */
 export interface ErrorMessage {
-  key: string;
-  args: unknown;
+  name: string;
+  details: unknown;
 }
 
 /**
@@ -45,8 +45,8 @@ export interface Environment {
  * Validator function. In other words, it curries the environment and options.
  */
 export type ValidatorFactory<T, Options> = (
-  env: Environment,
-  options: Options
+  options: Options,
+  env: Environment
 ) => Validator<T>;
 
 /**
@@ -71,7 +71,7 @@ export type Validator<T = unknown> = (
  */
 export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
   name: string;
-  factory: ValidatorFactory<T, Options>;
+  validator: ValidatorFactory<T, Options>;
   options: Options;
-  contexts: ReadonlyArray<string>;
+  contexts?: ReadonlyArray<string>;
 }>;

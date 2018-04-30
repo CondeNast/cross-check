@@ -57,7 +57,7 @@ QUnit.test("formatting a basic validation descriptor", assert => {
 function desc(name: string, options: unknown = null): ValidationDescriptor {
   return {
     name,
-    factory: () => null as any,
+    validator: () => null as any,
     options,
     contexts: []
   };
@@ -70,7 +70,7 @@ function descOn(
 ): ValidationDescriptor {
   return {
     name,
-    factory: () => null as any,
+    validator: () => null as any,
     options,
     contexts
   };

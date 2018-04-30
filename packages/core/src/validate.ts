@@ -1,10 +1,20 @@
 import { Task } from "no-show";
-import { Option } from "ts-std";
+import { Indexable, Option, unknown } from "ts-std";
 import {
   Environment,
   ValidationDescriptor,
   ValidationError
 } from "./descriptor";
+
+const DEFAULT_ENVIRONMENT: Environment = {
+  get(object: unknown, key: PropertyKey): unknown {
+    if (object !== null && object !== undefined) {
+      return (object as Indexable)[key];
+    } else {
+      return object;
+    }
+  }
+};
 
 /**
  * @api public
@@ -24,21 +34,21 @@ import {
  *  descriptor can represent multiple composed validations
  * @param context Optionally, a string that represents the saving context
  */
-export function validate<T>(
-  env: Environment,
+export function validate<T, Options>(
   value: T,
-  descriptor: ValidationDescriptor<T>,
-  context: Option<string>
+  descriptor: ValidationDescriptor<T, Options>,
+  context: Option<string> = null,
+  env: Environment = DEFAULT_ENVIRONMENT
 ): Task<ValidationError[]> {
   return new Task(async run => {
-    let { factory, options, contexts } = descriptor;
+    let { validator, options, contexts } = descriptor;
 
-    if (context !== null && contexts.length) {
+    if (context !== null && contexts && contexts.length) {
       if (contexts.indexOf(context) === -1) return [];
     }
 
-    let validator = factory(env, options);
+    let validateFunction = validator(options, env);
 
-    return await run(validator(value, context));
+    return await run(validateFunction(value, context));
   });
 }

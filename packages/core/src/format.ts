@@ -27,7 +27,7 @@ export function format(descriptor: ValidationDescriptor<any, any>): string {
     out = `${out})`;
   }
 
-  if (descriptor.contexts.length) {
+  if (descriptor.contexts && descriptor.contexts.length) {
     out += `::on(${descriptor.contexts.join(" ")})`;
   }
 
@@ -165,7 +165,7 @@ function isValidationDescriptor(
   option: Partial<ValidationDescriptor>
 ): option is ValidationDescriptor {
   return (
-    typeof (option as Partial<ValidationDescriptor>).factory === "function" &&
+    typeof (option as Partial<ValidationDescriptor>).validator === "function" &&
     typeof (option as Partial<ValidationDescriptor>).name === "string" &&
     "options" in option
   );
