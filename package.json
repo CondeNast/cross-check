@@ -11,6 +11,9 @@
     "pretest": "lerna run problems",
     "test": "lerna run test"
   },
+  "devDependencies": {
+    "lerna": "*"
+  },
   "resolutions": {
     "typescript": "~2.8.4",
     "@types/qunit": "^2.0.31",
