@@ -1,12 +1,7 @@
-import {
-  Environment,
-  ValidationDescriptor,
-  ValidationError,
-  validate
-} from "@cross-check/core";
-import normalize, { ValidationBuilder, validates } from "@cross-check/dsl";
+import { Environment, ValidationDescriptor, ValidationError, validate } from "@cross-check/core";
 import { Task } from "no-show";
 import { Dict, Indexable, Option, dict, entries, unknown } from "ts-std";
+import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject } from "./is";
 
@@ -145,7 +140,7 @@ function normalizeFields<T>(
   let out = dict<ValidationDescriptor<T>>();
 
   for (let [key, value] of entries(builders)) {
-    out[key] = normalize(value!);
+    out[key] = build(value!);
   }
 
   return out;

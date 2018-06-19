@@ -1,12 +1,7 @@
-import {
-  Environment,
-  ValidationDescriptor,
-  ValidationError,
-  validate
-} from "@cross-check/core";
-import normalize, { ValidationBuilder } from "@cross-check/dsl";
+import { Environment, ValidationDescriptor, ValidationError, validate } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option, unknown } from "ts-std";
+import { ValidationBuilder, build } from "../builders";
 import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
 
@@ -71,7 +66,7 @@ export function items<T>(
   return builderFor(ItemsValidator as ValidatorClass<
     T[],
     ValidationDescriptor<T>
-  >)(normalize(builder));
+  >)(build(builder));
 }
 
 /**
