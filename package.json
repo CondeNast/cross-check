@@ -3,7 +3,23 @@
   "workspaces": [
     "packages/*"
   ],
-  "devDependencies": {
-    "lerna": "^2.11.0"
+  "scripts": {
+    "prepare": "lerna run prepare",
+    "problems": "lerna run problems",
+    "build": "lerna run build",
+    "test": "lerna run test"
+  },
+  "resolutions": {
+    "typescript": "~2.8.4",
+    "@types/qunit": "^2.0.31",
+    "ember-cli": "^3.1.4",
+    "lerna": "^2.11.0",
+    "libkit": "^0.6.0",
+    "no-show": "^0.6.2",
+    "prettier": "^1.12.1",
+    "qunit": "^2.4.1",
+    "shelljs": "^0.7.8",
+    "ts-std": "^0.6.2",
+    "tslint": "^5.7.0"
   }
 }

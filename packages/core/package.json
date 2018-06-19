@@ -13,27 +13,27 @@
   ],
   "scripts": {
     "problems": "node ./scripts/problems.js",
-    "preversion": "npm run test",
-    "prepack": "ember build -prod",
+    "preversion": "\"$npm_execpath\" run test",
+    "prepare": "ember build -prod",
     "build": "ember build -prod",
     "build-tests": "ember build",
-    "pretest": "npm run problems",
+    "pretest": "\"$npm_execpath\" run problems",
     "test": "ember test",
     "tdd": "ember test --server"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/qunit": "^2.0.31",
-    "ember-cli": "^3.1.0",
-    "libkit": "^0.5.17",
-    "qunitjs": "^2.4.0",
-    "shelljs": "^0.7.8",
-    "tslint": "^5.7.0",
-    "typescript": "^2.4.2",
-    "prettier": "^1.12.1"
+    "@types/qunit": "*",
+    "ember-cli": "*",
+    "libkit": "*",
+    "prettier": "*",
+    "qunitjs": "*",
+    "shelljs": "*",
+    "tslint": "*",
+    "typescript": "*"
   },
-  "dependencies": {
-    "ts-std": "^0.6.2",
-    "no-show": "^0.6.2"
+  "peerDependencies": {
+    "no-show": "^0.6.2",
+    "ts-std": "^0.6.2"
   }
 }
