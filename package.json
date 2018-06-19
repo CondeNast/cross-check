@@ -8,7 +8,6 @@
     "problems": "lerna run problems",
     "build": "lerna run build",
     "build-tests": "lerna build",
-    "pretest": "lerna run problems",
     "test": "lerna run test"
   },
   "devDependencies": {

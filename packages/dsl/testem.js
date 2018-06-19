@@ -13,6 +13,7 @@ module.exports = {
   "browser_args": {
     "Chrome": [
       "--headless",
+      "--no-sandbox",
       "--disable-gpu",
       "--remote-debugging-port=9222"
     ]
