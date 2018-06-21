@@ -18,9 +18,9 @@ class DateType extends Scalar {
   }
 
   baseValidation(): ValidationBuilder<unknown> {
-    return validators.is((v: string): v is string => {
+    return validators.isString().andThen(validators.is((v: string): v is string => {
       return isValidDate(v);
-    }, "iso-date")();
+    }, "iso-date")());
   }
 
   baseSerialize(input: Date): string {

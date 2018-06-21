@@ -5,6 +5,12 @@
     "**/tmp": true,
     "**/node_modules": false,
     "**/dist": true,
+    "docs": true
   },
+  "editor.formatOnSave": true,
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+  "tslint.autoFixOnSave": true,
   "typescript.tsdk": "node_modules/typescript/lib"
 }
