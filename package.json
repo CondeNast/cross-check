@@ -7,11 +7,14 @@
     "prepare": "lerna run prepare",
     "problems": "lerna run problems",
     "build": "lerna run build",
-    "build-tests": "lerna build",
-    "test": "lerna run test"
+    "build-tests": "lerna run build-tests",
+    "test": "lerna run test",
+    "bootstrap": "lerna run bootstrap"
   },
   "devDependencies": {
-    "lerna": "*"
+    "lerna": "*",
+    "tslint": "*",
+    "typescript": "*"
   },
   "resolutions": {
     "typescript": "~2.8.4",
