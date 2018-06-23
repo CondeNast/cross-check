@@ -2,3 +2,6 @@ dist
 node_modules
 tmp
 *.log
+package/
+*.tgz
+DEBUG/

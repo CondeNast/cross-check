@@ -16,7 +16,13 @@
     "prettier": "*",
     "tslint": "*",
     "typescript": "*",
-    "tslint-config-prettier": "*"
+    "tslint-config-prettier": "*",
+    "ember-cli": "*",
+    "broccoli-merge-trees": "^3.0.0",
+    "broccoli-funnel": "^2.0.1",
+    "broccoli-debug": "*",
+    "find-yarn-workspace-root": "*",
+    "get-monorepo-packages": "1.0.1"
   },
   "resolutions": {
     "typescript": "~2.8.4",
@@ -30,6 +36,8 @@
     "shelljs": "^0.7.8",
     "ts-std": "^0.6.2",
     "tslint": "^5.7.0",
-    "tslint-config-prettier": "^1.12.0"
+    "tslint-config-prettier": "^1.12.0",
+    "broccoli-debug": "0.6.4",
+    "find-yarn-workspace-root": "^1.1.0"
   }
 }
