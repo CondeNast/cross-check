@@ -31,7 +31,7 @@
     "qunitjs": "*",
     "shelljs": "*",
     "tslint": "*",
-    "typescript": "*"
+    "typescript": "*" 
   },
   "peerDependencies": {
     "@cross-check/core": "^0.9.0",

@@ -3,7 +3,7 @@
     "**/.git": true,
     "**/.DS_Store": true,
     "**/tmp": true,
-    "**/node_modules": false,
+    "node_modules/[^t]*": true,
     "**/dist": true,
     "docs": true
   },

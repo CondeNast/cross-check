@@ -41,7 +41,7 @@
       "test"
     ],
     "paths": {
-      "@cross-check/*": ["../*/src"],
+      "@cross-check/*": ["../*/src"]
     },
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */
