@@ -3,10 +3,21 @@
     "**/.git": true,
     "**/.DS_Store": true,
     "**/tmp": true,
-    "node_modules/[^t]*": true,
-    "**/dist": true,
+    "node_modules": true,
     "docs": true
   },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/dist": true
+  },
+  "nodeTdd.reporter": "tap",
+  "nodeTdd.verbose": true,
+  "nodeTdd.buildOnActivation": true,
+  "nodeTdd.buildOnCreate": true,
+  "nodeTdd.buildOnDelete": true,
+  "nodeTdd.glob": "packages/*/{src,test}/*.ts",
   "editor.formatOnSave": true,
   "[markdown]": {
     "editor.formatOnSave": false

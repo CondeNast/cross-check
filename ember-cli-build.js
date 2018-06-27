@@ -1,3 +1,5 @@
+// @ts-check
+
 const path = require("path");
 const fs = require("fs");
 const glob = require("glob");
@@ -7,25 +9,32 @@ const webpack = require("libkit/lib/ember-cli-build/webpack");
 const findWorkspaceRoot = require("find-yarn-workspace-root");
 const BroccoliDebug = require("broccoli-debug");
 const getPackages = require("get-monorepo-packages");
+const BroccoliPlugin = require("broccoli-plugin");
 
 const debug = BroccoliDebug.buildDebugCallback(`crosscheck`);
 
 // TODO: When core changes, rebuild DSL
 
 module.exports = function({ root = findWorkspaceRoot(__dirname) }) {
-  let dirs = glob.sync("./packages/*");
   let trees = [];
+
+  let dirs = ["./packages/core", "./packages/dsl", "./packages/schema"];
 
   for (let dir of dirs) {
     if (fs.lstatSync(dir).isDirectory()) {
       let packageName = path.basename(dir);
       let tree = require(`./packages/${packageName}/ember-cli-build`)();
 
+      tree = debug(tree, `$packages:$${packageName}:$ember-cli-build`);
+
       trees.push(
-        funnel(tree, {
-          exclude: ["index.html", "qunit.*", "tests.js"],
-          destDir: packageName
-        })
+        debug(
+          funnel(tree, {
+            exclude: ["index.html", "qunit.*", "tests.js"],
+            destDir: packageName
+          }),
+          `$packages:$${packageName}:$after`
+        )
       );
     }
   }
@@ -34,14 +43,14 @@ module.exports = function({ root = findWorkspaceRoot(__dirname) }) {
 };
 
 function tests(modules, root) {
-  let trees = debug(merge(modules), "webpack:before");
-  let tests = debug(webpackTests(trees, root), "webpack:after");
+  let trees = debug(merge(modules), "$webpack:$before");
+  let tests = debug(webpackTests(trees, root), "$webpack:$after");
 
-  let testHTML = funnel(path.resolve(root, "test"), { include: ["index.html"] });
+  let testHTML = funnel(path.resolve(root, "test"), {
+    include: ["index.html"]
+  });
 
-  let qunit = funnel(
-    path.resolve(root, "node_modules", "qunit", "qunit")
-  );
+  let qunit = funnel(path.resolve(root, "node_modules", "qunit", "qunit"));
 
   return merge([tests, testHTML, qunit]);
 }
@@ -50,8 +59,12 @@ function webpackTests(testModules, root) {
   return webpack(testModules, {
     webpack: {
       entry: () => glob.sync("*/modules/test/**/*-test.js"),
-      output: { filename: "tests.js" },
-      devtool: "inline-source-map",
+      output: {
+        filename: "tests.js",
+        // devtoolModuleFilenameTemplate: info => console.log(info)
+        devtoolModuleFilenameTemplate: "[absolute-resource-path]"
+      },
+      devtool: "source-map",
       module: {
         rules: [
           {
@@ -76,4 +89,13 @@ function webpackAliases(root) {
   }
 
   return aliases;
+}
+
+const collectPackages = require("@lerna/collect-packages");
+const batchPackages = require("@lerna/batch-packages");
+
+function sortPackages(root) {
+  return collectPackages(root)
+    .then(p => batchPackages(p, true))
+    .then(p => p[0].map(p => p.location));
 }
