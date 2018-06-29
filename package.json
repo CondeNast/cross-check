@@ -3,7 +3,13 @@
   "workspaces": [
     "packages/*"
   ],
+  "ember-addon": {
+    "paths": [
+      "./lib/post-build"
+    ]
+  },
   "scripts": {
+    "start": "ember s",
     "prepare": "lerna run prepare",
     "problems": "lerna run problems",
     "build": "lerna run build",
@@ -25,7 +31,10 @@
     "prettier": "*",
     "tslint": "*",
     "tslint-config-prettier": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "testem": "^2.8.2",
+    "touch": "^3.1.0",
+    "sleep-promise": "^8.0.1"
   },
   "resolutions": {
     "typescript": "~2.8.4",

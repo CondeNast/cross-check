@@ -10,12 +10,15 @@ const findWorkspaceRoot = require("find-yarn-workspace-root");
 const BroccoliDebug = require("broccoli-debug");
 const getPackages = require("get-monorepo-packages");
 const BroccoliPlugin = require("broccoli-plugin");
+const Addon = require("ember-cli/lib/models/addon");
 
 const debug = BroccoliDebug.buildDebugCallback(`crosscheck`);
 
 // TODO: When core changes, rebuild DSL
 
-module.exports = function({ root = findWorkspaceRoot(__dirname) }) {
+module.exports = function(app) {
+  let { root = findWorkspaceRoot(__dirname) } = app;
+
   let trees = [];
 
   let dirs = ["./packages/core", "./packages/dsl", "./packages/schema"];
@@ -30,7 +33,7 @@ module.exports = function({ root = findWorkspaceRoot(__dirname) }) {
       trees.push(
         debug(
           funnel(tree, {
-            exclude: ["index.html", "qunit.*", "tests.js"],
+            exclude: ["index.html", "index.testem.html", "qunit.*", "tests.js"],
             destDir: packageName
           }),
           `$packages:$${packageName}:$after`
@@ -47,7 +50,7 @@ function tests(modules, root) {
   let tests = debug(webpackTests(trees, root), "$webpack:$after");
 
   let testHTML = funnel(path.resolve(root, "test"), {
-    include: ["index.html"]
+    include: ["index.html", "index.testem.html"]
   });
 
   let qunit = funnel(path.resolve(root, "node_modules", "qunit", "qunit"));

@@ -9,15 +9,15 @@
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/dist": true
+    "**/node_modules/**": true
   },
+  "nodeTdd.testScript": "test",
   "nodeTdd.reporter": "tap",
-  "nodeTdd.verbose": true,
+  "nodeTdd.verbose": false,
   "nodeTdd.buildOnActivation": true,
   "nodeTdd.buildOnCreate": true,
   "nodeTdd.buildOnDelete": true,
-  "nodeTdd.glob": "packages/*/{src,test}/*.ts",
+  "nodeTdd.glob": "dist/tests.js",
   "editor.formatOnSave": true,
   "[markdown]": {
     "editor.formatOnSave": false

@@ -1,20 +1,20 @@
 module.exports = {
-  "launchers": {
-    "Node": {
-      "command": `qunit "dist/tests.js"`,
-      "protocol": "tap"
-    },
+  launchers: {
+    Node: {
+      cwd: "dist",
+      command: `qunit "tests.js"`,
+      protocol: "tap"
+    }
   },
 
-  "src_files": [
-    "dist/tests.js"
-  ],
+  cwd: "dist",
+  src_files: ["tests.js"],
+  test_page: "index.testem.html",
 
-  "framework": "qunit",
-  "test_page": "dist/index.html?hidepassed",
+  framework: "qunit",
 
-  "browser_args": {
-    "Chrome": [
+  browser_args: {
+    Chrome: [
       "--headless",
       "--disable-gpu",
       "--no-sandbox",
@@ -23,7 +23,6 @@ module.exports = {
     ]
   },
 
-  "disable_watching": true,
-  "launch_in_dev": ["Node", "Chrome"],
-  "launch_in_ci": ["Node", "Chrome"]
-}
+  launch_in_dev: ["Node", "Chrome"],
+  launch_in_ci: ["Node", "Chrome"]
+};
