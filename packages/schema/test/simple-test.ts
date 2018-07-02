@@ -1,5 +1,6 @@
 import { serialize } from "@cross-check/schema";
 import {
+  keysError,
   missingError,
   strip,
   typeError,
@@ -138,23 +139,35 @@ QUnit.test("a valid published draft", async assert => {
   );
 });
 
-QUnit.skip("Invalid shape", async assert => {
+QUnit.test("Invalid shape", async assert => {
   assert.deepEqual(
     await validatePublished(SimpleArticle, false as any),
-    [typeError("???", "*")],
-    "wrong type"
+    [typeError("object", null)],
+    "false is not an object"
   );
 
   assert.deepEqual(
     await validatePublished(SimpleArticle, [] as any),
-    [typeError("???", "*")],
-    "wrong type"
+    [typeError("object", null)],
+    "[] is not an object"
   );
 
   assert.deepEqual(
+    await validatePublished(SimpleArticle, (() => null) as any),
+    [typeError("object", null)],
+    "function is not an object"
+  );
+
+  QUnit.dump.maxDepth = 10;
+
+  assert.deepEqual(
     await validatePublished(SimpleArticle, {}),
-    [typeError("???", "*")],
-    "empty object"
+    [
+      keysError({
+        missing: ["hed", "dek", "body"]
+      })
+    ],
+    "missing all fields"
   );
 
   assert.deepEqual(
@@ -162,8 +175,12 @@ QUnit.skip("Invalid shape", async assert => {
       hed: "Hello world",
       dek: "Hello, the cool world!"
     }),
-    [typeError("???", "*")],
-    "missing field"
+    [
+      keysError({
+        missing: ["body"]
+      })
+    ],
+    "missing one field"
   );
 
   assert.deepEqual(
@@ -173,7 +190,26 @@ QUnit.skip("Invalid shape", async assert => {
       body: "Hello!!!",
       wat: "dis"
     }),
-    [typeError("???", "*")],
+    [
+      keysError({
+        extra: ["wat"]
+      })
+    ],
     "extra fields"
+  );
+
+  assert.deepEqual(
+    await validatePublished(SimpleArticle, {
+      hed: "Hello world",
+      dek: "Hello, the cool world!",
+      wat: "dis"
+    }),
+    [
+      keysError({
+        missing: ["body"],
+        extra: ["wat"]
+      })
+    ],
+    "extra and missing fields"
   );
 });

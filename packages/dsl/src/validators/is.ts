@@ -63,7 +63,7 @@ export const isFunction = isTypeOf("function");
 export const isIndexable = is(indexable, "indexable");
 export const isObject = is(
   (value: unknown): value is object =>
-    value !== null && typeof value === "object",
+    value !== null && typeof value === "object" && !Array.isArray(value),
   "object"
 );
 export const isArray = is(

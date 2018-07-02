@@ -280,7 +280,7 @@ QUnit.test("isIndexable", async assert => {
 QUnit.test("isObject", async assert => {
   assert.equal(format(validates(validators.isObject())), `(is-object)`);
 
-  assert.deepEqual(await run(validators.isObject(), []), success());
+  assert.deepEqual(await run(validators.isObject(), []), failure("object"));
   assert.deepEqual(await run(validators.isObject(), {}), success());
   assert.deepEqual(await run(validators.isObject(), new class {}()), success());
   assert.deepEqual(await run(validators.isObject(), new Date()), success());

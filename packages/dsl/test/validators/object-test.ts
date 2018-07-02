@@ -2,6 +2,7 @@ import { ValidationError, format } from "@cross-check/core";
 import validates, { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, unknown } from "ts-std";
 import { buildAndRun as run } from "../support";
+import { keysError } from "../utils";
 
 QUnit.module("Validators (object)");
 
@@ -123,15 +124,14 @@ QUnit.test(`simple ${validators.strictObject.name}`, async assert => {
   assert.deepEqual(await run(geo, { lat: 0, long: 0 }), success());
 
   assert.deepEqual(await run(geo, { lat: 0 }), [
-    failure("long", "type", "present")
+    keysError({ missing: ["long"] })
   ]);
 
   assert.deepEqual(await run(geo, { lat: 0, long: 0, extraData: 1 }), [
-    failure("extraData", "type", "absent")
+    keysError({ extra: ["extraData"] })
   ]);
 
   assert.deepEqual(await run(geo, { lat: 0, extraData: 1 }), [
-    failure("long", "type", "present"),
-    failure("extraData", "type", "absent")
+    keysError({ missing: ["long"], extra: ["extraData"] })
   ]);
 });

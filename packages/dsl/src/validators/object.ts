@@ -1,4 +1,9 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from "@cross-check/core";
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError,
+  validate
+} from "@cross-check/core";
 import { Task } from "no-show";
 import { Dict, Indexable, Option, dict, entries, unknown } from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
@@ -60,10 +65,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
 export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
   static validatorName = "keys";
 
-  constructor(
-    protected env: Environment,
-    protected descriptorKeys: string[]
-  ) { }
+  constructor(protected env: Environment, protected descriptorKeys: string[]) {}
 
   run(value: Indexable<T>): Task<ValidationError[]> {
     return new Task(async () => {
@@ -74,16 +76,28 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
         let index = valueKeys.indexOf(key);
         if (index === -1) {
           // descriptor field is not present in the value
-          errors.push({ path: [key], message: { name: "type", details: "present" } });
+          errors.push({
+            path: [key],
+            message: { name: "type", details: "present" }
+          });
         } else {
           valueKeys.splice(index, 1);
         }
       }
 
       // these fields were not present in the descriptors
-      errors.push(...valueKeys.map(key => ({ path: [key], message: { name: "type", details: "absent" } })));
+      errors.push(
+        ...valueKeys.map(key => ({
+          path: [key],
+          message: { name: "type", details: "absent" }
+        }))
+      );
 
-      return errors;
+      if (errors.length) {
+        return [{ path: [], message: { name: "keys", details: errors } }];
+      } else {
+        return [];
+      }
     });
   }
 }
@@ -106,10 +120,7 @@ export function keys<T>(
 ): ValidationBuilder<Indexable<T>> {
   return validates(
     "keys",
-    factoryFor(KeysValidator as ValidatorClass<
-      Indexable<T>,
-      string[]
-    >),
+    factoryFor(KeysValidator as ValidatorClass<Indexable<T>, string[]>),
     descriptorKeys
   );
 }

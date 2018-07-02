@@ -1,7 +1,7 @@
 import { ValidationError } from "@cross-check/core";
 import { Record } from "@cross-check/schema";
 import { Task } from "no-show";
-import { Dict, unknown } from "ts-std";
+import { Dict, Option, unknown } from "ts-std";
 
 export const ENV = {
   get(object: unknown, key: string): unknown {
@@ -45,20 +45,51 @@ export function validatePublished(
   return schema.validate(obj, ENV);
 }
 
-export function typeError(kind: string, path: string): ValidationError {
-  return { message: { details: kind, name: "type" }, path: path.split(".") };
+export function typeError(kind: string, path: Option<string>): ValidationError {
+  return {
+    message: { details: kind, name: "type" },
+    path: path ? path.split(".") : []
+  };
 }
 
 export function missingError(path: string) {
   return typeError("present", path);
 }
 
+export function keysError({
+  extra = [],
+  missing = [],
+  path = null
+}: {
+  extra?: string[];
+  missing?: string[];
+  path?: Option<string>;
+}): ValidationError {
+  let errors = [];
+
+  for (let m of missing) {
+    errors.push(typeError("present", m));
+  }
+
+  for (let e of extra) {
+    errors.push(typeError("absent", e));
+  }
+
+  return {
+    message: { name: "keys", details: errors },
+    path: path ? path.split(".") : []
+  };
+}
+
 export function error(
   kind: string,
   problem: unknown,
-  path: string
+  path: Option<string>
 ): ValidationError {
-  return { message: { details: problem, name: kind }, path: path.split(".") };
+  return {
+    message: { details: problem, name: kind },
+    path: path ? path.split(".") : []
+  };
 }
 
 export const GRAPHQL_SCALAR_MAP = {
