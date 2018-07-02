@@ -64,7 +64,7 @@ function webpackTests(testModules, root) {
         filename: "tests.js",
         devtoolModuleFilenameTemplate: "[absolute-resource-path]"
       },
-      devtool: "source-map",
+      devtool: "inline-source-map",
       module: {
         rules: [
           {

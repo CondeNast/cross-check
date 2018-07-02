@@ -1,7 +1,7 @@
 import { ValidationDescriptor, format } from "@cross-check/core";
 import { unknown } from "ts-std";
 
-QUnit.module("format");
+QUnit.module("@cross-check/core format");
 
 function assertFormat(
   assert: typeof QUnit.assert
