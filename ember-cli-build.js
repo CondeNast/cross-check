@@ -14,8 +14,6 @@ const Addon = require("ember-cli/lib/models/addon");
 
 const debug = BroccoliDebug.buildDebugCallback(`crosscheck`);
 
-// TODO: When core changes, rebuild DSL
-
 module.exports = function(app) {
   let { root = findWorkspaceRoot(__dirname) } = app;
 
@@ -64,7 +62,6 @@ function webpackTests(testModules, root) {
       entry: () => glob.sync("*/modules/test/**/*-test.js"),
       output: {
         filename: "tests.js",
-        // devtoolModuleFilenameTemplate: info => console.log(info)
         devtoolModuleFilenameTemplate: "[absolute-resource-path]"
       },
       devtool: "source-map",
@@ -92,13 +89,4 @@ function webpackAliases(root) {
   }
 
   return aliases;
-}
-
-const collectPackages = require("@lerna/collect-packages");
-const batchPackages = require("@lerna/batch-packages");
-
-function sortPackages(root) {
-  return collectPackages(root)
-    .then(p => batchPackages(p, true))
-    .then(p => p[0].map(p => p.location));
 }

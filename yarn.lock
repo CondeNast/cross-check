@@ -691,7 +691,7 @@ broccoli-config-replace@^1.1.2:
     debug "^2.2.0"
     fs-extra "^0.24.0"
 
-broccoli-debug@*, broccoli-debug@0.6.4, broccoli-debug@^0.6.1, broccoli-debug@^0.6.3:
+broccoli-debug@*, broccoli-debug@0.6.4, broccoli-debug@^0.6.1, broccoli-debug@^0.6.3, broccoli-debug@^0.6.4:
   version "0.6.4"
   resolved "https://registry.yarnpkg.com/broccoli-debug/-/broccoli-debug-0.6.4.tgz#986eb3d2005e00e3bb91f9d0a10ab137210cd150"
   dependencies:
@@ -843,6 +843,12 @@ broccoli-stew@^1.2.0, broccoli-stew@^1.3.3:
     rsvp "^3.0.16"
     symlink-or-copy "^1.1.8"
     walk-sync "^0.3.0"
+
+broccoli-tee@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/broccoli-tee/-/broccoli-tee-1.0.2.tgz#bc220cc86f79efa457dee7c6e9425b202c38631b"
+  dependencies:
+    tree-sync "^1.2.2"
 
 broccoli-typescript-compiler@*:
   version "3.0.1"
@@ -3614,13 +3620,15 @@ lerna@*, lerna@^2.11.0:
     write-pkg "^3.1.0"
     yargs "^8.0.2"
 
-libkit@*, libkit@^0.6.0:
+libkit@*, "libkit@https://github.com/tildeio/libkit.git#workspace-support":
   version "0.6.0"
-  resolved "https://registry.yarnpkg.com/libkit/-/libkit-0.6.0.tgz#99898df69ad2b9e126be222284ce6a98310d3e0c"
+  resolved "https://github.com/tildeio/libkit.git#b5812337fd058ddbf93a3f6196357629fb0f41f2"
   dependencies:
     broccoli-caching-writer "^3.0.3"
+    broccoli-debug "^0.6.4"
     broccoli-funnel "^1.2.0"
     broccoli-merge-trees "^2.0.0"
+    broccoli-tee "^1.0.2"
     broccoli-typescript-compiler "^2.0.0"
     ember-cli "*"
     find-yarn-workspace-root "^1.1.0"

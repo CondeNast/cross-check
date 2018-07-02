@@ -41,7 +41,7 @@
     "@types/qunit": "^2.0.31",
     "ember-cli": "^3.1.4",
     "lerna": "^2.11.0",
-    "libkit": "^0.6.0",
+    "libkit": "https://github.com/tildeio/libkit.git#workspace-support",
     "no-show": "^0.6.2",
     "prettier": "^1.12.1",
     "qunit": "^2.4.1",
