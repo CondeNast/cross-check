@@ -19,7 +19,8 @@
     "build-tests": "ember build",
     "pretest": "\"$npm_execpath\" run problems",
     "test": "ember test",
-    "tdd": "ember test --server"
+    "tdd": "ember test --server",
+    "version": "node ../../scripts/bump.js"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -30,7 +31,8 @@
     "qunitjs": "*",
     "shelljs": "*",
     "tslint": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "write-pkg": "*"
   },
   "peerDependencies": {
     "no-show": "^0.6.2",
