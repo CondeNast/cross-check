@@ -1,6 +1,6 @@
 {
   "name": "@cross-check/dsl",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "A DSL for building validations.",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>"
@@ -38,7 +38,7 @@
     "write-pkg": "*"
   },
   "peerDependencies": {
-    "@cross-check/core": "^0.9.0",
+    "@cross-check/core": "0.10.0",
     "no-show": "^0.6.2",
     "ts-std": "^0.6.2"
   }
