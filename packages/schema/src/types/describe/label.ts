@@ -1,4 +1,4 @@
-import { Dict, JSON } from "ts-std";
+import { Dict, JSON, Option } from "ts-std";
 import { LabelledType, Type } from "../fundamental/value";
 
 export enum Optionality {
@@ -83,6 +83,12 @@ export interface ListLabel {
   of: Type;
 }
 
+export interface RecordLabel {
+  kind: "record";
+  members: Dict<Type>;
+  metadata: Option<Dict>;
+}
+
 export interface DictionaryLabel {
   kind: "dictionary";
   members: Dict<Type>;
@@ -105,6 +111,7 @@ export type TypeLabel =
   | PrimitiveLabel
   | ListLabel
   | DictionaryLabel
+  | RecordLabel
   | PointerLabel
   | IteratorLabel;
 

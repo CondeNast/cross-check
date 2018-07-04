@@ -5,7 +5,7 @@ import {
   MediumArticle,
   Related,
   SimpleArticle
-} from "../support/schemas";
+} from "../support/records";
 
 QUnit.module("formatting - graphql");
 

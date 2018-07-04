@@ -1,6 +1,6 @@
 import { Record, schemaFormat, types } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/schemas";
+import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("formatting - schemaFormat");
 
@@ -9,11 +9,14 @@ QUnit.test("simple", assert => {
     schemaFormat(SimpleArticle),
 
     strip`
-      {
+      Record("SimpleArticle", {
         hed: SingleLine().required(),
         dek: Text(),
         body: Text().required()
-      }
+      }).metadata({
+        collectionName: "simple-articles",
+        modelName: "simple-article"
+      })
     `
   );
 
@@ -21,11 +24,14 @@ QUnit.test("simple", assert => {
     schemaFormat(SimpleArticle.draft),
 
     strip`
-      {
+      Record("SimpleArticle", {
         hed: Text(),
         dek: Text(),
         body: Text()
-      }
+      }).metadata({
+        collectionName: "simple-articles",
+        modelName: "simple-article"
+      })
     `
   );
 });
@@ -35,7 +41,7 @@ QUnit.test("detailed - published", assert => {
     schemaFormat(MediumArticle),
 
     strip`
-      {
+      Record("MediumArticle", {
         hed: SingleLine().required(),
         dek: Text(),
         body: Text().required(),
@@ -55,7 +61,10 @@ QUnit.test("detailed - published", assert => {
           first: SingleLine(),
           last: SingleLine()
         }))
-      }
+      }).metadata({
+        collectionName: "medium-articles",
+        modelName: "medium-article"
+      })
     `
   );
 });
@@ -65,7 +74,7 @@ QUnit.test("detailed - draft", assert => {
     schemaFormat(MediumArticle.draft),
 
     strip`
-      {
+      Record("MediumArticle", {
         hed: Text(),
         dek: Text(),
         body: Text(),
@@ -85,13 +94,16 @@ QUnit.test("detailed - draft", assert => {
           first: Text(),
           last: Text()
         }))
-      }
+      }).metadata({
+        collectionName: "medium-articles",
+        modelName: "medium-article"
+      })
     `
   );
 });
 
-QUnit.test("records", assert => {
-  const RECORDS = Record("records", {
+QUnit.test("required dictionaries", assert => {
+  const RECORDS = Record("RequiredDictionary", {
     geo: types.Required({ lat: types.Float(), long: types.Float() }),
     author: types
       .Required({
@@ -106,7 +118,7 @@ QUnit.test("records", assert => {
     schemaFormat(RECORDS),
 
     strip`
-      {
+      Record("RequiredDictionary", {
         geo: Dictionary({
           lat: Float().required(),
           long: Float().required()
@@ -116,7 +128,7 @@ QUnit.test("records", assert => {
           last: SingleLine().required()
         }).required(),
         date: ISODate()
-      }
+      })
     `
   );
 
@@ -124,7 +136,7 @@ QUnit.test("records", assert => {
     schemaFormat(RECORDS.draft),
 
     strip`
-      {
+      Record("RequiredDictionary", {
         geo: Dictionary({
           lat: Float(),
           long: Float()
@@ -134,7 +146,7 @@ QUnit.test("records", assert => {
           last: Text()
         }),
         date: ISODate()
-      }
+      })
     `
   );
 });
@@ -144,12 +156,15 @@ QUnit.test("relationships", assert => {
     schemaFormat(Related),
 
     strip`
-      {
+      Record("Related", {
         first: SingleLine(),
         last: Text(),
         person: hasOne(SimpleArticle).required(),
         articles: hasMany(MediumArticle)
-      }
+      }).metadata({
+        collectionName: "related-articles",
+        modelName: "related-article"
+      })
     `
   );
 
@@ -157,12 +172,15 @@ QUnit.test("relationships", assert => {
     schemaFormat(Related.draft),
 
     strip`
-      {
+      Record("Related", {
         first: Text(),
         last: Text(),
         person: hasOne(SimpleArticle),
         articles: hasMany(MediumArticle)
-      }
+      }).metadata({
+        collectionName: "related-articles",
+        modelName: "related-article"
+      })
     `
   );
 });

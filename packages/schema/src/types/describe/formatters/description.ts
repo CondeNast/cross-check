@@ -4,11 +4,11 @@ import { isPrimitive } from "../label";
 import { Position, ReporterDelegate } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
-  openSchema() {
+  openRecord() {
     return `{\n`;
   },
 
-  closeSchema() {
+  closeRecord() {
     return `}`;
   },
 

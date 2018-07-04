@@ -1,8 +1,8 @@
 import { LabelledType, NamedType, Type } from "../fundamental/value";
-import { GenericLabel, PrimitiveLabel } from "./label";
+import { GenericLabel, PrimitiveLabel, RecordLabel } from "./label";
 import { Position, ReporterState } from "./reporter";
 
-export class SchemaReporter<Buffer, Inner, Options> extends ReporterState<
+export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
   Buffer,
   Inner,
   Options
@@ -34,19 +34,21 @@ export class SchemaReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  startSchema(): void {
+  startRecord(_position: Position, type: LabelledType<RecordLabel>): void {
     this.state.nesting += 1;
 
     this.pushStrings(
-      this.reporters.openSchema({
+      this.reporters.openRecord({
+        type,
         ...this.state
       })
     );
   }
 
-  endSchema(): void {
+  endRecord(_position: Position, type: LabelledType<RecordLabel>): void {
     this.pushStrings(
-      this.reporters.closeSchema({
+      this.reporters.closeRecord({
+        type,
         ...this.state
       })
     );

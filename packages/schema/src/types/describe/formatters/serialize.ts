@@ -3,10 +3,10 @@ import formatter, { Formatter } from "../formatter";
 import { Position, ReporterDelegate } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
-  openSchema() {
+  openRecord() {
     return `{\n`;
   },
-  closeSchema(): string {
+  closeRecord(): string {
     return `}`;
   },
 

@@ -6,11 +6,35 @@ import { PrimitiveLabel, typeNameOf } from "../label";
 import { Position, ReporterDelegate } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
-  openSchema() {
-    return `{\n`;
+  openRecord({ type }) {
+    let name = type.label.name;
+    return `Record(${JSON.stringify(name)}, {\n`;
   },
-  closeSchema() {
-    return `}`;
+  closeRecord({ buffer, type, nesting }) {
+    buffer.push("})");
+
+    const metadata = type.label.type.metadata;
+
+    if (metadata) {
+      buffer.push(".metadata({\n");
+
+      let keys = Object.keys(metadata);
+      let last = keys.length - 1;
+
+      keys.forEach((key, i) => {
+        buffer.push(
+          `${pad(nesting * 2)}${key}: ${JSON.stringify(metadata[key])}`
+        );
+
+        if (i !== last) {
+          buffer.push(",");
+        }
+
+        buffer.push("\n");
+      });
+
+      buffer.push("})");
+    }
   },
 
   openDictionary(): string {
@@ -43,7 +67,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
         buffer.push("hasOne(");
         break;
       default:
-        throw new Error("unreacahable");
+        throw new Error("unreachable");
     }
   },
   closeGeneric({ buffer, position, type }): void {

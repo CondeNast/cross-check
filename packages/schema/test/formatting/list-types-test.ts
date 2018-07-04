@@ -1,6 +1,6 @@
 import { Record, listTypes, types } from "@cross-check/schema";
 import { ISODate } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/schemas";
+import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("formatting - listTypes");
 

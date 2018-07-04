@@ -32,17 +32,17 @@ export function strip(
 }
 
 export function validateDraft(
-  schema: Record,
+  record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return schema.draft.validate(obj, ENV);
+  return record.draft.validate(obj, ENV);
 }
 
 export function validatePublished(
-  schema: Record,
+  record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return schema.validate(obj, ENV);
+  return record.validate(obj, ENV);
 }
 
 export function typeError(kind: string, path: Option<string>): ValidationError {

@@ -1,7 +1,8 @@
 import { Dict, Option } from "ts-std";
+import { BaseRecord } from "../../../record";
 import { LabelledType } from "../../fundamental/value";
 import { titleize } from "../../utils";
-import formatter, { Schema } from "../formatter";
+import formatter from "../formatter";
 import { PrimitiveLabel, isPrimitive } from "../label";
 import { Accumulator, ReporterDelegate } from "../reporter";
 
@@ -80,11 +81,11 @@ class BufferStack implements Accumulator<string> {
 }
 
 const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
-  openSchema({ options, buffer }): void {
+  openRecord({ options, buffer }): void {
     buffer.pushType(options.name);
   },
 
-  closeSchema({ buffer }): void {
+  closeRecord({ buffer }): void {
     buffer.doneType();
   },
 
@@ -176,7 +177,7 @@ export interface GraphqlOptions {
 }
 
 export const graphql: ((
-  schema: Schema,
+  record: BaseRecord,
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);
 

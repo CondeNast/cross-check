@@ -7,7 +7,7 @@ import {
   validateDraft,
   validatePublished
 } from "./support";
-import { SimpleArticle } from "./support/schemas";
+import { SimpleArticle } from "./support/records";
 
 QUnit.module("@cross-check/schema - simple schema");
 
@@ -69,7 +69,7 @@ QUnit.test("published drafts must be narrow", async assert => {
       body: null
     }),
     [typeError("string:single-line", "hed"), missingError("body")],
-    "published schemas must not be missing fields or have the widened type"
+    "published records must not be missing fields or have the widened type"
   );
 });
 

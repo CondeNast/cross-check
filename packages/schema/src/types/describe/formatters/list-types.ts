@@ -1,20 +1,17 @@
 import { Dict, unknown } from "ts-std";
-import { Schema } from "../formatter";
+import { BaseRecord } from "../../../record";
 import {
   DictionaryLabel,
   GenericLabel,
   Label,
   NamedLabel,
+  RecordLabel,
   typeNameOf
 } from "../label";
 import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
 
 class ListTypes implements RecursiveDelegate {
   private visitor = RecursiveVisitor.build(this);
-
-  schema(label: DictionaryLabel): string[] {
-    return Object.keys(this.dict(label)).sort();
-  }
 
   named({ name }: NamedLabel): Dict {
     return { [name]: true };
@@ -34,7 +31,11 @@ class ListTypes implements RecursiveDelegate {
     return { ...this.dict(label), Dictionary: true };
   }
 
-  private dict(label: DictionaryLabel) {
+  record(label: RecordLabel): string[] {
+    return Object.keys(this.dict(label)).sort();
+  }
+
+  private dict(label: DictionaryLabel | RecordLabel) {
     let members: Dict = {};
 
     this.visitor.processDictionary(label, (item: Dict) => {
@@ -45,6 +46,6 @@ class ListTypes implements RecursiveDelegate {
   }
 }
 
-export function listTypes(schema: Schema): unknown {
-  return new ListTypes().schema(schema.label.type);
+export function listTypes(record: BaseRecord): unknown {
+  return new ListTypes().record(record.label.type);
 }

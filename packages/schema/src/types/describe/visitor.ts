@@ -6,12 +6,13 @@ import {
   Label,
   NamedLabel,
   PrimitiveLabel,
+  RecordLabel,
   TypeLabel
 } from "./label";
 import { Accumulator, Position, Reporter, genericPosition } from "./reporter";
 
 export interface VisitorDelegate {
-  schema(type: LabelledType<DictionaryLabel>, position: Position): unknown;
+  record(type: LabelledType<RecordLabel>, position: Position): unknown;
   dictionary(type: LabelledType<DictionaryLabel>, position: Position): unknown;
   named(type: LabelledType, position: Position): unknown;
   primitive(type: LabelledType<PrimitiveLabel>, position: Position): unknown;
@@ -45,18 +46,18 @@ export class Visitor {
         );
       }
 
+      case "record": {
+        return this.delegate.record(
+          type as LabelledType<RecordLabel>,
+          position
+        );
+      }
+
       case "dictionary": {
-        if (position === Position.WholeSchema) {
-          return this.delegate.schema(
-            type as LabelledType<DictionaryLabel>,
-            position
-          );
-        } else {
-          return this.delegate.dictionary(
-            type as LabelledType<DictionaryLabel>,
-            position
-          );
-        }
+        return this.delegate.dictionary(
+          type as LabelledType<DictionaryLabel>,
+          position
+        );
       }
     }
   }
@@ -71,7 +72,7 @@ export interface RecursiveDelegate {
     required: boolean
   ): unknown;
   dictionary(label: DictionaryLabel, required: boolean): unknown;
-  schema(label: DictionaryLabel, required: boolean): unknown;
+  record(label: RecordLabel, required: boolean): unknown;
 }
 
 export type ItemType<D extends RecursiveDelegate> =
@@ -107,8 +108,8 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
     );
   }
 
-  schema({ label, isRequired }: LabelledType<DictionaryLabel>): unknown {
-    return this.recursiveDelegate.schema(label.type, isRequired);
+  record({ label, isRequired }: LabelledType<RecordLabel>): unknown {
+    return this.recursiveDelegate.record(label.type, isRequired);
   }
 
   dictionary({ label, isRequired }: LabelledType<DictionaryLabel>): unknown {
@@ -120,7 +121,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
   }
 
   processDictionary(
-    label: DictionaryLabel,
+    label: DictionaryLabel | RecordLabel,
     callback: (item: ItemType<D>, key: string) => void
   ): unknown {
     let input = label.members;
@@ -180,21 +181,21 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     this.reporter.endGenericValue(position, type);
   }
 
-  schema(type: LabelledType<DictionaryLabel>, position: Position): Inner {
-    this.reporter.startSchema();
-    this.dictionaryBody(position, type);
-    this.reporter.endSchema();
+  record(type: LabelledType<RecordLabel>): Inner {
+    this.reporter.startRecord(type);
+    this.dictionaryBody(type);
+    this.reporter.endRecord(type);
 
     return this.reporter.finish();
   }
 
   dictionary(type: LabelledType<DictionaryLabel>, position: Position): void {
     this.reporter.startDictionary(position);
-    this.dictionaryBody(position, type);
+    this.dictionaryBody(type);
     this.reporter.endDictionary(position, type);
   }
 
-  dictionaryBody(_position: Position, type: LabelledType<DictionaryLabel>) {
+  dictionaryBody(type: LabelledType<DictionaryLabel | RecordLabel>) {
     let dictionary = type.label.type;
     let members = dictionary.members;
     let keys = Object.keys(dictionary.members);

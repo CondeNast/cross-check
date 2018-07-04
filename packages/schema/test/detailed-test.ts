@@ -2,7 +2,7 @@ import { ValidationError } from "@cross-check/core";
 import { Task } from "no-show";
 import { Dict, unknown } from "ts-std";
 import { ENV, error, missingError, typeError, urlish } from "./support";
-import { MediumArticle } from "./support/schemas";
+import { MediumArticle } from "./support/records";
 
 QUnit.module("@cross-check/schema - detailed schema");
 
@@ -36,7 +36,7 @@ QUnit.test(
     assert.deepEqual(
       await validateDraft({}),
       [],
-      "draft schemas can be missing fields"
+      "draft records can be missing fields"
     );
   }
 );
@@ -176,7 +176,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
       categories: ["single"]
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-    "nested fields in published documents use the schema type (but numbers aren't strings)"
+    "nested fields in published documents use the record type (but numbers aren't strings)"
   );
 
   assert.deepEqual(
@@ -190,7 +190,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
       typeError("number:integer", "geo.lat"),
       typeError("number:integer", "geo.long")
     ],
-    "nested fields in published documents use the schema type (floats aren't integers)"
+    "nested fields in published documents use the record type (floats aren't integers)"
   );
 
   assert.deepEqual(
@@ -209,7 +209,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
       categories: ["single"]
     }),
     [typeError("string:single-line", "author.first")],
-    "nested fields in published documents use the schema type (multiline strings are not valid single-line strings)"
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
   );
 });
 
@@ -274,7 +274,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
       categories: ["single"]
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-    "nested fields in published documents use the schema type (but numbers aren't strings)"
+    "nested fields in published documents use the record type (but numbers aren't strings)"
   );
 
   assert.deepEqual(
@@ -293,7 +293,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
       categories: ["single"]
     }),
     [typeError("string:single-line", "author.first")],
-    "nested fields in published documents use the schema type (multiline strings are not valid single-line strings)"
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
   );
 });
 

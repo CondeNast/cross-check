@@ -1,6 +1,11 @@
 import { LabelledType, Type } from "../fundamental/value";
 import { Buffer as StringBuffer } from "./buffer";
-import { DictionaryLabel, GenericLabel, PrimitiveLabel } from "./label";
+import {
+  DictionaryLabel,
+  GenericLabel,
+  PrimitiveLabel,
+  RecordLabel
+} from "./label";
 
 export interface Reporters<Buffer, Inner, Options> {
   Value: ReporterStateConstructor<Buffer, Inner, Options>;
@@ -14,13 +19,15 @@ export interface State<Buffer> {
 }
 
 export interface ReporterDelegate<Buffer, Inner, Options> {
-  openSchema(options: {
+  openRecord(options: {
     buffer: Buffer;
+    type: LabelledType<RecordLabel>;
     options: Options;
     nesting: number;
   }): Inner | void;
-  closeSchema(options: {
+  closeRecord(options: {
     buffer: Buffer;
+    type: LabelledType<RecordLabel>;
     options: Options;
     nesting: number;
   }): Inner | void;
@@ -131,19 +138,21 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startSchema(): void {
+  startRecord(type: LabelledType<RecordLabel>): void {
     this.state.nesting += 1;
 
     this.pushStrings(
-      this.reporters.openSchema({
+      this.reporters.openRecord({
+        type,
         ...this.state
       })
     );
   }
 
-  endSchema(): void {
+  endRecord(type: LabelledType<RecordLabel>): void {
     this.pushStrings(
-      this.reporters.closeSchema({
+      this.reporters.closeRecord({
+        type,
         ...this.state
       })
     );
@@ -228,7 +237,6 @@ export enum Position {
   ListItem,
   PointerItem,
   IteratorItem,
-  WholeSchema,
   Any
 }
 
@@ -312,9 +320,9 @@ export abstract class ReporterState<Buffer, Inner, Options> {
     type: LabelledType<DictionaryLabel>
   ): true | void;
 
-  startSchema?(
+  startRecord?(
     position: Position,
-    type: LabelledType<DictionaryLabel>
+    type: LabelledType<RecordLabel>
   ): true | void;
 
   addKey?(key: string, position: Position, required: boolean): true | void;
@@ -331,10 +339,7 @@ export abstract class ReporterState<Buffer, Inner, Options> {
     type: LabelledType<DictionaryLabel>
   ): true | void;
 
-  endSchema?(
-    position: Position,
-    type: LabelledType<DictionaryLabel>
-  ): true | void;
+  endRecord?(position: Position, type: LabelledType<RecordLabel>): true | void;
 
   startGenericValue?(
     position: Position,

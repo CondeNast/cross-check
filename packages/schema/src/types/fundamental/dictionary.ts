@@ -3,7 +3,7 @@ import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import { DictionaryLabel, Label, typeNameOf } from "../label";
 import { Type, baseType, parse, serialize, validationFor } from "./value";
 
-function buildSchemaValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
+function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
   let obj = dict<ValidationBuilder<unknown>>();
 
   for (let [key, value] of entries(desc)) {
@@ -17,36 +17,18 @@ export interface DictionaryType extends Type {
   label: Label<DictionaryLabel>;
 }
 
-export class DictionaryImpl implements DictionaryType {
+export abstract class AbstractDictionary implements Type {
+  abstract label: Label;
+
   constructor(
     protected inner: Dict<Type>,
-    private typeName: string | undefined,
+    protected typeName: string | undefined,
     readonly isRequired: boolean,
-    readonly base: Option<DictionaryType>
+    readonly base: Option<Type>
   ) {}
 
-  required(isRequired = true): Type {
-    return new DictionaryImpl(this.inner, this.typeName, isRequired, this.base);
-  }
-
-  named(arg: Option<string>): Type {
-    let name = `${arg}${typeNameOf(this.typeName)}`;
-    return new DictionaryImpl(
-      this.inner,
-      arg === null ? undefined : name,
-      this.isRequired,
-      this.base
-    );
-  }
-
-  get label(): Label<DictionaryLabel> {
-    return {
-      type: { kind: "dictionary", members: this.inner },
-      description: "dictionary",
-      name: this.typeName,
-      registeredName: this.typeName === undefined ? undefined : this.typeName
-    };
-  }
+  abstract required(isRequired?: boolean): Type;
+  abstract named(arg: Option<string>): Type;
 
   serialize(js: Dict): Option<Dict> {
     return serialize(js, !this.isRequired, () => {
@@ -89,9 +71,35 @@ export class DictionaryImpl implements DictionaryType {
   }
 
   validation(): ValidationBuilder<unknown> {
-    let validation = buildSchemaValidation(this.inner);
+    let validation = buildRecordValidation(this.inner);
 
     return validationFor(validation, this.isRequired);
+  }
+}
+
+export class DictionaryImpl extends AbstractDictionary
+  implements DictionaryType {
+  get label(): Label<DictionaryLabel> {
+    return {
+      type: { kind: "dictionary", members: this.inner },
+      description: "dictionary",
+      name: this.typeName,
+      registeredName: this.typeName === undefined ? undefined : this.typeName
+    };
+  }
+
+  required(isRequired = true): Type {
+    return new DictionaryImpl(this.inner, this.typeName, isRequired, this.base);
+  }
+
+  named(arg: Option<string>): Type {
+    let name = `${arg}${typeNameOf(this.typeName)}`;
+    return new DictionaryImpl(
+      this.inner,
+      arg === null ? undefined : name,
+      this.isRequired,
+      this.base
+    );
   }
 }
 

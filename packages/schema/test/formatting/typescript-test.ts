@@ -1,6 +1,6 @@
 import { Record, types, typescript } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
-import { MediumArticle, SimpleArticle } from "../support/schemas";
+import { MediumArticle, SimpleArticle } from "../support/records";
 
 QUnit.module("formatting - typescript");
 

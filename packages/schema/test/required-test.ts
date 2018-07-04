@@ -6,7 +6,7 @@ import {
   validatePublished
 } from "./support";
 
-QUnit.module("Records");
+QUnit.module("Dictionaries with required fields");
 
 QUnit.test("optional dictionaries with required fields (geo)", async assert => {
   const RECORDS: Record = Record("records", {
@@ -62,7 +62,7 @@ QUnit.test("optional dictionaries with required fields (geo)", async assert => {
       author: null
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-    "nested fields in published documents use the schema type (but numbers aren't strings)"
+    "nested fields in published documents use the record type (but numbers aren't strings)"
   );
 
   assert.deepEqual(
@@ -80,7 +80,7 @@ QUnit.test("optional dictionaries with required fields (geo)", async assert => {
       author: { first: "Christina\nTODO: Check", last: "Kung" }
     }),
     [typeError("string:single-line", "author.first")],
-    "nested fields in published documents use the schema type (multiline strings are not valid single-line strings)"
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
   );
 });
 
@@ -140,7 +140,7 @@ QUnit.test("required dictionaries with required fields (geo)", async assert => {
       geo: { lat: "10", long: "20" }
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-    "nested fields in published documents use the schema type (but numbers aren't strings)"
+    "nested fields in published documents use the record type (but numbers aren't strings)"
   );
 
   const STRING_RECORDS = Record("string-records", {
@@ -165,6 +165,6 @@ QUnit.test("required dictionaries with required fields (geo)", async assert => {
       author: { first: "Christina\nTODO: Check", last: "Kung" }
     }),
     [typeError("string:single-line", "author.first")],
-    "nested fields in published documents use the schema type (multiline strings are not valid single-line strings)"
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
   );
 });

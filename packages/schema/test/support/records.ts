@@ -8,13 +8,16 @@ import {
 } from "@cross-check/schema";
 import { ISODate, Url } from "../support";
 
-export const SimpleArticle: Record = Record("SimpleArticle", {
+export const SimpleArticle = Record("SimpleArticle", {
   hed: types.SingleLine().required(),
   dek: types.Text(),
   body: types.Text().required()
+}).metadata({
+  collectionName: "simple-articles",
+  modelName: "simple-article"
 });
 
-export const MediumArticle: Record = Record("MediumArticle", {
+export const MediumArticle = Record("MediumArticle", {
   hed: types.SingleLine().required(),
   dek: types.Text(),
   body: types.Text().required(),
@@ -33,17 +36,23 @@ export const MediumArticle: Record = Record("MediumArticle", {
   contributors: types.List(
     types.Dictionary({ first: types.SingleLine(), last: types.SingleLine() })
   )
+}).metadata({
+  collectionName: "medium-articles",
+  modelName: "medium-article"
 });
 
-export const Related: Record = Record("Related", {
+export const Related = Record("Related", {
   first: types.SingleLine(),
   last: types.Text(),
 
   person: types.hasOne(SimpleArticle).required(),
   articles: types.hasMany(MediumArticle)
+}).metadata({
+  collectionName: "related-articles",
+  modelName: "related-article"
 });
 
-export const Nesting: Record = Record("Nesting", {
+export const Nesting = Record("Nesting", {
   people: types
     .List(
       types.Dictionary({
@@ -56,7 +65,7 @@ export const Nesting: Record = Record("Nesting", {
 
 export const Cursor: () => Type = opaque("Cursor", types.Text());
 
-export const PageInfo: Record = Record("PageInfo", {
+export const PageInfo = Record("PageInfo", {
   hasNextPage: types.Boolean().required(),
   hasPreviousPage: types.Boolean().required()
 });
@@ -68,14 +77,14 @@ export const Edge: Generic = generic(T =>
   })
 );
 
-export const Page: Generic = generic(T =>
+export const Page = generic(T =>
   Record("Page", {
     edges: Edge(T),
     pageInfo: PageInfo
   }).required()
 );
 
-export const Bundle: Record = Record("Bundle", {
+export const Bundle = Record("Bundle", {
   name: types.SingleLine(),
   articles: Page(SimpleArticle)
 });

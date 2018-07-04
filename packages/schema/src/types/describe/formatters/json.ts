@@ -1,11 +1,12 @@
 import { Dict, JSON, Option, unknown } from "ts-std";
-import { Schema } from "../formatter";
+import { BaseRecord } from "../../../record";
 import {
   DictionaryLabel,
   GenericLabel,
   Label,
   NamedLabel,
   PrimitiveLabel,
+  RecordLabel,
   typeNameOf
 } from "../label";
 import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
@@ -44,16 +45,6 @@ type Item = Generic | Primitive | Dictionary;
 
 class JSONFormatter implements RecursiveDelegate {
   private visitor = RecursiveVisitor.build(this);
-
-  schema(label: DictionaryLabel): Dict<Item> {
-    let members = {} as Dict<Item>;
-
-    this.visitor.processDictionary(label, (item, key) => {
-      members[key] = item;
-    });
-
-    return members;
-  }
 
   templated() {
     throw new Error("unimplemented");
@@ -110,9 +101,29 @@ class JSONFormatter implements RecursiveDelegate {
   dictionary(label: DictionaryLabel, required: boolean): Dictionary {
     return {
       type: "Dictionary",
-      members: this.schema(label),
+      members: this.dictionaryOrRecord(label),
       required
     };
+  }
+
+  record(
+    label: RecordLabel
+  ): {
+    fields: Dict<Item>;
+    metadata: Option<Dict>;
+  } {
+    return {
+      fields: this.dictionaryOrRecord(label),
+      metadata: label.metadata
+    };
+  }
+
+  private dictionaryOrRecord(label: DictionaryLabel | RecordLabel): Dict<Item> {
+    let members = {} as Dict<Item>;
+    this.visitor.processDictionary(label, (item, key) => {
+      members[key] = item;
+    });
+    return members;
   }
 }
 
@@ -130,6 +141,6 @@ function referenceOptions(
   return options;
 }
 
-export function toJSON(schema: Schema): unknown {
-  return new JSONFormatter().schema(schema.label.type);
+export function toJSON(record: BaseRecord): unknown {
+  return new JSONFormatter().record(record.label.type);
 }

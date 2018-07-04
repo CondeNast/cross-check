@@ -1,25 +1,39 @@
 import { toJSON } from "@cross-check/schema";
-import { MediumArticle, Related, SimpleArticle } from "../support/schemas";
+import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("formatting - toJSON");
 
 QUnit.test("simple", assert => {
   assert.deepEqual(toJSON(SimpleArticle), {
-    hed: { type: "SingleLine", required: true },
-    dek: { type: "Text", required: false },
-    body: { type: "Text", required: true }
+    fields: {
+      hed: { type: "SingleLine", required: true },
+      dek: { type: "Text", required: false },
+      body: { type: "Text", required: true }
+    },
+
+    metadata: {
+      collectionName: "simple-articles",
+      modelName: "simple-article"
+    }
   });
 
   assert.deepEqual(toJSON(SimpleArticle.draft), {
-    hed: { type: "Text", required: false },
-    dek: { type: "Text", required: false },
-    body: { type: "Text", required: false }
+    fields: {
+      hed: { type: "Text", required: false },
+      dek: { type: "Text", required: false },
+      body: { type: "Text", required: false }
+    },
+
+    metadata: {
+      collectionName: "simple-articles",
+      modelName: "simple-article"
+    }
   });
 });
 
 QUnit.test("detailed - published", assert => {
   let actual = toJSON(MediumArticle);
-  let expected = {
+  let fields = {
     hed: { type: "SingleLine", required: true },
     dek: { type: "Text", required: false },
     body: { type: "Text", required: true },
@@ -73,12 +87,20 @@ QUnit.test("detailed - published", assert => {
     }
   };
 
+  let expected = {
+    fields,
+    metadata: {
+      collectionName: "medium-articles",
+      modelName: "medium-article"
+    }
+  };
+
   assert.deepEqual(actual, expected);
 });
 
 QUnit.test("detailed - draft", assert => {
   let actual = toJSON(MediumArticle.draft);
-  let expected = {
+  let fields = {
     hed: { type: "Text", required: false },
     dek: { type: "Text", required: false },
     body: { type: "Text", required: false },
@@ -132,35 +154,48 @@ QUnit.test("detailed - draft", assert => {
     }
   };
 
+  let expected = {
+    fields,
+    metadata: {
+      collectionName: "medium-articles",
+      modelName: "medium-article"
+    }
+  };
+
   assert.deepEqual(actual, expected);
 });
 
 QUnit.test("relationships", assert => {
   assert.deepEqual(
     toJSON(Related),
-
     {
-      first: { type: "SingleLine", required: false },
-      last: { type: "Text", required: false },
-      person: {
-        type: "Pointer",
-        kind: "hasOne",
-        required: true,
-        of: {
-          name: "SimpleArticle",
-          type: "dictionary",
-          required: true
+      fields: {
+        first: { type: "SingleLine", required: false },
+        last: { type: "Text", required: false },
+        person: {
+          type: "Pointer",
+          kind: "hasOne",
+          required: true,
+          of: {
+            type: "record",
+            name: "SimpleArticle",
+            required: true
+          }
+        },
+        articles: {
+          type: "Iterator",
+          kind: "hasMany",
+          required: false,
+          of: {
+            name: "MediumArticle",
+            type: "record",
+            required: true
+          }
         }
       },
-      articles: {
-        type: "Iterator",
-        kind: "hasMany",
-        required: false,
-        of: {
-          name: "MediumArticle",
-          type: "dictionary",
-          required: true
-        }
+      metadata: {
+        collectionName: "related-articles",
+        modelName: "related-article"
       }
     },
     "Related"
@@ -170,27 +205,33 @@ QUnit.test("relationships", assert => {
     toJSON(Related.draft),
 
     {
-      first: { type: "Text", required: false },
-      last: { type: "Text", required: false },
-      person: {
-        type: "Pointer",
-        kind: "hasOne",
-        required: false,
-        of: {
-          name: "SimpleArticle",
-          type: "dictionary",
-          required: true
+      fields: {
+        first: { type: "Text", required: false },
+        last: { type: "Text", required: false },
+        person: {
+          type: "Pointer",
+          kind: "hasOne",
+          required: false,
+          of: {
+            name: "SimpleArticle",
+            type: "record",
+            required: true
+          }
+        },
+        articles: {
+          type: "Iterator",
+          kind: "hasMany",
+          required: false,
+          of: {
+            type: "record",
+            name: "MediumArticle",
+            required: true
+          }
         }
       },
-      articles: {
-        type: "Iterator",
-        kind: "hasMany",
-        required: false,
-        of: {
-          name: "MediumArticle",
-          type: "dictionary",
-          required: true
-        }
+      metadata: {
+        collectionName: "related-articles",
+        modelName: "related-article"
       }
     },
     "Related.draft"

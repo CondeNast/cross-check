@@ -7,10 +7,10 @@ export interface TypescriptOptions {
 }
 
 const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
-  openSchema({ options }) {
+  openRecord({ options }) {
     return `export interface ${options.name} {\n`;
   },
-  closeSchema(): string {
+  closeRecord(): string {
     return `}`;
   },
 
