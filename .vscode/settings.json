@@ -11,7 +11,7 @@
     "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true
   },
-  "nodeTdd.testScript": "test",
+  "nodeTdd.testScript": "quicktest",
   "nodeTdd.reporter": "tap",
   "nodeTdd.verbose": false,
   "nodeTdd.buildOnActivation": true,

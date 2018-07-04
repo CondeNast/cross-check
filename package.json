@@ -14,7 +14,8 @@
     "problems": "lerna run problems",
     "build": "lerna run build",
     "build-tests": "ember build",
-    "test": "qunit dist/tests.js",
+    "quicktest": "qunit dist/tests.js",
+    "test": "lerna run test",
     "bootstrap": "lerna run bootstrap"
   },
   "devDependencies": {
