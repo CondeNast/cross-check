@@ -30,12 +30,12 @@
     "get-monorepo-packages": "1.0.1",
     "lerna": "*",
     "prettier": "*",
+    "sleep-promise": "^8.0.1",
+    "testem": "^2.8.2",
+    "touch": "^3.1.0",
     "tslint": "*",
     "tslint-config-prettier": "*",
     "typescript": "*",
-    "testem": "^2.8.2",
-    "touch": "^3.1.0",
-    "sleep-promise": "^8.0.1",
     "write-pkg": "*"
   },
   "resolutions": {
@@ -54,5 +54,8 @@
     "broccoli-debug": "0.6.4",
     "find-yarn-workspace-root": "^1.1.0",
     "write-pkg": "^3.2.0"
+  },
+  "dependencies": {
+    "libkit": "https://github.com/tildeio/libkit.git#workspace-support"
   }
 }
