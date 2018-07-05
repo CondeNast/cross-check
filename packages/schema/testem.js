@@ -11,7 +11,7 @@ module.exports = {
   test_page: "index.testem.html?hidepassed",
 
   browser_args: {
-    Chrome: ["--headless", "--disable-gpu", "--no-sandbox"]
+    Chrome: ["--headless", "--disable-gpu"]
   },
 
   disable_watching: true,
