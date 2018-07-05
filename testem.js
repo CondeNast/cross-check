@@ -14,12 +14,7 @@ module.exports = {
   framework: "qunit",
 
   browser_args: {
-    Chrome: [
-      "--headless",
-      "--disable-gpu",
-      "--no-sandbox",
-      "--remote-debugging-port=9222"
-    ]
+    Chrome: ["--headless", "--disable-gpu", "--no-sandbox"]
   },
 
   launch_in_dev: ["Node", "Chrome"],
