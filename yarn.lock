@@ -3607,8 +3607,8 @@ lerna@*, lerna@^2.11.0:
 
 libkit@*, "libkit@https://github.com/tildeio/libkit.git#workspace-support":
   version "0.6.0"
-  uid ef3ebabd2b96b7369b36d5d553dc20855fec1d9d
-  resolved "https://github.com/tildeio/libkit.git#ef3ebabd2b96b7369b36d5d553dc20855fec1d9d"
+  uid "536bc0c7e51c20e8af8d15f4809efe16a5201ea1"
+  resolved "https://github.com/tildeio/libkit.git#536bc0c7e51c20e8af8d15f4809efe16a5201ea1"
   dependencies:
     broccoli-caching-writer "^3.0.3"
     broccoli-debug "^0.6.4"
