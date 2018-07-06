@@ -11,6 +11,7 @@ const BroccoliDebug = require("broccoli-debug");
 const getPackages = require("get-monorepo-packages");
 const BroccoliPlugin = require("broccoli-plugin");
 const Addon = require("ember-cli/lib/models/addon");
+const tee = require("broccoli-tee");
 
 const debug = BroccoliDebug.buildDebugCallback(`crosscheck`);
 
@@ -25,6 +26,8 @@ module.exports = function(app) {
     if (fs.lstatSync(dir).isDirectory()) {
       let packageName = path.basename(dir);
       let tree = require(`./packages/${packageName}/ember-cli-build`)();
+
+      tree = tee(tree, path.join(dir, "dist"));
 
       tree = debug(tree, `$packages:$${packageName}:$ember-cli-build`);
 

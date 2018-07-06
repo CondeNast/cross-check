@@ -25,6 +25,7 @@
     "broccoli-funnel": "^2.0.1",
     "broccoli-merge-trees": "^3.0.0",
     "broccoli-plugin": "^1.3.0",
+    "broccoli-tee": "*",
     "ember-cli": "*",
     "find-yarn-workspace-root": "*",
     "get-monorepo-packages": "1.0.1",
@@ -39,9 +40,11 @@
     "write-pkg": "*"
   },
   "resolutions": {
-    "typescript": "~2.8.4",
     "@types/qunit": "^2.0.31",
+    "broccoli-debug": "0.6.4",
+    "broccoli-tee": "^1.0.2",
     "ember-cli": "^3.1.4",
+    "find-yarn-workspace-root": "^1.1.0",
     "lerna": "^2.11.0",
     "libkit": "https://github.com/tildeio/libkit.git#workspace-support",
     "no-show": "^0.6.2",
@@ -51,8 +54,7 @@
     "ts-std": "^0.6.2",
     "tslint": "^5.7.0",
     "tslint-config-prettier": "^1.12.0",
-    "broccoli-debug": "0.6.4",
-    "find-yarn-workspace-root": "^1.1.0",
+    "typescript": "~2.8.4",
     "write-pkg": "^3.2.0"
   },
   "dependencies": {
