@@ -1,8 +1,6 @@
 # @cross-check/dsl
 
-[![Build Status](https://travis-ci.org/cross-check/dsl.svg?branch=master)](https://travis-ci.org/cross-check/dsl)
-
-A low-level validation library. Built on top of [@cross-check/core](https://github.com/tildeio/validations-core). Detailed philosophy about cross-check can be found in `@cross-check/core`.
+A low-level validation library. Built on top of [@cross-check/core](../core). Detailed philosophy about cross-check can be found in `@cross-check/core`.
 
 It was originally extracted from Condé Nast's CMS and sponsored by Condé Nast.
 
@@ -24,12 +22,6 @@ The `@cross-check/core` repository unpacks these points in much greater detail.
 
 `npm install`
 `npm test`
-
-## Documentation
-
-https://tildeio.github.io/validations-dsl
-
-You can also generate documentation locally in `docs/` by running `npm run docs`
 
 ## Sponsors
 
