@@ -3,16 +3,19 @@ import { Option, unknown } from "ts-std";
 import { Label, PointerLabel, typeNameOf } from "../label";
 import { ANY } from "../std/scalars";
 import { ReferenceImpl } from "./reference";
-import { Type, baseType } from "./value";
+import { Type } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
   constructor(
     private inner: Type,
     isRequired: boolean,
-    readonly base: Option<Type>,
     private name: string | undefined
   ) {
-    super(isRequired, base);
+    super(isRequired);
+  }
+
+  get base(): Type {
+    return new PointerImpl(this.inner.base.required(), false, undefined);
   }
 
   get label(): Label<PointerLabel> {
@@ -27,14 +30,13 @@ export class PointerImpl extends ReferenceImpl {
   }
 
   required(isRequired = true): Type {
-    return new PointerImpl(this.inner, isRequired, this.base, this.name);
+    return new PointerImpl(this.inner, isRequired, this.name);
   }
 
   named(arg: Option<string>): Type {
     return new PointerImpl(
       this.inner,
       this.isRequired,
-      this.base,
       arg === null ? undefined : arg
     );
   }
@@ -53,11 +55,5 @@ export class PointerImpl extends ReferenceImpl {
 }
 
 export function hasOne(entity: Type): Type {
-  let base = new PointerImpl(
-    baseType(entity).required(),
-    false,
-    null,
-    undefined
-  );
-  return new PointerImpl(entity.required(), false, base, undefined);
+  return new PointerImpl(entity.required(), false, undefined);
 }

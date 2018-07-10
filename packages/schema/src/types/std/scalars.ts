@@ -10,7 +10,7 @@ import { Type, parse, serialize, validationFor } from "../fundamental/value";
 import { basic } from "../type";
 
 export abstract class Scalar implements Type {
-  readonly base = null;
+  readonly base = this;
   constructor(
     readonly isRequired: boolean = false,
     protected typeName?: string

@@ -3,31 +3,49 @@ import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, Option, dict, entries, expect } from "ts-std";
 import { AbstractDictionary } from "./types/fundamental/dictionary";
-import { Type, baseType } from "./types/fundamental/value";
+import { Type } from "./types/fundamental/value";
 import { Label, RecordLabel } from "./types/label";
 
-class BaseRecordImpl extends AbstractDictionary implements BaseRecord {
+class RecordImpl extends AbstractDictionary implements Record {
   constructor(
     readonly name: string,
     inner: Dict<Type>,
     required: boolean,
     protected readonly meta: Option<Dict>
   ) {
-    super(inner, name, required, null);
+    super(inner, name, required);
+  }
+
+  get base(): Record {
+    let draftDict = dict<Type>();
+
+    for (let [key, value] of entries(this.inner)) {
+      draftDict[key] = value!.base.required(false);
+    }
+
+    return new RecordImpl(this.name, draftDict, false, this.meta);
+  }
+
+  get draft(): Record {
+    return this.base;
   }
 
   required(isRequired = true): Type {
-    return new BaseRecordImpl(this.name, this.inner, isRequired, this.meta);
-  }
-
-  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return validate(obj, build(this.validation()), null, env);
+    return new RecordImpl(this.name, this.inner, isRequired, this.meta);
   }
 
   named(arg: Option<string>): Type {
     let name = expect(arg, "Don't try to rename a Record to null");
 
-    return new BaseRecordImpl(name, this.inner, this.isRequired, this.meta);
+    return new RecordImpl(name, this.inner, this.isRequired, this.meta);
+  }
+
+  metadata(meta: Dict): this {
+    return new RecordImpl(this.name, this.inner, this.isRequired, meta) as this;
+  }
+
+  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
+    return validate(obj, build(this.validation()), null, env);
   }
 
   get label(): Label<RecordLabel> {
@@ -38,88 +56,16 @@ class BaseRecordImpl extends AbstractDictionary implements BaseRecord {
       registeredName: this.name
     };
   }
-
-  metadata(meta: Dict): this {
-    return new BaseRecordImpl(
-      this.name,
-      this.inner,
-      this.isRequired,
-      meta
-    ) as this;
-  }
-}
-
-class RecordImpl extends BaseRecordImpl implements Record {
-  base: BaseRecordImpl;
-
-  constructor(
-    name: string,
-    inner: Dict<Type>,
-    required: boolean,
-    base: BaseRecordImpl,
-    protected readonly meta: Option<Dict>
-  ) {
-    super(name, inner, required, meta);
-    this.base = base;
-  }
-
-  get draft(): BaseRecord {
-    return this.base!;
-  }
-
-  required(isRequired = true): Type {
-    return new RecordImpl(
-      this.name,
-      this.inner,
-      isRequired,
-      this.base,
-      this.meta
-    );
-  }
-
-  named(arg: Option<string>): Type {
-    return new RecordImpl(
-      expect(arg, "Don't try to rename a Record to null"),
-      this.inner,
-      this.isRequired,
-      this.base,
-      this.meta
-    );
-  }
-
-  metadata(meta: Dict): this {
-    return new RecordImpl(
-      this.name,
-      this.inner,
-      this.isRequired,
-      this.base.metadata(meta),
-      meta
-    ) as this;
-  }
 }
 
 export function Record(name: string, members: Dict<Type>): Record {
-  let strictDict = dict<Type>();
-  let draftDict = dict<Type>();
-
-  for (let [key, value] of entries(members)) {
-    strictDict[key] = value!;
-    draftDict[key] = baseType(value!).required(false);
-  }
-
-  let draft = new BaseRecordImpl(name, draftDict, false, null);
-  return new RecordImpl(name, strictDict, false, draft, null);
+  return new RecordImpl(name, members, false, null);
 }
 
-export interface BaseRecord extends Type {
+export interface Record extends Type {
   readonly name: string;
   readonly label: Label<RecordLabel>;
+  readonly draft: Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;
-  metadata(obj: Dict): BaseRecord;
-}
-
-export interface Record extends BaseRecord {
-  readonly name: string;
-  readonly draft: BaseRecord;
   metadata(obj: Dict): Record;
 }

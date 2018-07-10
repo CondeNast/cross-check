@@ -1,5 +1,5 @@
 import { Dict, JSON, Option, unknown } from "ts-std";
-import { BaseRecord } from "../../../record";
+import { Record } from "../../../record";
 import {
   DictionaryLabel,
   GenericLabel,
@@ -141,6 +141,6 @@ function referenceOptions(
   return options;
 }
 
-export function toJSON(record: BaseRecord): unknown {
+export function toJSON(record: Record): unknown {
   return new JSONFormatter().record(record.label.type);
 }
