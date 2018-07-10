@@ -5,26 +5,15 @@
   "tasks": [
     {
       "label": "Type Check",
-      "type": "shell",
-      "command": "yarn tsc --noEmit --watch -p .",
-      "problemMatcher": {
-        "owner": "tsc",
-        "base": "$tsc-watch",
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern":
-            "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - File change detected\\. Starting incremental compilation\\.\\.\\.",
-          "endsPattern":
-            "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - Compilation complete\\. Watching for file changes\\."
-        }
-      },
+      "type": "npm",
+      "script": "problems",
+      "problemMatcher": "$tsc",
       "presentation": {
         "echo": false,
         "reveal": "never",
         "focus": false,
         "panel": "shared"
       },
-      "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
