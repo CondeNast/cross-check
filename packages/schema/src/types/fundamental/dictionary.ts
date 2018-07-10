@@ -1,7 +1,7 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import { DictionaryLabel, Label, typeNameOf } from "../label";
-import { Type, baseType, parse, serialize, validationFor } from "./value";
+import { Type, parse, serialize, validationFor } from "./value";
 
 function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
   let obj = dict<ValidationBuilder<unknown>>();
@@ -18,13 +18,13 @@ export interface DictionaryType extends Type {
 }
 
 export abstract class AbstractDictionary implements Type {
-  abstract label: Label;
+  abstract readonly label: Label;
+  abstract readonly base: Type;
 
   constructor(
     protected inner: Dict<Type>,
     protected typeName: string | undefined,
-    readonly isRequired: boolean,
-    readonly base: Option<Type>
+    readonly isRequired: boolean
   ) {}
 
   abstract required(isRequired?: boolean): Type;
@@ -88,8 +88,18 @@ export class DictionaryImpl extends AbstractDictionary
     };
   }
 
+  get base(): DictionaryImpl {
+    let draftDict = dict<Type>();
+
+    for (let [key, value] of entries(this.inner)) {
+      draftDict[key] = value!.base.required(false);
+    }
+
+    return new DictionaryImpl(draftDict, undefined, false);
+  }
+
   required(isRequired = true): Type {
-    return new DictionaryImpl(this.inner, this.typeName, isRequired, this.base);
+    return new DictionaryImpl(this.inner, this.typeName, isRequired);
   }
 
   named(arg: Option<string>): Type {
@@ -97,23 +107,13 @@ export class DictionaryImpl extends AbstractDictionary
     return new DictionaryImpl(
       this.inner,
       arg === null ? undefined : name,
-      this.isRequired,
-      this.base
+      this.isRequired
     );
   }
 }
 
-export type ConstructDictionary = (d: Dict<Type>) => DictionaryType;
-
-export function Dictionary(members: Dict<Type>): DictionaryType {
-  let strictDict = dict<Type>();
-  let draftDict = dict<Type>();
-
-  for (let [key, value] of entries(members)) {
-    strictDict[key] = value!;
-    draftDict[key] = baseType(value!).required(false);
-  }
-
-  let draft = new DictionaryImpl(draftDict, undefined, false, null);
-  return new DictionaryImpl(strictDict, undefined, false, draft);
+export function Dictionary(d: Dict<Type>): DictionaryType {
+  return new DictionaryImpl(d, undefined, false);
 }
+
+export type ConstructDictionary = (d: Dict<Type>) => DictionaryType;

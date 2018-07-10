@@ -283,26 +283,32 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   debug(operation: string): void {
     // tslint:disable:no-console
+
+    // @ts-ignore
     console.group(`${operation}`);
 
-    // return;
     // @ts-ignore
     console.log(`<- nesting: ${this.state.nesting}`);
 
     let buffer = this.state.buffer as { done?(): string };
 
     if (typeof buffer.done === "function") {
+      // @ts-ignore
       console.log(buffer.done().replace(/\n/g, "\\n\n"));
     } else {
+      // @ts-ignore
       console.log(JSON.stringify(this.state.buffer).replace(/\n/g, "\\n\n"));
     }
 
+    // @ts-ignore
     console.groupEnd();
+
     // tslint:enable:no-console
   }
 
   debugEnd() {
     // tslint:disable:no-console
+    // @ts-ignore
     console.groupEnd();
     // tslint:enable:no-console
   }

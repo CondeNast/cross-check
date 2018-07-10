@@ -53,9 +53,9 @@
       "problemMatcher": []
     },
     {
-      "label": "build",
+      "label": "ember s",
       "type": "shell",
-      "command": "ember s",
+      "command": "yarn ember s",
       "group": "build",
       "isBackground": true,
       "problemMatcher": []

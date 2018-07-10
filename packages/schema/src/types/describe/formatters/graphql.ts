@@ -1,5 +1,5 @@
 import { Dict, Option } from "ts-std";
-import { BaseRecord } from "../../../record";
+import { Record } from "../../../record";
 import { LabelledType } from "../../fundamental/value";
 import { titleize } from "../../utils";
 import formatter from "../formatter";
@@ -177,7 +177,7 @@ export interface GraphqlOptions {
 }
 
 export const graphql: ((
-  record: BaseRecord,
+  record: Record,
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);
 

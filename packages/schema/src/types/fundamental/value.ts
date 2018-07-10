@@ -8,7 +8,7 @@ export type Pass = typeof Pass;
 
 export interface Type {
   readonly label: Label;
-  readonly base: Option<Type>;
+  readonly base: Type;
   readonly isRequired: boolean;
 
   required(isRequired?: boolean): Type;
@@ -25,14 +25,6 @@ export interface LabelledType<L extends TypeLabel = TypeLabel> extends Type {
 export interface NamedType<L extends TypeLabel = TypeLabel>
   extends LabelledType<L> {
   label: NamedLabel<L>;
-}
-
-export function baseType(type: Type): Type {
-  if (type.base === null) {
-    return type;
-  } else {
-    return type.base;
-  }
 }
 
 export function validationFor(

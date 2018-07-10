@@ -1,4 +1,4 @@
-export { BaseRecord, Record } from "./record";
+export { Record } from "./record";
 export {
   Opaque,
   Scalar,

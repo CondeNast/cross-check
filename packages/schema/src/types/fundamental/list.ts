@@ -2,7 +2,7 @@ import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Option, unknown } from "ts-std";
 import { Label, typeNameOf } from "../label";
 import { maybe } from "../utils";
-import { Type, baseType, parse, serialize } from "./value";
+import { Type, parse, serialize } from "./value";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
@@ -13,9 +13,12 @@ class ArrayImpl implements Type {
   constructor(
     private itemType: Type,
     private name: string | undefined,
-    readonly isRequired: boolean,
-    readonly base: Option<Type>
+    readonly isRequired: boolean
   ) {}
+
+  get base(): Type {
+    return new ArrayImpl(this.itemType.base, undefined, false);
+  }
 
   get label(): Label {
     let inner = this.itemType.required();
@@ -31,15 +34,14 @@ class ArrayImpl implements Type {
   }
 
   required(isRequired = true): Type {
-    return new ArrayImpl(this.itemType, this.name, isRequired, this.base);
+    return new ArrayImpl(this.itemType, this.name, isRequired);
   }
 
   named(arg: Option<string>): Type {
     return new ArrayImpl(
       this.itemType,
       arg === null ? undefined : arg,
-      this.isRequired,
-      this.base
+      this.isRequired
     );
   }
 
@@ -73,6 +75,5 @@ class ArrayImpl implements Type {
 }
 
 export function List(item: Type): Type {
-  let draftType = new ArrayImpl(baseType(item), undefined, false, null);
-  return new ArrayImpl(item, undefined, false, draftType);
+  return new ArrayImpl(item, undefined, false);
 }

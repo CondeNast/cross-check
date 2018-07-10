@@ -5,12 +5,13 @@ import { ANY } from "../std/scalars";
 import { Type } from "./value";
 
 export abstract class ReferenceImpl implements Type {
-  abstract label: Label<ReferenceLabel>;
+  abstract readonly label: Label<ReferenceLabel>;
+  abstract readonly base: Type;
 
-  constructor(readonly isRequired: boolean, readonly base: Option<Type>) {}
+  constructor(readonly isRequired: boolean) {}
 
-  abstract required(isRequired?: boolean): Type;
   abstract named(arg: Option<string>): Type;
+  abstract required(isRequired?: boolean): Type;
 
   validation(): ValidationBuilder<unknown> {
     return ANY;

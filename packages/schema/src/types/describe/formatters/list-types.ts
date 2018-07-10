@@ -1,5 +1,5 @@
 import { Dict, unknown } from "ts-std";
-import { BaseRecord } from "../../../record";
+import { Record } from "../../../record";
 import {
   DictionaryLabel,
   GenericLabel,
@@ -46,6 +46,6 @@ class ListTypes implements RecursiveDelegate {
   }
 }
 
-export function listTypes(record: BaseRecord): unknown {
+export function listTypes(record: Record): unknown {
   return new ListTypes().record(record.label.type);
 }

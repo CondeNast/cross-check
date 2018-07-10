@@ -1,17 +1,20 @@
 import { JSON, Option } from "ts-std";
 import { IteratorLabel, Label, typeNameOf } from "../label";
 import { ReferenceImpl } from "./reference";
-import { Type, baseType } from "./value";
+import { Type } from "./value";
 
 export class IteratorImpl extends ReferenceImpl {
   constructor(
     private inner: Type,
     private name: string | undefined,
     private args: JSON | undefined,
-    isRequired: boolean,
-    base: Option<Type>
+    isRequired: boolean
   ) {
-    super(isRequired, base);
+    super(isRequired);
+  }
+
+  get base(): Type {
+    return new IteratorImpl(this.inner.base, this.name, this.args, false);
   }
 
   get label(): Label<IteratorLabel> {
@@ -29,13 +32,7 @@ export class IteratorImpl extends ReferenceImpl {
   }
 
   required(isRequired = true): Type {
-    return new IteratorImpl(
-      this.inner,
-      this.name,
-      this.args,
-      isRequired,
-      this.base
-    );
+    return new IteratorImpl(this.inner, this.name, this.args, isRequired);
   }
 
   named(arg: Option<string>): Type {
@@ -43,19 +40,11 @@ export class IteratorImpl extends ReferenceImpl {
       this.inner,
       arg === null ? undefined : arg,
       this.args,
-      this.isRequired,
-      this.base
+      this.isRequired
     );
   }
 }
 
 export function hasMany(item: Type, options?: JSON): Type {
-  let draftType = new IteratorImpl(
-    baseType(item),
-    undefined,
-    options,
-    false,
-    null
-  );
-  return new IteratorImpl(item, undefined, options, false, draftType);
+  return new IteratorImpl(item, undefined, options, false);
 }
