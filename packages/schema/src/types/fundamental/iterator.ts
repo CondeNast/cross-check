@@ -1,50 +1,44 @@
-import { JSON, Option } from "ts-std";
 import { IteratorLabel, Label, typeNameOf } from "../label";
+import { JSONValue } from "../utils";
+import { IteratorDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
 import { Type } from "./value";
 
 export class IteratorImpl extends ReferenceImpl {
-  constructor(
-    private inner: Type,
-    private name: string | undefined,
-    private args: JSON | undefined,
-    isRequired: boolean
-  ) {
-    super(isRequired);
+  constructor(readonly descriptor: IteratorDescriptor) {
+    super(descriptor);
   }
 
   get base(): Type {
-    return new IteratorImpl(this.inner.base, this.name, this.args, false);
+    return new IteratorImpl({
+      ...this.descriptor,
+      args: this.type.base
+    });
   }
 
   get label(): Label<IteratorLabel> {
-    let inner = this.inner.required();
+    let inner = this.type.required();
 
     return {
       type: {
         kind: "iterator",
         of: inner
       },
-      args: this.args,
+      args: this.descriptor.metadata,
       description: `hasMany ${typeNameOf(inner.label.name)}`,
       name: "hasMany"
     };
   }
-
-  required(isRequired = true): Type {
-    return new IteratorImpl(this.inner, this.name, this.args, isRequired);
-  }
-
-  named(arg: Option<string>): Type {
-    return new IteratorImpl(
-      this.inner,
-      arg === null ? undefined : arg,
-      this.args,
-      this.isRequired
-    );
-  }
 }
 
-export function hasMany(item: Type, options?: JSON): Type {
-  return new IteratorImpl(item, undefined, options, false);
+export function hasMany(item: Type, options: JSONValue = null): Type {
+  return new IteratorImpl({
+    type: "Iterator",
+    args: item,
+    metadata: options,
+    name: null,
+    required: false,
+    features: []
+  });
+  // return new IteratorImpl(item, undefined, options, false);
 }

@@ -1,5 +1,5 @@
-import { JSON as JSONValue } from "ts-std";
 import { LabelledType } from "../../fundamental/value";
+import { JSONValue } from "../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { PrimitiveLabel, typeNameOf } from "../label";

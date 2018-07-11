@@ -2,6 +2,7 @@ import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
 import { Label, NamedLabel, TypeLabel } from "../label";
 import { maybe } from "../utils";
+import { TypeDescriptor } from "./descriptor";
 
 export const Pass = Symbol();
 export type Pass = typeof Pass;
@@ -10,12 +11,47 @@ export interface Type {
   readonly label: Label;
   readonly base: Type;
   readonly isRequired: boolean;
+  readonly descriptor: TypeDescriptor;
 
   required(isRequired?: boolean): Type;
   named(arg: Option<string>): Type;
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown | Pass;
   parse(input: unknown): unknown | Pass;
+}
+
+export abstract class AbstractType implements Type {
+  abstract readonly label: Label;
+  abstract readonly base: Type;
+
+  constructor(readonly descriptor: TypeDescriptor) {}
+
+  get isRequired(): boolean {
+    return this.descriptor.required;
+  }
+
+  named(name: Option<string>): this {
+    return new (this.constructor as any)({
+      ...this.descriptor,
+      name
+    });
+  }
+
+  required(isRequired = true): this {
+    return new (this.constructor as any)({
+      ...this.descriptor,
+      required: isRequired
+    });
+  }
+
+  // feature(name: string): this {
+  //   let features = [...this.features, name];
+  //   return this.clone({ features });
+  // }
+
+  abstract validation(): ValidationBuilder<unknown>;
+  abstract serialize(input: unknown): unknown | Pass;
+  abstract parse(input: unknown): unknown | Pass;
 }
 
 export interface LabelledType<L extends TypeLabel = TypeLabel> extends Type {

@@ -1,5 +1,6 @@
-import { Dict, JSON, Option, unknown } from "ts-std";
+import { Dict, Option, unknown } from "ts-std";
 import { Record } from "../../../record";
+import { JSONValue } from "../../utils";
 import {
   DictionaryLabel,
   GenericLabel,
@@ -13,14 +14,14 @@ import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
 
 interface Primitive {
   type: string;
-  args?: JSON;
+  args?: JSONValue;
   required: boolean;
 }
 
 interface Generic {
   type: "Pointer" | "List" | "Iterator";
   kind?: string;
-  args?: JSON;
+  args?: JSONValue;
   of: Item;
   required: boolean;
 }
@@ -28,7 +29,7 @@ interface Generic {
 interface GenericReference extends Generic {
   type: "Pointer" | "Iterator";
   kind: string;
-  args?: JSON;
+  args?: JSONValue;
   of: Item;
   required: boolean;
 }
@@ -75,7 +76,7 @@ class JSONFormatter implements RecursiveDelegate {
     required: boolean
   ): Generic {
     let type: "Pointer" | "List" | "Iterator";
-    let options: Option<{ kind?: string; args?: JSON }> = {};
+    let options: Option<{ kind?: string; args?: JSONValue }> = {};
     let kind = label.type.kind;
 
     if (kind === "iterator") {
@@ -110,7 +111,7 @@ class JSONFormatter implements RecursiveDelegate {
     label: RecordLabel
   ): {
     fields: Dict<Item>;
-    metadata: Option<Dict>;
+    metadata: Option<JSONValue>;
   } {
     return {
       fields: this.dictionaryOrRecord(label),

@@ -1,44 +1,33 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
+import { unknown } from "ts-std";
 import { Label, PointerLabel, typeNameOf } from "../label";
 import { ANY } from "../std/scalars";
+import { JSONValue } from "../utils";
+import { PointerDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
 import { Type } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
-  constructor(
-    private inner: Type,
-    isRequired: boolean,
-    private name: string | undefined
-  ) {
-    super(isRequired);
+  constructor(readonly descriptor: PointerDescriptor) {
+    super(descriptor);
   }
 
   get base(): Type {
-    return new PointerImpl(this.inner.base.required(), false, undefined);
+    return new PointerImpl({
+      ...this.descriptor,
+      args: this.type.required()
+    });
   }
 
   get label(): Label<PointerLabel> {
     return {
       type: {
         kind: "pointer",
-        of: this.inner
+        of: this.type.required()
       },
       name: "hasOne",
-      description: `has one ${typeNameOf(this.inner.label.name)}`
+      description: `has one ${typeNameOf(this.type.label.name)}`
     };
-  }
-
-  required(isRequired = true): Type {
-    return new PointerImpl(this.inner, isRequired, this.name);
-  }
-
-  named(arg: Option<string>): Type {
-    return new PointerImpl(
-      this.inner,
-      this.isRequired,
-      arg === null ? undefined : arg
-    );
   }
 
   validation(): ValidationBuilder<unknown> {
@@ -54,6 +43,13 @@ export class PointerImpl extends ReferenceImpl {
   }
 }
 
-export function hasOne(entity: Type): Type {
-  return new PointerImpl(entity.required(), false, undefined);
+export function hasOne(entity: Type, options: JSONValue = null): Type {
+  return new PointerImpl({
+    type: "Pointer",
+    args: entity,
+    metadata: options,
+    name: null,
+    required: false,
+    features: []
+  });
 }

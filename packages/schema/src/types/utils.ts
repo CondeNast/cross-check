@@ -2,6 +2,8 @@ import { ErrorPath, ValidationError } from "@cross-check/core";
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, entries } from "ts-std";
 
+export { JSON as JSONValue } from "ts-std";
+
 export function callable<T>(Class: { new (): T }): (() => T) {
   return () => new Class();
 }

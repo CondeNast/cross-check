@@ -6,28 +6,25 @@ import {
 } from "@cross-check/dsl";
 import { Option, unknown } from "ts-std";
 import { Label, label } from "../describe/label";
-import { Type, parse, serialize, validationFor } from "../fundamental/value";
+import { PrimitiveDescriptor } from "../fundamental/descriptor";
+import {
+  AbstractType,
+  Type,
+  parse,
+  serialize,
+  validationFor
+} from "../fundamental/value";
 import { basic } from "../type";
 
-export abstract class Scalar implements Type {
+export abstract class Scalar extends AbstractType {
   readonly base = this;
-  constructor(
-    readonly isRequired: boolean = false,
-    protected typeName?: string
-  ) {}
+  readonly args = null;
+
+  constructor(descriptor: PrimitiveDescriptor) {
+    super(descriptor);
+  }
 
   abstract get label(): Label;
-
-  required(isRequired = true): this {
-    return new (this.constructor as any)(isRequired);
-  }
-
-  named(arg: Option<string>): this {
-    return new (this.constructor as any)(
-      this.isRequired,
-      arg === null ? undefined : arg
-    );
-  }
 
   validation(): ValidationBuilder<unknown> {
     return validationFor(this.baseValidation(), this.isRequired);
@@ -54,23 +51,15 @@ export abstract class Scalar implements Type {
   }
 }
 
-export abstract class Opaque implements Type {
+export abstract class Opaque extends AbstractType {
+  readonly args = null;
   abstract readonly base: Type;
 
-  constructor(readonly isRequired = false, readonly isTemplated = false) {}
+  constructor(descriptor: PrimitiveDescriptor) {
+    super(descriptor);
+  }
 
   abstract get label(): Label;
-
-  required(isRequired = true): Type {
-    return new (this.constructor as any)(isRequired, this.isTemplated);
-  }
-
-  named(arg: Option<string>): Type {
-    return new (this.constructor as any)(
-      this.isRequired,
-      arg === null ? undefined : arg
-    );
-  }
 
   validation(): ValidationBuilder<unknown> {
     return validationFor(this.baseValidation(), this.isRequired);
@@ -96,6 +85,8 @@ export abstract class Opaque implements Type {
 }
 
 class TextPrimitive extends Scalar {
+  name = "Text";
+
   get label(): Label {
     return label({
       name: "Text",
@@ -112,6 +103,8 @@ class TextPrimitive extends Scalar {
 export const Text: () => Type = basic(TextPrimitive);
 
 class FloatPrimitive extends Scalar {
+  name = "Float";
+
   get label(): Label {
     return label({
       name: "Float",
@@ -128,6 +121,8 @@ class FloatPrimitive extends Scalar {
 export const Float = basic(FloatPrimitive);
 
 class IntegerPrimitive extends Scalar {
+  name = "Integer";
+
   get label(): Label {
     return label({
       name: "Integer",
@@ -151,6 +146,8 @@ class IntegerPrimitive extends Scalar {
 export const Integer = basic(IntegerPrimitive);
 
 class SingleLinePrimitive extends Opaque {
+  name = "SingleLine";
+
   readonly base = Text();
 
   get label(): Label {
@@ -173,9 +170,10 @@ class SingleLinePrimitive extends Opaque {
   }
 }
 
-export const SingleLine = basic(new SingleLinePrimitive(false));
+export const SingleLine = basic(SingleLinePrimitive);
 
 class SingleWordPrimitive extends Opaque {
+  readonly name = "SingleWord";
   readonly base = Text();
 
   get label(): Label {
@@ -198,9 +196,11 @@ class SingleWordPrimitive extends Opaque {
   }
 }
 
-export const SingleWord = basic(new SingleWordPrimitive(false));
+export const SingleWord = basic(SingleWordPrimitive);
 
 class BooleanPrimitive extends Scalar {
+  readonly name = "Boolean";
+
   get label(): Label {
     return label({
       name: "Boolean",
@@ -217,6 +217,8 @@ class BooleanPrimitive extends Scalar {
 export const Boolean = basic(BooleanPrimitive);
 
 class AnyPrimitive extends Scalar {
+  readonly name = "Any";
+
   get label(): Label {
     return label({
       name: "Any",

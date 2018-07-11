@@ -1,6 +1,7 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { Label, Opaque, Type, label, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
+import { PrimitiveDescriptor } from "../types/fundamental/descriptor";
 import { format } from "./format";
 
 export type UrlKind =
@@ -55,8 +56,12 @@ export class Urlish {
 class UrlType extends Opaque {
   readonly base = types.Text();
 
-  constructor(private options: UrlKind[]) {
-    super();
+  constructor(descriptor: PrimitiveDescriptor & { args: UrlKind[] }) {
+    super(descriptor);
+  }
+
+  get options(): UrlKind[] {
+    return this.descriptor.args as UrlKind[];
   }
 
   get label(): Label {
@@ -87,5 +92,12 @@ export function urlish(full: string) {
 }
 
 export function Url(...args: UrlKind[]): Type {
-  return new UrlType(args);
+  return new UrlType({
+    type: "Primitive",
+    args,
+    metadata: null,
+    name: null,
+    required: false,
+    features: []
+  });
 }

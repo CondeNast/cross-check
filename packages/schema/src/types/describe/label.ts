@@ -1,5 +1,6 @@
-import { Dict, JSON, Option } from "ts-std";
+import { Dict, JSONObject, Option } from "ts-std";
 import { LabelledType, Type } from "../fundamental/value";
+import { JSONValue } from "../utils";
 
 export enum Optionality {
   Required,
@@ -28,7 +29,7 @@ export interface Label<T extends TypeLabel = TypeLabel> {
   name?: string;
 
   // Any arguments to the type constructor
-  args?: JSON;
+  args?: JSONValue;
 
   // A registered name for the type, which includes
   // arguments to the type constructor. The registered
@@ -65,7 +66,7 @@ export interface NamedLabel<T extends TypeLabel = TypeLabel> extends Label<T> {
   type: T;
   templated: boolean;
   name: string;
-  args?: JSON;
+  args?: JSONValue;
 }
 
 export interface PrimitiveLabel {
@@ -86,7 +87,7 @@ export interface ListLabel {
 export interface RecordLabel {
   kind: "record";
   members: Dict<Type>;
-  metadata: Option<Dict>;
+  metadata: Option<JSONObject>;
 }
 
 export interface DictionaryLabel {

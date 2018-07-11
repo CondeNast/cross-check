@@ -1,3 +1,4 @@
+import { PrimitiveDescriptor } from "./fundamental/descriptor";
 import { Type } from "./fundamental/value";
 import { typeNameOf } from "./label";
 
@@ -38,7 +39,7 @@ import { typeNameOf } from "./label";
  */
 
 export interface TypeClass {
-  new (): Type;
+  new (descriptor: PrimitiveDescriptor): Type;
 }
 
 export type TypeDescription = TypeClass | Type;
@@ -68,5 +69,14 @@ export function opaque(_name: string, type: TypeDescription): () => Type {
 }
 
 function constructType(desc: TypeDescription): Type {
-  return typeof desc === "function" ? new desc() : desc;
+  let descriptor = {
+    type: "Primitive" as "Primitive",
+    name: null,
+    required: false,
+    features: [],
+    metadata: null,
+    args: null
+  };
+
+  return typeof desc === "function" ? new desc(descriptor) : desc;
 }

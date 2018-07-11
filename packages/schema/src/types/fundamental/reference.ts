@@ -1,17 +1,21 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
+import { unknown } from "ts-std";
 import { Label, ReferenceLabel } from "../label";
 import { ANY } from "../std/scalars";
-import { Type } from "./value";
+import { IteratorDescriptor, PointerDescriptor } from "./descriptor";
+import { AbstractType, Type } from "./value";
 
-export abstract class ReferenceImpl implements Type {
+export abstract class ReferenceImpl extends AbstractType {
   abstract readonly label: Label<ReferenceLabel>;
   abstract readonly base: Type;
 
-  constructor(readonly isRequired: boolean) {}
+  constructor(readonly descriptor: IteratorDescriptor | PointerDescriptor) {
+    super(descriptor);
+  }
 
-  abstract named(arg: Option<string>): Type;
-  abstract required(isRequired?: boolean): Type;
+  protected get type(): Type {
+    return this.descriptor.args;
+  }
 
   validation(): ValidationBuilder<unknown> {
     return ANY;

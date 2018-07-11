@@ -1,47 +1,44 @@
 import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
-import { Dict, Option, dict, entries, expect } from "ts-std";
+import { Dict, JSONObject, dict, entries } from "ts-std";
+import { DictionaryDescriptor } from "./types/fundamental/descriptor";
 import { AbstractDictionary } from "./types/fundamental/dictionary";
 import { Type } from "./types/fundamental/value";
 import { Label, RecordLabel } from "./types/label";
+import { JSONValue } from "./types/utils";
 
 class RecordImpl extends AbstractDictionary implements Record {
-  constructor(
-    readonly name: string,
-    inner: Dict<Type>,
-    required: boolean,
-    protected readonly meta: Option<Dict>
-  ) {
-    super(inner, name, required);
+  constructor(readonly descriptor: DictionaryDescriptor & { name: string }) {
+    super(descriptor);
+  }
+
+  get name(): string {
+    return this.descriptor.name;
   }
 
   get base(): Record {
     let draftDict = dict<Type>();
 
-    for (let [key, value] of entries(this.inner)) {
+    for (let [key, value] of entries(this.types)) {
       draftDict[key] = value!.base.required(false);
     }
 
-    return new RecordImpl(this.name, draftDict, false, this.meta);
+    return new RecordImpl({
+      ...this.descriptor,
+      args: draftDict
+    });
   }
 
   get draft(): Record {
     return this.base;
   }
 
-  required(isRequired = true): Type {
-    return new RecordImpl(this.name, this.inner, isRequired, this.meta);
-  }
-
-  named(arg: Option<string>): Type {
-    let name = expect(arg, "Don't try to rename a Record to null");
-
-    return new RecordImpl(name, this.inner, this.isRequired, this.meta);
-  }
-
-  metadata(meta: Dict): this {
-    return new RecordImpl(this.name, this.inner, this.isRequired, meta) as this;
+  metadata(metadata: JSONObject): Record {
+    return new RecordImpl({
+      ...this.descriptor,
+      metadata
+    });
   }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
@@ -50,7 +47,11 @@ class RecordImpl extends AbstractDictionary implements Record {
 
   get label(): Label<RecordLabel> {
     return {
-      type: { kind: "record", members: this.inner, metadata: this.meta },
+      type: {
+        kind: "record",
+        members: this.types,
+        metadata: this.descriptor.metadata
+      },
       description: "record",
       name: this.name,
       registeredName: this.name
@@ -59,7 +60,14 @@ class RecordImpl extends AbstractDictionary implements Record {
 }
 
 export function Record(name: string, members: Dict<Type>): Record {
-  return new RecordImpl(name, members, false, null);
+  return new RecordImpl({
+    type: "Dictionary",
+    args: members,
+    metadata: null,
+    name,
+    required: false,
+    features: []
+  });
 }
 
 export interface Record extends Type {
@@ -67,5 +75,5 @@ export interface Record extends Type {
   readonly label: Label<RecordLabel>;
   readonly draft: Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;
-  metadata(obj: Dict): Record;
+  metadata(obj: JSONValue): Record;
 }
