@@ -1,15 +1,13 @@
 import { Dict, Option, unknown } from "ts-std";
 import { Record } from "../../../record";
-import { JSONValue } from "../../utils";
 import {
-  DictionaryLabel,
-  GenericLabel,
-  Label,
-  NamedLabel,
-  PrimitiveLabel,
-  RecordLabel,
-  typeNameOf
-} from "../label";
+  AliasDescriptor,
+  CollectionDescriptor,
+  DictionaryDescriptor,
+  PrimitiveDescriptor,
+  RecordDescriptor
+} from "../../fundamental/descriptor";
+import { JSONValue, exhausted } from "../../utils";
 import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
 
 interface Primitive {
@@ -42,7 +40,11 @@ interface Dictionary {
   required: boolean;
 }
 
-type Item = Generic | Primitive | Dictionary;
+interface Alias {
+  alias: string;
+}
+
+type Item = Generic | Primitive | Dictionary | Alias;
 
 class JSONFormatter implements RecursiveDelegate {
   private visitor = RecursiveVisitor.build(this);
@@ -51,77 +53,77 @@ class JSONFormatter implements RecursiveDelegate {
     throw new Error("unimplemented");
   }
 
-  primitive(
-    { name, args }: Label<PrimitiveLabel>,
-    required: boolean
-  ): Primitive {
+  primitive({ name, args }: PrimitiveDescriptor, required: boolean): Primitive {
     if (args !== undefined) {
-      return { type: typeNameOf(name), args, required };
+      return { type: name || "anonymous", args, required };
     } else {
-      return { type: typeNameOf(name), required };
+      return { type: name || "anonymous", required };
     }
   }
 
-  named(label: NamedLabel, required: boolean): unknown {
+  alias(alias: AliasDescriptor): Alias {
     return {
-      type: label.type.kind,
-      name: label.name,
-      required
+      alias: alias.name
     };
   }
 
-  generic<L extends GenericLabel>(
+  generic(
     entity: Item,
-    label: Label<L>,
+    descriptor: CollectionDescriptor,
     required: boolean
   ): Generic {
-    let type: "Pointer" | "List" | "Iterator";
+    let { type } = descriptor;
     let options: Option<{ kind?: string; args?: JSONValue }> = {};
-    let kind = label.type.kind;
 
-    if (kind === "iterator") {
-      type = "Iterator";
-      options = referenceOptions(label);
-    } else if (kind === "list") {
-      type = "List";
-    } else if (kind === "pointer") {
-      type = "Pointer";
-      options = referenceOptions(label);
-    } else {
-      throw new Error("unreachable");
+    switch (type) {
+      case "Iterator":
+        options = referenceOptions(descriptor);
+        break;
+
+      case "List":
+        break;
+
+      case "Pointer":
+        options = referenceOptions(descriptor);
+        break;
+
+      default:
+        return exhausted(type);
     }
 
     return {
-      type: type!,
+      type,
       ...options,
       of: entity,
       required
     };
   }
 
-  dictionary(label: DictionaryLabel, required: boolean): Dictionary {
+  dictionary(descriptor: DictionaryDescriptor, required: boolean): Dictionary {
     return {
       type: "Dictionary",
-      members: this.dictionaryOrRecord(label),
+      members: this.dictionaryOrRecord(descriptor),
       required
     };
   }
 
   record(
-    label: RecordLabel
+    descriptor: RecordDescriptor
   ): {
     fields: Dict<Item>;
     metadata: Option<JSONValue>;
   } {
     return {
-      fields: this.dictionaryOrRecord(label),
-      metadata: label.metadata
+      fields: this.dictionaryOrRecord(descriptor),
+      metadata: descriptor.metadata
     };
   }
 
-  private dictionaryOrRecord(label: DictionaryLabel | RecordLabel): Dict<Item> {
+  private dictionaryOrRecord(
+    descriptor: DictionaryDescriptor | RecordDescriptor
+  ): Dict<Item> {
     let members = {} as Dict<Item>;
-    this.visitor.processDictionary(label, (item, key) => {
+    this.visitor.processDictionary(descriptor, (item, key) => {
       members[key] = item;
     });
     return members;
@@ -129,19 +131,21 @@ class JSONFormatter implements RecursiveDelegate {
 }
 
 function referenceOptions(
-  label: Label<GenericLabel>
+  descriptor: CollectionDescriptor
 ): Pick<GenericReference, "kind" | "args"> {
-  let options = {
-    kind: label.name
-  } as GenericOptions;
+  let options = {} as GenericOptions;
 
-  if (label.args) {
-    options.args = label.args;
+  if (descriptor.type === "Iterator" || descriptor.type === "Pointer") {
+    options.kind = descriptor.name;
+  }
+
+  if (descriptor.metadata) {
+    options.args = descriptor.metadata;
   }
 
   return options;
 }
 
 export function toJSON(record: Record): unknown {
-  return new JSONFormatter().record(record.label.type);
+  return new JSONFormatter().record(record.descriptor);
 }

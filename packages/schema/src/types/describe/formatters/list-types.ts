@@ -1,44 +1,43 @@
 import { Dict, unknown } from "ts-std";
 import { Record } from "../../../record";
 import {
-  DictionaryLabel,
-  GenericLabel,
-  Label,
-  NamedLabel,
-  RecordLabel,
-  typeNameOf
-} from "../label";
+  CollectionDescriptor,
+  DictionaryDescriptor,
+  NamedDescriptor,
+  PrimitiveDescriptor,
+  RecordDescriptor
+} from "../../fundamental/descriptor";
 import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
 
 class ListTypes implements RecursiveDelegate {
   private visitor = RecursiveVisitor.build(this);
 
-  named({ name }: NamedLabel): Dict {
+  alias({ name }: NamedDescriptor): Dict {
     return { [name]: true };
   }
 
-  primitive({ name }: Label): Dict {
-    return { [typeNameOf(name)]: true };
+  primitive({ name }: PrimitiveDescriptor): Dict {
+    return { [name || "anonymous"]: true };
   }
 
-  generic(of: Dict, label: Label<GenericLabel>): Dict {
-    let kind = label.type.kind;
+  generic(of: Dict, descriptor: CollectionDescriptor): Dict {
+    let kind = descriptor.type;
     let name = `${kind[0].toUpperCase()}${kind.slice(1)}`;
     return { ...of, [name]: true };
   }
 
-  dictionary(label: DictionaryLabel): Dict {
-    return { ...this.dict(label), Dictionary: true };
+  dictionary(descriptor: DictionaryDescriptor): Dict {
+    return { ...this.dict(descriptor), Dictionary: true };
   }
 
-  record(label: RecordLabel): string[] {
-    return Object.keys(this.dict(label)).sort();
+  record(descriptor: RecordDescriptor): string[] {
+    return Object.keys(this.dict(descriptor)).sort();
   }
 
-  private dict(label: DictionaryLabel | RecordLabel) {
+  private dict(descriptor: DictionaryDescriptor | RecordDescriptor) {
     let members: Dict = {};
 
-    this.visitor.processDictionary(label, (item: Dict) => {
+    this.visitor.processDictionary(descriptor, (item: Dict) => {
       members = { ...members, ...item };
     });
 
@@ -47,5 +46,5 @@ class ListTypes implements RecursiveDelegate {
 }
 
 export function listTypes(record: Record): unknown {
-  return new ListTypes().record(record.label.type);
+  return new ListTypes().record(record.descriptor);
 }

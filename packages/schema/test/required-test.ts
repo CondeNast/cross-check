@@ -10,11 +10,13 @@ QUnit.module("Dictionaries with required fields");
 
 QUnit.test("optional dictionaries with required fields (geo)", async assert => {
   const RECORDS: Record = Record("records", {
-    geo: types.Required({ lat: types.Float(), long: types.Float() }),
-    author: types.Required({
-      first: types.SingleLine(),
-      last: types.SingleLine()
-    })
+    fields: {
+      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      author: types.Required({
+        first: types.SingleLine(),
+        last: types.SingleLine()
+      })
+    }
   });
 
   assert.deepEqual(
@@ -86,7 +88,11 @@ QUnit.test("optional dictionaries with required fields (geo)", async assert => {
 
 QUnit.test("required dictionaries with required fields (geo)", async assert => {
   const RECORDS = Record("records", {
-    geo: types.Required({ lat: types.Float(), long: types.Float() }).required()
+    fields: {
+      geo: types
+        .Required({ lat: types.Float(), long: types.Float() })
+        .required()
+    }
   });
 
   assert.deepEqual(
@@ -144,12 +150,14 @@ QUnit.test("required dictionaries with required fields (geo)", async assert => {
   );
 
   const STRING_RECORDS = Record("string-records", {
-    author: types
-      .Required({
-        first: types.SingleLine(),
-        last: types.SingleLine()
-      })
-      .required()
+    fields: {
+      author: types
+        .Required({
+          first: types.SingleLine(),
+          last: types.SingleLine()
+        })
+        .required()
+    }
   });
 
   assert.deepEqual(

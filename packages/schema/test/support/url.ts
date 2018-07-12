@@ -1,7 +1,6 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Label, Opaque, Type, label, types } from "@cross-check/schema";
+import { Opaque, PrimitiveDescriptor, Type, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
-import { PrimitiveDescriptor } from "../types/fundamental/descriptor";
 import { format } from "./format";
 
 export type UrlKind =
@@ -64,15 +63,6 @@ class UrlType extends Opaque {
     return this.descriptor.args as UrlKind[];
   }
 
-  get label(): Label {
-    return label({
-      name: "Url",
-      args: this.options.length === 0 ? undefined : this.options,
-      description: "url",
-      typescript: "string"
-    });
-  }
-
   baseValidation(): ValidationBuilder<unknown> {
     return url(...this.options);
   }
@@ -94,9 +84,11 @@ export function urlish(full: string) {
 export function Url(...args: UrlKind[]): Type {
   return new UrlType({
     type: "Primitive",
+    typescript: "URL",
+    description: "url",
     args,
     metadata: null,
-    name: null,
+    name: "Url",
     required: false,
     features: []
   });

@@ -1,6 +1,5 @@
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { isPrimitive } from "../label";
 import { Position, ReporterDelegate } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
@@ -28,13 +27,13 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     }
   },
 
-  openGeneric({ type: { label } }) {
-    switch (label.type.kind) {
-      case "iterator":
+  openGeneric({ descriptor }) {
+    switch (descriptor.type) {
+      case "Iterator":
         return "has many ";
-      case "pointer":
+      case "Pointer":
         return "has one ";
-      case "list":
+      case "List":
         return "list of ";
     }
   },
@@ -47,17 +46,15 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     return `{\n`;
   },
 
-  emitPrimitive({ type: { label } }): string {
-    return `<${label.description}>`;
+  emitPrimitive({ descriptor }): string {
+    return `<${descriptor.description}>`;
   },
 
-  emitNamedType({ type }): string {
-    let { label } = type;
-
-    if (isPrimitive(type)) {
-      return `<${type.label.description}>`;
+  emitNamedType({ descriptor }): string {
+    if (descriptor.type === "Primitive") {
+      return `<${descriptor.description}>`;
     } else {
-      return `${label.name}`;
+      return `${descriptor.name}`;
     }
   }
 };

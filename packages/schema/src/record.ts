@@ -2,14 +2,14 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, dict, entries } from "ts-std";
-import { DictionaryDescriptor } from "./types/fundamental/descriptor";
+import { RecordDescriptor } from "./types/fundamental/descriptor";
 import { AbstractDictionary } from "./types/fundamental/dictionary";
 import { Type } from "./types/fundamental/value";
-import { Label, RecordLabel } from "./types/label";
 import { JSONValue } from "./types/utils";
 
-class RecordImpl extends AbstractDictionary implements Record {
-  constructor(readonly descriptor: DictionaryDescriptor & { name: string }) {
+class RecordImpl extends AbstractDictionary<RecordDescriptor>
+  implements Record {
+  constructor(readonly descriptor: RecordDescriptor) {
     super(descriptor);
   }
 
@@ -44,35 +44,27 @@ class RecordImpl extends AbstractDictionary implements Record {
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
     return validate(obj, build(this.validation()), null, env);
   }
-
-  get label(): Label<RecordLabel> {
-    return {
-      type: {
-        kind: "record",
-        members: this.types,
-        metadata: this.descriptor.metadata
-      },
-      description: "record",
-      name: this.name,
-      registeredName: this.name
-    };
-  }
 }
 
-export function Record(name: string, members: Dict<Type>): Record {
+export interface RecordOptions {
+  fields: Dict<Type>;
+  metadata?: JSONObject;
+}
+
+export function Record(name: string, options: RecordOptions): Record {
   return new RecordImpl({
-    type: "Dictionary",
-    args: members,
-    metadata: null,
+    type: "Record",
+    description: "Record",
+    args: options.fields,
+    metadata: options.metadata || null,
     name,
     required: false,
     features: []
   });
 }
 
-export interface Record extends Type {
+export interface Record extends Type<RecordDescriptor> {
   readonly name: string;
-  readonly label: Label<RecordLabel>;
   readonly draft: Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;
   metadata(obj: JSONValue): Record;

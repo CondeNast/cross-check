@@ -1,45 +1,41 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import { Label, NamedLabel, TypeLabel } from "../label";
 import { maybe } from "../utils";
-import { TypeDescriptor } from "./descriptor";
+import { AliasDescriptor, TypeDescriptor } from "./descriptor";
 
 export const Pass = Symbol();
 export type Pass = typeof Pass;
 
-export interface Type {
-  readonly label: Label;
-  readonly base: Type;
+export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
+  readonly base: Type<Descriptor>;
   readonly isRequired: boolean;
-  readonly descriptor: TypeDescriptor;
+  readonly descriptor: Descriptor;
 
-  required(isRequired?: boolean): Type;
-  named(arg: Option<string>): Type;
+  required(isRequired?: boolean): Type<Descriptor>;
+  named(arg: string): Type<AliasDescriptor>;
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown | Pass;
   parse(input: unknown): unknown | Pass;
 }
 
-export abstract class AbstractType implements Type {
-  abstract readonly label: Label;
-  abstract readonly base: Type;
+export abstract class AbstractType<
+  Descriptor extends TypeDescriptor = TypeDescriptor
+> implements Type<Descriptor> {
+  abstract readonly base: Type<Descriptor>;
 
-  constructor(readonly descriptor: TypeDescriptor) {}
+  constructor(readonly descriptor: Descriptor) {}
 
   get isRequired(): boolean {
     return this.descriptor.required;
   }
 
-  named(name: Option<string>): this {
-    return new (this.constructor as any)({
-      ...this.descriptor,
-      name
-    });
+  named(name: string): Type<AliasDescriptor> {
+    return Alias(name, this);
   }
 
-  required(isRequired = true): this {
+  required(isRequired = true): Type<Descriptor> {
     return new (this.constructor as any)({
-      ...this.descriptor,
+      ...(this.descriptor as object),
       required: isRequired
     });
   }
@@ -54,13 +50,59 @@ export abstract class AbstractType implements Type {
   abstract parse(input: unknown): unknown | Pass;
 }
 
-export interface LabelledType<L extends TypeLabel = TypeLabel> extends Type {
-  readonly label: Label<L>;
+export class AliasType extends AbstractType<AliasDescriptor> {
+  private get type(): Type {
+    return this.descriptor.args;
+  }
+
+  get base(): AliasType {
+    return new AliasType({
+      ...this.descriptor,
+      args: this.type.base
+    });
+  }
+
+  get isRequired(): boolean {
+    return this.type.isRequired;
+  }
+
+  named(name: string): AliasType {
+    return new AliasType({
+      ...this.descriptor,
+      args: this.type.named(name)
+    });
+  }
+
+  required(isRequired = true): AliasType {
+    return new AliasType({
+      ...this.descriptor,
+      args: this.type.required(isRequired)
+    });
+  }
+
+  validation(): ValidationBuilder<unknown> {
+    return this.type.validation();
+  }
+
+  serialize(input: unknown): unknown {
+    return this.type.serialize(input);
+  }
+
+  parse(input: unknown): unknown {
+    return this.type.parse(input);
+  }
 }
 
-export interface NamedType<L extends TypeLabel = TypeLabel>
-  extends LabelledType<L> {
-  label: NamedLabel<L>;
+export function Alias(name: string, type: Type): AliasType {
+  return new AliasType({
+    type: "Alias",
+    metadata: null,
+    args: type,
+    name,
+    description: `${name} (alias for ${type.descriptor.description})`,
+    required: false,
+    features: []
+  });
 }
 
 export function validationFor(

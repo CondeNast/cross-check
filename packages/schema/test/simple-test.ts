@@ -1,8 +1,6 @@
-import { serialize } from "@cross-check/schema";
 import {
   keysError,
   missingError,
-  strip,
   typeError,
   validateDraft,
   validatePublished
@@ -10,32 +8,6 @@ import {
 import { SimpleArticle } from "./support/records";
 
 QUnit.module("@cross-check/schema - simple schema");
-
-QUnit.test("string serialization", assert => {
-  assert.equal(
-    serialize(SimpleArticle),
-
-    strip`
-      {
-        "hed": { "type": "SingleLine", "required": true },
-        "dek": { "type": "Text", "required": false },
-        "body": { "type": "Text", "required": true }
-      }
-    `
-  );
-
-  assert.equal(
-    serialize(SimpleArticle.draft),
-
-    strip`
-      {
-        "hed": { "type": "Text", "required": false },
-        "dek": { "type": "Text", "required": false },
-        "body": { "type": "Text", "required": false }
-      }
-    `
-  );
-});
 
 QUnit.test("all fields are optional in draft mode", async assert => {
   assert.deepEqual(

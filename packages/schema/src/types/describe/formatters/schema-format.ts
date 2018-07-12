@@ -1,19 +1,18 @@
-import { LabelledType } from "../../fundamental/value";
+import { PrimitiveDescriptor } from "../../fundamental/descriptor";
 import { JSONValue } from "../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { PrimitiveLabel, typeNameOf } from "../label";
 import { Position, ReporterDelegate } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
-  openRecord({ type }) {
-    let name = type.label.name;
+  openRecord({ descriptor }) {
+    let name = descriptor.name;
     return `Record(${JSON.stringify(name)}, {\n`;
   },
-  closeRecord({ buffer, type, nesting }) {
+  closeRecord({ buffer, descriptor, nesting }) {
     buffer.push("})");
 
-    const metadata = type.label.type.metadata;
+    const metadata = descriptor.metadata;
 
     if (metadata) {
       buffer.push(".metadata({\n");
@@ -43,11 +42,11 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   emitKey({ key, nesting }): string {
     return `${pad(nesting * 2)}${key}: `;
   },
-  closeDictionary({ buffer, nesting, position, required }): string | void {
+  closeDictionary({ buffer, nesting, position, descriptor }): string | void {
     buffer.push(`${pad(nesting * 2)}})`);
 
     if (
-      required &&
+      descriptor.required &&
       position !== Position.ListItem &&
       position !== Position.PointerItem
     ) {
@@ -55,26 +54,26 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     }
   },
 
-  openGeneric({ buffer, type: { label } }): void {
-    switch (label.type.kind) {
-      case "iterator":
+  openGeneric({ buffer, descriptor }): void {
+    switch (descriptor.type) {
+      case "Iterator":
         buffer.push("hasMany(");
         break;
-      case "list":
+      case "List":
         buffer.push("List(");
         break;
-      case "pointer":
+      case "Pointer":
         buffer.push("hasOne(");
         break;
       default:
         throw new Error("unreachable");
     }
   },
-  closeGeneric({ buffer, position, type }): void {
+  closeGeneric({ buffer, position, descriptor }): void {
     buffer.push(")");
 
     if (
-      type.isRequired &&
+      descriptor.required &&
       position !== Position.ListItem &&
       position !== Position.PointerItem
     ) {
@@ -82,8 +81,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     }
   },
 
-  emitNamedType({ type: { label }, buffer }): void {
-    buffer.push(`${label.name}`);
+  emitNamedType({ descriptor, buffer }): void {
+    buffer.push(`${descriptor.name}`);
   },
 
   closeValue({ position }): string | void {
@@ -94,11 +93,11 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     }
   },
 
-  emitPrimitive({ type, position, buffer }): void {
-    buffer.push(formatType(type));
+  emitPrimitive({ descriptor, position, buffer }): void {
+    buffer.push(formatType(descriptor));
 
     if (
-      type.isRequired &&
+      descriptor.required &&
       position !== Position.ListItem &&
       position !== Position.IteratorItem
     ) {
@@ -107,9 +106,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   }
 };
 
-function formatType(type: LabelledType<PrimitiveLabel>) {
-  let { name, args } = type.label;
-  let out = `${typeNameOf(name)}(${formatArgs(args)})`;
+function formatType(descriptor: PrimitiveDescriptor) {
+  let out = `${descriptor.name || "anonymous"}(${formatArgs(descriptor.args)})`;
 
   return out;
 }

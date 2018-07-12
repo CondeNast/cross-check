@@ -1,9 +1,8 @@
 import { Dict, Option } from "ts-std";
 import { Record } from "../../../record";
-import { LabelledType } from "../../fundamental/value";
+import { PrimitiveDescriptor } from "../../fundamental/descriptor";
 import { titleize } from "../../utils";
 import formatter from "../formatter";
-import { PrimitiveLabel, isPrimitive } from "../label";
 import { Accumulator, ReporterDelegate } from "../reporter";
 
 class TypeBuffer {
@@ -101,48 +100,46 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
     buffer.doneType();
   },
 
-  closeValue({ buffer, required }): void {
-    buffer.doneValue(required);
+  closeValue({ buffer, descriptor }): void {
+    buffer.doneValue(descriptor.required);
   },
 
-  openGeneric({ buffer, type: { label } }): void {
-    switch (label.type.kind) {
-      case "iterator":
-      case "list":
+  openGeneric({ buffer, descriptor }): void {
+    switch (descriptor.type) {
+      case "Iterator":
+      case "List":
         buffer.push("[");
         break;
-      case "pointer":
+      case "Pointer":
       default:
     }
   },
-  closeGeneric({ buffer, type: { label } }): void {
-    switch (label.type.kind) {
-      case "iterator":
-      case "list":
+  closeGeneric({ buffer, descriptor }): void {
+    switch (descriptor.type) {
+      case "Iterator":
+      case "List":
         buffer.push("!]");
         break;
-      case "pointer":
+      case "Pointer":
       default:
     }
   },
 
-  emitNamedType({ type, buffer, options }): void {
-    if (isPrimitive(type)) {
-      primitive({ type, buffer, options });
+  emitNamedType({ descriptor, buffer, options }): void {
+    if (descriptor.type === "Primitive") {
+      primitive({ descriptor, buffer, options });
     } else {
-      buffer.push(`${nameToString(type.label.name)}`);
+      buffer.push(`${nameToString(descriptor.name)}`);
     }
   },
 
-  emitPrimitive({ type, buffer, options }): void {
-    let { label } = type as LabelledType<PrimitiveLabel>;
-
-    if (label.name !== undefined) {
-      buffer.push(`${options.scalarMap[label.name]}`);
+  emitPrimitive({ descriptor, buffer, options }): void {
+    if (descriptor.name !== null) {
+      buffer.push(`${options.scalarMap[descriptor.name]}`);
     } else {
       throw new Error(
         `Primitive types must be registered in the scalar map. Found an anonymous primitive with description \`${
-          type.label.description
+          descriptor.description
         }\`.`
       );
     }
@@ -150,22 +147,20 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
 };
 
 function primitive({
-  type,
+  descriptor,
   buffer,
   options
 }: {
-  type: LabelledType<PrimitiveLabel>;
+  descriptor: PrimitiveDescriptor;
   buffer: BufferStack;
   options: GraphqlOptions;
 }): void {
-  let { label } = type as LabelledType<PrimitiveLabel>;
-
-  if (label.name !== undefined) {
-    buffer.push(`${options.scalarMap[label.name]}`);
+  if (descriptor.name !== null) {
+    buffer.push(`${options.scalarMap[descriptor.name]}`);
   } else {
     throw new Error(
       `Primitive types must be registered in the scalar map. Found an anonymous primitive with description \`${
-        type.label.description
+        descriptor.description
       }\`.`
     );
   }
@@ -181,6 +176,6 @@ export const graphql: ((
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);
 
-function nameToString(name: string | undefined): string {
+function nameToString(name: string | null): string {
   return name || "anonymous";
 }

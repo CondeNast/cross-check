@@ -35,3 +35,47 @@ class JSONFormatter implements RecursiveDelegate {
   }
 }
 ```
+
+# July 12: Records now take metadata inline
+
+```ts
+Record("Article", {
+  // fields
+}).metadata({
+  // metadata
+})
+```
+
+to
+
+```ts
+Record("Article", {
+  fields: {
+    // fields
+  },
+
+  metadata: {
+    // metadata
+  }
+})
+```
+
+Metadata is optional.
+
+# July 12: Delegates now take Descriptors instead of Labels
+
+```ts
+class JSONFormatter implements RecursiveDelegate {
+  record(
+    descriptor: RecordDescriptor
+  ): {
+    fields: Dict<Item>;
+    metadata: Option<Dict>;
+  } {
+    return {
+      fields: this.dictionaryOrRecord(descriptor.args),
+      metadata: descriptor.metadata
+    };
+  }
+}
+```

@@ -1,78 +1,64 @@
 import { unknown } from "ts-std";
-import { LabelledType, NamedType, Type } from "../fundamental/value";
 import {
-  DictionaryLabel,
-  GenericLabel,
-  Label,
-  NamedLabel,
-  PrimitiveLabel,
-  RecordLabel,
-  TypeLabel
-} from "./label";
+  AliasDescriptor,
+  CollectionDescriptor,
+  DictionaryDescriptor,
+  PrimitiveDescriptor,
+  RecordDescriptor
+} from "../fundamental/descriptor";
+import { Type } from "../fundamental/value";
 import { Accumulator, Position, Reporter, genericPosition } from "./reporter";
 
 export interface VisitorDelegate {
-  record(type: LabelledType<RecordLabel>, position: Position): unknown;
-  dictionary(type: LabelledType<DictionaryLabel>, position: Position): unknown;
-  named(type: LabelledType, position: Position): unknown;
-  primitive(type: LabelledType<PrimitiveLabel>, position: Position): unknown;
-  generic(type: LabelledType<GenericLabel>, position: Position): unknown;
+  alias(type: AliasDescriptor, position: Position): unknown;
+  generic(type: CollectionDescriptor, position: Position): unknown;
+  dictionary(type: DictionaryDescriptor, position: Position): unknown;
+  record(type: RecordDescriptor, position: Position): unknown;
+  primitive(type: PrimitiveDescriptor, position: Position): unknown;
 }
 
 export class Visitor {
   constructor(private delegate: VisitorDelegate) {}
 
   visit(type: Type, position: Position = Position.Any): unknown {
-    if (isNamed(type)) {
-      return this.delegate.named(type as LabelledType<TypeLabel>, position);
-    }
+    let descriptor = type.descriptor;
 
-    let label = type.label;
-
-    switch (label.type.kind) {
-      case "primitive": {
-        return this.delegate.primitive(
-          type as LabelledType<PrimitiveLabel>,
-          position
-        );
+    switch (descriptor.type) {
+      case "Alias": {
+        return this.delegate.alias(descriptor, position);
       }
 
-      case "pointer":
-      case "iterator":
-      case "list": {
-        return this.delegate.generic(
-          type as LabelledType<GenericLabel>,
-          position
-        );
+      case "Pointer":
+      case "Iterator":
+      case "List": {
+        return this.delegate.generic(descriptor, position);
       }
 
-      case "record": {
-        return this.delegate.record(
-          type as LabelledType<RecordLabel>,
-          position
-        );
+      case "Dictionary": {
+        return this.delegate.dictionary(descriptor, position);
       }
 
-      case "dictionary": {
-        return this.delegate.dictionary(
-          type as LabelledType<DictionaryLabel>,
-          position
-        );
+      case "Record": {
+        return this.delegate.record(descriptor, position);
+      }
+
+      case "Primitive": {
+        return this.delegate.primitive(descriptor, position);
       }
     }
   }
 }
 
 export interface RecursiveDelegate {
-  named(label: NamedLabel, required: boolean): unknown;
-  primitive(type: Label<PrimitiveLabel>, required: boolean): unknown;
+  alias(descriptor: AliasDescriptor): unknown;
+  primitive(descriptor: PrimitiveDescriptor, required: boolean): unknown;
   generic(
     of: ItemType<this>,
-    label: Label<GenericLabel>,
+    descriptor: CollectionDescriptor,
     required: boolean
   ): unknown;
-  dictionary(label: DictionaryLabel, required: boolean): unknown;
-  record(label: RecordLabel, required: boolean): unknown;
+  dictionary(descriptor: DictionaryDescriptor, required: boolean): unknown;
+  record(descriptor: RecordDescriptor, required: boolean): unknown;
 }
 
 export type ItemType<D extends RecursiveDelegate> =
@@ -93,38 +79,38 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
 
   private constructor(private recursiveDelegate: D) {}
 
-  primitive({ label, isRequired }: LabelledType<PrimitiveLabel>): unknown {
-    return this.recursiveDelegate.primitive(label, isRequired);
+  primitive(descriptor: PrimitiveDescriptor): unknown {
+    return this.recursiveDelegate.primitive(descriptor, descriptor.required);
   }
 
-  generic({ label, isRequired }: LabelledType<GenericLabel>): unknown {
+  generic(descriptor: CollectionDescriptor): unknown {
     return this.recursiveDelegate.generic(
       this.visitor.visit(
-        label.type.of,
-        genericPosition(label.type.kind)
+        descriptor.args,
+        genericPosition(descriptor.type)
       ) as ItemType<D>,
-      label,
-      isRequired
+      descriptor,
+      descriptor.required
     );
   }
 
-  record({ label, isRequired }: LabelledType<RecordLabel>): unknown {
-    return this.recursiveDelegate.record(label.type, isRequired);
+  record(descriptor: RecordDescriptor): unknown {
+    return this.recursiveDelegate.record(descriptor, descriptor.required);
   }
 
-  dictionary({ label, isRequired }: LabelledType<DictionaryLabel>): unknown {
-    return this.recursiveDelegate.dictionary(label.type, isRequired);
+  dictionary(descriptor: DictionaryDescriptor): unknown {
+    return this.recursiveDelegate.dictionary(descriptor, descriptor.required);
   }
 
-  named({ label, isRequired }: NamedType<TypeLabel>): unknown {
-    return this.recursiveDelegate.named(label, isRequired);
+  alias(descriptor: AliasDescriptor): unknown {
+    return this.recursiveDelegate.alias(descriptor);
   }
 
   processDictionary(
-    label: DictionaryLabel | RecordLabel,
+    descriptor: DictionaryDescriptor | RecordDescriptor,
     callback: (item: ItemType<D>, key: string) => void
   ): unknown {
-    let input = label.members;
+    let input = descriptor.args;
     let keys = Object.keys(input);
     let last = keys.length - 1;
 
@@ -162,43 +148,39 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
-  primitive(type: LabelledType<PrimitiveLabel>, position: Position): unknown {
-    this.reporter.primitiveValue(position, type);
+  alias(descriptor: AliasDescriptor, position: Position): unknown {
+    this.reporter.namedValue(position, descriptor);
   }
 
-  named(type: LabelledType<TypeLabel>, position: Position): unknown {
-    this.reporter.namedValue(position, type);
+  generic(descriptor: CollectionDescriptor, position: Position): unknown {
+    this.reporter.startGenericValue(position, descriptor);
+
+    this.visitor.visit(descriptor.args, genericPosition(descriptor.type));
+
+    this.reporter.endGenericValue(position, descriptor);
   }
 
-  generic(type: LabelledType<GenericLabel>, position: Position): unknown {
-    this.reporter.startGenericValue(position, type);
-
-    this.visitor.visit(
-      type.label.type.of,
-      genericPosition(type.label.type.kind)
-    );
-
-    this.reporter.endGenericValue(position, type);
+  dictionary(descriptor: DictionaryDescriptor, position: Position): void {
+    this.reporter.startDictionary(position, descriptor);
+    this.dictionaryBody(descriptor);
+    this.reporter.endDictionary(position, descriptor);
   }
 
-  record(type: LabelledType<RecordLabel>): Inner {
-    this.reporter.startRecord(type);
-    this.dictionaryBody(type);
-    this.reporter.endRecord(type);
+  record(descriptor: RecordDescriptor): Inner {
+    this.reporter.startRecord(descriptor);
+    this.dictionaryBody(descriptor);
+    this.reporter.endRecord(descriptor);
 
     return this.reporter.finish();
   }
 
-  dictionary(type: LabelledType<DictionaryLabel>, position: Position): void {
-    this.reporter.startDictionary(position);
-    this.dictionaryBody(type);
-    this.reporter.endDictionary(position, type);
+  primitive(descriptor: PrimitiveDescriptor, position: Position): unknown {
+    this.reporter.primitiveValue(position, descriptor);
   }
 
-  dictionaryBody(type: LabelledType<DictionaryLabel | RecordLabel>) {
-    let dictionary = type.label.type;
-    let members = dictionary.members;
-    let keys = Object.keys(dictionary.members);
+  dictionaryBody(descriptor: DictionaryDescriptor | RecordDescriptor) {
+    let members = descriptor.args;
+    let keys = Object.keys(members);
     let last = keys.length - 1;
 
     keys.forEach((key, i) => {
@@ -215,13 +197,9 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
           itemPosition = Position.Middle;
       }
 
-      this.reporter.addKey(key, itemPosition, members[key]!);
+      this.reporter.addKey(key, itemPosition, members[key]!.descriptor);
       this.visitor.visit(members[key]!, itemPosition);
-      this.reporter.endValue(itemPosition, members[key]!);
+      this.reporter.endValue(itemPosition, members[key]!.descriptor);
     });
   }
-}
-
-function isNamed(type: Type): boolean {
-  return !!type.label.registeredName;
 }

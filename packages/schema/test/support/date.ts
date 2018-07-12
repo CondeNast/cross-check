@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Label, Scalar, Type, basic, label } from "@cross-check/schema";
+import { Scalar, Type, basic } from "@cross-check/schema";
 import { unknown } from "ts-std";
 
 function isValidDate(input: string): boolean {
@@ -9,18 +9,12 @@ function isValidDate(input: string): boolean {
 }
 
 class DateType extends Scalar {
-  get label(): Label {
-    return label({
-      name: "ISODate",
-      description: "ISO Date",
-      typescript: "Date"
-    });
-  }
-
   baseValidation(): ValidationBuilder<unknown> {
-    return validators.isString().andThen(validators.is((v: string): v is string => {
-      return isValidDate(v);
-    }, "iso-date")());
+    return validators.isString().andThen(
+      validators.is((v: string): v is string => {
+        return isValidDate(v);
+      }, "iso-date")()
+    );
   }
 
   baseSerialize(input: Date): string {
@@ -32,4 +26,9 @@ class DateType extends Scalar {
   }
 }
 
-export const ISODate: () => Type = basic(DateType);
+export const ISODate: () => Type = basic(
+  "ISODate",
+  DateType,
+  "Date",
+  "ISO Date"
+);

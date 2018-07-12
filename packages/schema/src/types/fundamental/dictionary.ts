@@ -1,7 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import { DictionaryLabel, Label } from "../label";
-import { DictionaryDescriptor } from "./descriptor";
+import { DictionaryDescriptor, RecordDescriptor } from "./descriptor";
 import { AbstractType, Type, parse, serialize, validationFor } from "./value";
 
 function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
@@ -14,17 +13,14 @@ function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
   return validators.strictObject(obj);
 }
 
-export interface DictionaryType extends Type {
-  label: Label<DictionaryLabel>;
-}
+export type AbstractDictionaryDescriptor =
+  | DictionaryDescriptor
+  | RecordDescriptor;
 
-export abstract class AbstractDictionary extends AbstractType {
-  abstract readonly label: Label;
-  abstract readonly base: Type;
-
-  constructor(readonly descriptor: DictionaryDescriptor) {
-    super(descriptor);
-  }
+export abstract class AbstractDictionary<
+  Descriptor extends AbstractDictionaryDescriptor
+> extends AbstractType<Descriptor> {
+  abstract readonly base: Type<Descriptor>;
 
   protected get types(): Dict<Type> {
     return this.descriptor.args;
@@ -77,17 +73,7 @@ export abstract class AbstractDictionary extends AbstractType {
   }
 }
 
-export class DictionaryImpl extends AbstractDictionary
-  implements DictionaryType {
-  get label(): Label<DictionaryLabel> {
-    return {
-      type: { kind: "dictionary", members: this.types },
-      description: "dictionary",
-      name: this.descriptor.name || undefined,
-      registeredName: this.descriptor.name || undefined
-    };
-  }
-
+export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
   get base(): DictionaryImpl {
     let draftDict = dict<Type>();
 
@@ -102,9 +88,10 @@ export class DictionaryImpl extends AbstractDictionary
   }
 }
 
-export function Dictionary(dictionary: Dict<Type>): DictionaryType {
+export function Dictionary(dictionary: Dict<Type>): DictionaryImpl {
   return new DictionaryImpl({
     type: "Dictionary",
+    description: "Dictionary",
     args: dictionary,
     metadata: null,
     name: null,
@@ -113,4 +100,4 @@ export function Dictionary(dictionary: Dict<Type>): DictionaryType {
   });
 }
 
-export type ConstructDictionary = (d: Dict<Type>) => DictionaryType;
+export type ConstructDictionary = (d: Dict<Type>) => DictionaryImpl;

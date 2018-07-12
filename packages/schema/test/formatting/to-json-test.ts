@@ -47,7 +47,7 @@ QUnit.test("detailed - published", assert => {
     },
 
     issueDate: { type: "ISODate", required: false },
-    canonicalUrl: { type: "Url", required: false },
+    canonicalUrl: { type: "Url", args: [], required: false },
     tags: {
       type: "List",
       of: {
@@ -177,9 +177,7 @@ QUnit.test("relationships", assert => {
           kind: "hasOne",
           required: true,
           of: {
-            type: "record",
-            name: "SimpleArticle",
-            required: true
+            alias: "SimpleArticle"
           }
         },
         articles: {
@@ -187,9 +185,7 @@ QUnit.test("relationships", assert => {
           kind: "hasMany",
           required: false,
           of: {
-            name: "MediumArticle",
-            type: "record",
-            required: true
+            alias: "MediumArticle"
           }
         }
       },
@@ -213,9 +209,7 @@ QUnit.test("relationships", assert => {
           kind: "hasOne",
           required: false,
           of: {
-            name: "SimpleArticle",
-            type: "record",
-            required: true
+            alias: "SimpleArticle"
           }
         },
         articles: {
@@ -223,9 +217,7 @@ QUnit.test("relationships", assert => {
           kind: "hasMany",
           required: false,
           of: {
-            type: "record",
-            name: "MediumArticle",
-            required: true
+            alias: "MediumArticle"
           }
         }
       },

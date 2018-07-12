@@ -4,6 +4,10 @@ import { Dict, entries } from "ts-std";
 
 export { JSON as JSONValue } from "ts-std";
 
+export function exhausted(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
+
 export function callable<T>(Class: { new (): T }): (() => T) {
   return () => new Class();
 }

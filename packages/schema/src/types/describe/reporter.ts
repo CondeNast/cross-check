@@ -1,11 +1,12 @@
-import { LabelledType, Type } from "../fundamental/value";
-import { Buffer as StringBuffer } from "./buffer";
 import {
-  DictionaryLabel,
-  GenericLabel,
-  PrimitiveLabel,
-  RecordLabel
-} from "./label";
+  CollectionDescriptor,
+  DictionaryDescriptor,
+  NamedDescriptor,
+  PrimitiveDescriptor,
+  RecordDescriptor,
+  TypeDescriptor
+} from "../fundamental/descriptor";
+import { Buffer as StringBuffer } from "./buffer";
 
 export interface Reporters<Buffer, Inner, Options> {
   Value: ReporterStateConstructor<Buffer, Inner, Options>;
@@ -21,69 +22,71 @@ export interface State<Buffer> {
 export interface ReporterDelegate<Buffer, Inner, Options> {
   openRecord(options: {
     buffer: Buffer;
-    type: LabelledType<RecordLabel>;
+    descriptor: RecordDescriptor;
     options: Options;
     nesting: number;
   }): Inner | void;
   closeRecord(options: {
     buffer: Buffer;
-    type: LabelledType<RecordLabel>;
+    descriptor: RecordDescriptor;
     options: Options;
     nesting: number;
   }): Inner | void;
   emitKey(options: {
+    buffer: Buffer;
     key: string;
     position: Position;
     required: boolean;
     options: Options;
-    buffer: Buffer;
     nesting: number;
   }): Inner | void;
   closeValue(options: {
-    position: Position;
-    required: boolean;
-    options: Options;
     buffer: Buffer;
+    descriptor: TypeDescriptor;
+    position: Position;
+    options: Options;
     nesting: number;
   }): Inner | void;
   openDictionary(options: {
+    buffer: Buffer;
+    descriptor: DictionaryDescriptor;
     position: Position;
     options: Options;
-    buffer: Buffer;
     nesting: number;
   }): Inner | void;
   closeDictionary(options: {
-    position: Position;
-    required: boolean;
-    options: Options;
     buffer: Buffer;
+    descriptor: DictionaryDescriptor;
+    position: Position;
+    options: Options;
     nesting: number;
   }): Inner | void;
   openGeneric(options: {
-    position: Position;
-    type: LabelledType<GenericLabel>;
-    options: Options;
     buffer: Buffer;
+    descriptor: CollectionDescriptor;
+    position: Position;
+    options: Options;
     nesting: number;
   }): Inner | void;
   closeGeneric(options: {
-    position: Position;
-    type: LabelledType<GenericLabel>;
-    options: Options;
     buffer: Buffer;
+    descriptor: CollectionDescriptor;
+    position: Position;
+    options: Options;
     nesting: number;
   }): Inner | void;
   emitPrimitive(options: {
-    type: LabelledType<PrimitiveLabel>;
+    buffer: Buffer;
+    descriptor: PrimitiveDescriptor;
     position: Position;
     options: Options;
-    buffer: Buffer;
     nesting: number;
   }): Inner | void;
   emitNamedType(options: {
-    type: LabelledType;
-    options: Options;
     buffer: Buffer;
+    descriptor: NamedDescriptor;
+    position: Position;
+    options: Options;
     nesting: number;
   }): Inner | void;
 }
@@ -115,75 +118,76 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     }
   }
 
-  startDictionary(position: Position): void {
+  startDictionary(position: Position, descriptor: DictionaryDescriptor): void {
     this.state.nesting += 1;
 
     this.pushStrings(
       this.reporters.openDictionary({
         position,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endDictionary(position: Position, { isRequired }: Type): void {
+  endDictionary(position: Position, descriptor: DictionaryDescriptor): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
       this.reporters.closeDictionary({
         position,
-        required: isRequired,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  startRecord(type: LabelledType<RecordLabel>): void {
+  startRecord(descriptor: RecordDescriptor): void {
     this.state.nesting += 1;
 
     this.pushStrings(
       this.reporters.openRecord({
-        type,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endRecord(type: LabelledType<RecordLabel>): void {
+  endRecord(descriptor: RecordDescriptor): void {
     this.pushStrings(
       this.reporters.closeRecord({
-        type,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  addKey(key: string, position: Position, { isRequired }: LabelledType): void {
+  addKey(key: string, position: Position, { required }: TypeDescriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
         position,
-        required: isRequired,
+        required,
         ...this.state
       })
     );
   }
 
-  endValue(position: Position, { isRequired }: Type): void {
+  endValue(position: Position, descriptor: TypeDescriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
-        required: isRequired,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endGenericValue(position: Position, type: LabelledType<GenericLabel>): void {
+  endGenericValue(position: Position, descriptor: CollectionDescriptor): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
-        type,
+        descriptor,
         ...this.state
       })
     );
@@ -191,31 +195,32 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
 
   startGenericValue(
     position: Position,
-    type: LabelledType<GenericLabel>
+    descriptor: CollectionDescriptor
   ): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
-        type,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  primitiveValue(position: Position, type: LabelledType<PrimitiveLabel>): void {
+  primitiveValue(position: Position, descriptor: PrimitiveDescriptor): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
-        type,
+        descriptor,
         position,
         ...this.state
       })
     );
   }
 
-  namedValue(_position: Position, type: LabelledType): void {
+  namedValue(position: Position, descriptor: NamedDescriptor): void {
     this.pushStrings(
       this.reporters.emitNamedType({
-        type,
+        descriptor,
+        position,
         ...this.state
       })
     );
@@ -240,13 +245,13 @@ export enum Position {
   Any
 }
 
-export function genericPosition(name: GenericLabel["kind"]): Position {
+export function genericPosition(name: CollectionDescriptor["type"]): Position {
   switch (name) {
-    case "iterator":
+    case "Iterator":
       return Position.IteratorItem;
-    case "pointer":
+    case "Pointer":
       return Position.PointerItem;
-    case "list":
+    case "List":
       return Position.ListItem;
   }
 }
@@ -323,45 +328,40 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   startDictionary?(
     position: Position,
-    type: LabelledType<DictionaryLabel>
+    descriptor: DictionaryDescriptor
   ): true | void;
 
-  startRecord?(
-    position: Position,
-    type: LabelledType<RecordLabel>
-  ): true | void;
+  startRecord?(position: Position, descriptor: RecordDescriptor): true | void;
 
   addKey?(key: string, position: Position, required: boolean): true | void;
 
-  endValue?(position: Position, type: LabelledType): true | void;
+  endValue?(position: Position, descriptor: TypeDescriptor): true | void;
 
   endDictionary?(
     position: Position,
-    type: LabelledType<DictionaryLabel>
+    descriptor: DictionaryDescriptor
   ): true | void;
 
   endDictionaryBody?(
     position: Position,
-    type: LabelledType<DictionaryLabel>
+    descriptor: DictionaryDescriptor
   ): true | void;
 
-  endRecord?(position: Position, type: LabelledType<RecordLabel>): true | void;
+  endRecord?(position: Position, descriptor: RecordDescriptor): true | void;
 
   startGenericValue?(
     position: Position,
-    type: LabelledType<GenericLabel>
+    descriptor: CollectionDescriptor
   ): true | void;
+
   endGenericValue?(
     position: Position,
-    type: LabelledType<GenericLabel>
+    descriptor: CollectionDescriptor
   ): true | void;
 
-  primitiveValue?(position: Position, type: LabelledType<PrimitiveLabel>): void;
-  namedValue?(position: Position, type: LabelledType): void;
+  primitiveValue?(position: Position, descriptor: PrimitiveDescriptor): void;
+  namedValue?(position: Position, descriptor: TypeDescriptor): void;
 
-  startType?(position: Position, type: LabelledType): void;
-  endType?(position: Position, type: LabelledType): true | void;
-
-  startTemplatedValue?(position: Position, type: LabelledType): void;
-  endTemplatedValue?(position: Position, typed: LabelledType): true | void;
+  startType?(position: Position, descriptor: TypeDescriptor): void;
+  endType?(position: Position, descriptor: TypeDescriptor): true | void;
 }

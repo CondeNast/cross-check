@@ -1,5 +1,11 @@
-import { LabelledType, NamedType, Type } from "../fundamental/value";
-import { GenericLabel, PrimitiveLabel, RecordLabel } from "./label";
+import {
+  CollectionDescriptor,
+  DictionaryDescriptor,
+  NamedDescriptor,
+  PrimitiveDescriptor,
+  RecordDescriptor,
+  TypeDescriptor
+} from "../fundamental/descriptor";
 import { Position, ReporterState } from "./reporter";
 
 export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
@@ -11,44 +17,45 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     /* noop */
   }
 
-  startDictionary(position: Position): void {
+  startDictionary(position: Position, descriptor: DictionaryDescriptor): void {
     this.state.nesting += 1;
 
     this.pushStrings(
       this.reporters.openDictionary({
         position,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endDictionary(position: Position, { isRequired }: Type): void {
+  endDictionary(position: Position, descriptor: DictionaryDescriptor): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
       this.reporters.closeDictionary({
         position,
-        required: isRequired,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  startRecord(_position: Position, type: LabelledType<RecordLabel>): void {
+  startRecord(_position: Position, descriptor: RecordDescriptor): void {
     this.state.nesting += 1;
 
     this.pushStrings(
       this.reporters.openRecord({
-        type,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endRecord(_position: Position, type: LabelledType<RecordLabel>): void {
+  endRecord(_position: Position, descriptor: RecordDescriptor): void {
     this.pushStrings(
       this.reporters.closeRecord({
-        type,
+        descriptor,
         ...this.state
       })
     );
@@ -65,21 +72,21 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endValue(position: Position, { isRequired }: Type): void {
+  endValue(position: Position, descriptor: TypeDescriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
-        required: isRequired,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  endGenericValue(position: Position, type: LabelledType<GenericLabel>): void {
+  endGenericValue(position: Position, descriptor: CollectionDescriptor): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
-        type,
+        descriptor,
         ...this.state
       })
     );
@@ -87,31 +94,32 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
 
   startGenericValue(
     position: Position,
-    type: LabelledType<GenericLabel>
+    descriptor: CollectionDescriptor
   ): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
-        type,
+        descriptor,
         ...this.state
       })
     );
   }
 
-  primitiveValue(position: Position, type: LabelledType<PrimitiveLabel>): void {
+  primitiveValue(position: Position, descriptor: PrimitiveDescriptor): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
-        type,
+        descriptor,
         position,
         ...this.state
       })
     );
   }
 
-  namedValue(_position: Position, type: NamedType): void {
+  namedValue(position: Position, descriptor: NamedDescriptor): void {
     this.pushStrings(
       this.reporters.emitNamedType({
-        type,
+        descriptor,
+        position,
         ...this.state
       })
     );

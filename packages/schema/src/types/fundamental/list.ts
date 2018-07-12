@@ -1,9 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { Label, typeNameOf } from "../label";
 import { maybe } from "../utils";
 import { ListDescriptor } from "./descriptor";
-import { AbstractType, Type, parse, serialize } from "./value";
+import { AbstractType, Alias, Type, parse, serialize } from "./value";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
@@ -22,21 +21,8 @@ class ArrayImpl extends AbstractType {
   get base(): Type {
     return new ArrayImpl({
       ...this.descriptor,
-      args: this.type.base
+      args: this.type.base.required()
     });
-  }
-
-  get label(): Label {
-    let inner = this.type.required();
-
-    return {
-      type: {
-        kind: "list",
-        of: inner
-      },
-      name: this.descriptor.name || undefined,
-      description: `hasOne ${typeNameOf(inner.label.name)}`
-    };
   }
 
   serialize(js: any[]): any {
@@ -71,10 +57,19 @@ class ArrayImpl extends AbstractType {
 export function List(item: Type): Type {
   return new ArrayImpl({
     type: "List",
-    args: item,
+    description: `List of ${item.descriptor.name || "anonymous"}`,
+    args: listType(item).required(),
     metadata: null,
     name: null,
     required: false,
     features: []
   });
+}
+
+function listType(item: Type): Type {
+  if (item.descriptor.type === "Record") {
+    return Alias(item.descriptor.name, item);
+  }
+
+  return item;
 }

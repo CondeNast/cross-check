@@ -1,12 +1,10 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { Label, ReferenceLabel } from "../label";
 import { ANY } from "../std/scalars";
 import { IteratorDescriptor, PointerDescriptor } from "./descriptor";
 import { AbstractType, Type } from "./value";
 
 export abstract class ReferenceImpl extends AbstractType {
-  abstract readonly label: Label<ReferenceLabel>;
   abstract readonly base: Type;
 
   constructor(readonly descriptor: IteratorDescriptor | PointerDescriptor) {

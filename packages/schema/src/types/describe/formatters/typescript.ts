@@ -27,32 +27,32 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
     return ";\n";
   },
 
-  openGeneric({ type: { label } }): string | void {
-    switch (label.type.kind) {
-      case "iterator":
-      case "list":
+  openGeneric({ descriptor }): string | void {
+    switch (descriptor.type) {
+      case "Iterator":
+      case "List":
         return `Array<`;
-      case "pointer":
+      case "Pointer":
       default:
     }
   },
 
-  closeGeneric({ type: { label } }): string | void {
-    switch (label.type.kind) {
-      case "iterator":
-      case "list":
+  closeGeneric({ descriptor }): string | void {
+    switch (descriptor.type) {
+      case "Iterator":
+      case "List":
         return `>`;
-      case "pointer":
+      case "Pointer":
       default:
     }
   },
 
-  emitNamedType({ type: { label }, buffer }): void {
-    buffer.push(`${label.name}`);
+  emitNamedType({ descriptor, buffer }): void {
+    buffer.push(`${descriptor.name}`);
   },
 
-  emitPrimitive({ type: { label } }): string {
-    return `${label.type.typescript}`;
+  emitPrimitive({ descriptor }): string {
+    return `${descriptor.typescript}`;
   }
 };
 

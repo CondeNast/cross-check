@@ -1,7 +1,7 @@
 import { graphql } from "@cross-check/schema";
 import { GRAPHQL_SCALAR_MAP, strip } from "../support";
 import {
-  Bundle,
+  // Bundle,
   MediumArticle,
   Related,
   SimpleArticle
@@ -90,25 +90,25 @@ QUnit.test("relationships", assert => {
   );
 });
 
-QUnit.skip("pagination with Relay Cursors", assert => {
-  assert.equal(
-    graphql(Bundle, { name: "Bundle", scalarMap: GRAPHQL_SCALAR_MAP }),
+// QUnit.skip("pagination with Relay Cursors", assert => {
+//   assert.equal(
+//     graphql(Bundle, { name: "Bundle", scalarMap: GRAPHQL_SCALAR_MAP }),
 
-    strip`
-      type SimpleArticleEdge {
-        cursor: Cursor
-        node: SimpleArticle
-      }
+//     strip`
+//       type SimpleArticleEdge {
+//         cursor: Cursor
+//         node: SimpleArticle
+//       }
 
-      type SimpleArticlePage {
-        edges: SimpleArticleEdge
-        pageInfo: PageInfo
-      }
+//       type SimpleArticlePage {
+//         edges: SimpleArticleEdge
+//         pageInfo: PageInfo
+//       }
 
-      type Bundle {
-        name: SingleLine
-        articles: SimpleArticlePage!
-      }
-    `
-  );
-});
+//       type Bundle {
+//         name: SingleLine
+//         articles: SimpleArticlePage!
+//       }
+//     `
+//   );
+// });

@@ -1,6 +1,5 @@
-import { PrimitiveDescriptor } from "./fundamental/descriptor";
+import { PrimitiveDescriptor, TypeDescriptor } from "./fundamental/descriptor";
 import { Type } from "./fundamental/value";
-import { typeNameOf } from "./label";
 
 /**
  * Internals Vocabulary:
@@ -39,17 +38,27 @@ import { typeNameOf } from "./label";
  */
 
 export interface TypeClass {
-  new (descriptor: PrimitiveDescriptor): Type;
+  new (descriptor: PrimitiveDescriptor): Type<PrimitiveDescriptor>;
 }
 
-export type TypeDescription = TypeClass | Type;
+export type TypeDescription = TypeClass | Type<PrimitiveDescriptor>;
+
+export interface GenericClass {
+  new (descriptor: PrimitiveDescriptor): Type<TypeDescriptor>;
+}
+
+export type GenericDescription = GenericClass | Type<TypeDescriptor>;
 
 export function generic(callback: (...T: Type[]) => Type): Generic {
-  return (...descs: TypeDescription[]) => {
+  return (...descs: GenericDescription[]) => {
+    // @ts-ignore
     let types = descs.map(constructType);
     let type = callback(...types);
 
-    let name = descs.map(d => typeNameOf(constructType(d).label.name)).join("");
+    let name = descs
+      // @ts-ignore
+      .map(d => typeNameOf(constructType(d).description.name))
+      .join("");
 
     return type.named(name);
   };
@@ -57,25 +66,43 @@ export function generic(callback: (...T: Type[]) => Type): Generic {
 
 export type Generic = (...T: TypeDescription[]) => Type;
 
-export function basic(desc: TypeDescription): () => Type {
-  let type = constructType(desc);
+export type PrimitiveConstructor = () => Type<PrimitiveDescriptor>;
+
+export function basic(
+  name: string,
+  desc: TypeDescription,
+  typescript: string,
+  description: string
+): () => Type<PrimitiveDescriptor> {
+  let type = constructType(name, desc, typescript, description);
   return () => type;
 }
 
-export function opaque(_name: string, type: TypeDescription): () => Type {
-  // TODO: This should be a named type
-  let t = constructType(type);
+export function opaque(
+  name: string,
+  type: TypeDescription,
+  typescript: string,
+  description: string
+): () => Type<PrimitiveDescriptor> {
+  let t = constructType(name, type, typescript, description);
   return () => t;
 }
 
-function constructType(desc: TypeDescription): Type {
+function constructType(
+  name: string,
+  desc: TypeDescription,
+  typescript: string,
+  description: string
+): Type<PrimitiveDescriptor> {
   let descriptor = {
     type: "Primitive" as "Primitive",
-    name: null,
+    typescript,
+    description,
+    name,
     required: false,
     features: [],
     metadata: null,
-    args: null
+    args: undefined
   };
 
   return typeof desc === "function" ? new desc(descriptor) : desc;

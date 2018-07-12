@@ -1,11 +1,11 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { Label, PointerLabel, typeNameOf } from "../label";
+import { Record } from "../../record";
 import { ANY } from "../std/scalars";
 import { JSONValue } from "../utils";
 import { PointerDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { Type } from "./value";
+import { Alias, Type } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
   constructor(readonly descriptor: PointerDescriptor) {
@@ -17,17 +17,6 @@ export class PointerImpl extends ReferenceImpl {
       ...this.descriptor,
       args: this.type.required()
     });
-  }
-
-  get label(): Label<PointerLabel> {
-    return {
-      type: {
-        kind: "pointer",
-        of: this.type.required()
-      },
-      name: "hasOne",
-      description: `has one ${typeNameOf(this.type.label.name)}`
-    };
   }
 
   validation(): ValidationBuilder<unknown> {
@@ -43,12 +32,13 @@ export class PointerImpl extends ReferenceImpl {
   }
 }
 
-export function hasOne(entity: Type, options: JSONValue = null): Type {
+export function hasOne(entity: Record, options: JSONValue = null): Type {
   return new PointerImpl({
     type: "Pointer",
-    args: entity,
+    description: `has one ${entity.descriptor.name || "anonymous"}`,
+    args: Alias(entity.name, entity),
     metadata: options,
-    name: null,
+    name: "hasOne",
     required: false,
     features: []
   });

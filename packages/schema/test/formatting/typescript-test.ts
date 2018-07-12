@@ -44,7 +44,7 @@ QUnit.test("detailed", assert => {
           last?: string;
         };
         issueDate?: Date;
-        canonicalUrl?: string;
+        canonicalUrl?: URL;
         tags?: Array<string>;
         categories: Array<string>;
         geo?: {
@@ -90,14 +90,16 @@ QUnit.test("detailed", assert => {
 
 QUnit.test("records", assert => {
   const RECORDS = Record("records", {
-    geo: types.Required({ lat: types.Float(), long: types.Float() }),
-    author: types
-      .Required({
-        first: types.SingleLine(),
-        last: types.SingleLine()
-      })
-      .required(),
-    date: ISODate()
+    fields: {
+      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      author: types
+        .Required({
+          first: types.SingleLine(),
+          last: types.SingleLine()
+        })
+        .required(),
+      date: ISODate()
+    }
   });
 
   assert.equal(

@@ -104,14 +104,16 @@ QUnit.test("detailed - draft", assert => {
 
 QUnit.test("required dictionaries", assert => {
   const RECORDS = Record("RequiredDictionary", {
-    geo: types.Required({ lat: types.Float(), long: types.Float() }),
-    author: types
-      .Required({
-        first: types.SingleLine(),
-        last: types.SingleLine()
-      })
-      .required(),
-    date: ISODate()
+    fields: {
+      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      author: types
+        .Required({
+          first: types.SingleLine(),
+          last: types.SingleLine()
+        })
+        .required(),
+      date: ISODate()
+    }
   });
 
   assert.equal(
