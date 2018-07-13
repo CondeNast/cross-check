@@ -1,5 +1,5 @@
 import { Record } from "../../record";
-import { Accumulator, Reporter, ReporterDelegate } from "./reporter";
+import { Accumulator, Pos, Reporter, ReporterDelegate } from "./reporter";
 import { StringVisitor } from "./visitor";
 
 export type Formatter<Options = void, Result = string> = Options extends void
@@ -18,6 +18,6 @@ export default function formatter<Buffer extends Accumulator<string>, Options>(
     );
     let visitor = StringVisitor.build<Buffer, string, typeof options>(reporter);
 
-    return visitor.record(type.descriptor);
+    return visitor.record(type.descriptor, Pos.WholeRecord);
   }) as any;
 }

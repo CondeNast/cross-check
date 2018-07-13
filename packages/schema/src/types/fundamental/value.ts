@@ -1,17 +1,22 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
 import { maybe } from "../utils";
-import { AliasDescriptor, TypeDescriptor } from "./descriptor";
+import { Alias } from "./alias";
+import {
+  AliasDescriptor,
+  RequiredDescriptor,
+  TypeDescriptor
+} from "./descriptor";
+import { Required } from "./required";
 
 export const Pass = Symbol();
 export type Pass = typeof Pass;
 
 export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
-  readonly base: Type<Descriptor>;
-  readonly isRequired: boolean;
+  readonly base: Type;
   readonly descriptor: Descriptor;
 
-  required(isRequired?: boolean): Type<Descriptor>;
+  required(isRequired?: boolean): Type;
   named(arg: string): Type<AliasDescriptor>;
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown | Pass;
@@ -21,23 +26,16 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
 export abstract class AbstractType<
   Descriptor extends TypeDescriptor = TypeDescriptor
 > implements Type<Descriptor> {
-  abstract readonly base: Type<Descriptor>;
+  abstract readonly base: Type;
 
   constructor(readonly descriptor: Descriptor) {}
-
-  get isRequired(): boolean {
-    return this.descriptor.required;
-  }
 
   named(name: string): Type<AliasDescriptor> {
     return Alias(name, this);
   }
 
-  required(isRequired = true): Type<Descriptor> {
-    return new (this.constructor as any)({
-      ...(this.descriptor as object),
-      required: isRequired
-    });
+  required(isRequired = true): Type {
+    return Required(this, isRequired);
   }
 
   // feature(name: string): this {
@@ -50,6 +48,7 @@ export abstract class AbstractType<
   abstract parse(input: unknown): unknown | Pass;
 }
 
+// TODO: Moving into separate file requires figuring out cycles
 export class AliasType extends AbstractType<AliasDescriptor> {
   private get type(): Type {
     return this.descriptor.args;
@@ -60,10 +59,6 @@ export class AliasType extends AbstractType<AliasDescriptor> {
       ...this.descriptor,
       args: this.type.base
     });
-  }
-
-  get isRequired(): boolean {
-    return this.type.isRequired;
   }
 
   named(name: string): AliasType {
@@ -93,16 +88,41 @@ export class AliasType extends AbstractType<AliasDescriptor> {
   }
 }
 
-export function Alias(name: string, type: Type): AliasType {
-  return new AliasType({
-    type: "Alias",
-    metadata: null,
-    args: type,
-    name,
-    description: `${name} (alias for ${type.descriptor.description})`,
-    required: false,
-    features: []
-  });
+export class RequiredType extends AbstractType<RequiredDescriptor> {
+  private get type(): Type {
+    return this.descriptor.args.type;
+  }
+
+  private get isWrapperRequired(): boolean {
+    return this.descriptor.args.required;
+  }
+
+  get base(): Type {
+    return new RequiredType({
+      ...this.descriptor,
+      args: { type: this.type.base, required: false }
+    });
+  }
+
+  validation(): ValidationBuilder<unknown> {
+    if (this.isWrapperRequired) {
+      return validators.isPresent().andThen(this.type.validation());
+    } else {
+      return maybe(this.type.validation());
+    }
+  }
+
+  serialize(input: unknown): unknown {
+    return serialize(input, !this.isWrapperRequired, value =>
+      this.type.serialize(value)
+    );
+  }
+
+  parse(input: unknown): unknown {
+    return parse(input, !this.isWrapperRequired, value =>
+      this.type.parse(value)
+    );
+  }
 }
 
 export function validationFor(

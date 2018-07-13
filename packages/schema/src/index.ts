@@ -4,7 +4,7 @@ export {
   Scalar,
   Dictionary,
   List,
-  Required,
+  RequiredFields,
   Interface,
   describe,
   RecursiveVisitor
@@ -15,3 +15,4 @@ import * as types from "./types";
 export * from "./types/type";
 export { types };
 export * from "./types/fundamental/descriptor";
+export { DEBUG_LOG } from "./debug";

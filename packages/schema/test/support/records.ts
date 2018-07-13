@@ -1,4 +1,9 @@
-import { Record, types } from "@cross-check/schema";
+import {
+  DEBUG_LOG,
+  Record,
+  formatDescriptor,
+  types
+} from "@cross-check/schema";
 import { ISODate, Url } from "../support";
 
 export const SimpleArticle = Record("SimpleArticle", {
@@ -12,6 +17,12 @@ export const SimpleArticle = Record("SimpleArticle", {
     modelName: "simple-article"
   }
 });
+
+if (DEBUG_LOG === "debug") {
+  // @ts-ignore
+  // tslint:disable-next-line
+  console.log(formatDescriptor(SimpleArticle.descriptor));
+}
 
 export const MediumArticle = Record("MediumArticle", {
   fields: {
@@ -41,6 +52,12 @@ export const MediumArticle = Record("MediumArticle", {
   }
 });
 
+if (DEBUG_LOG === "debug") {
+  // @ts-ignore
+  // tslint:disable-next-line
+  console.log(formatDescriptor(MediumArticle.descriptor));
+}
+
 export const Related = Record("Related", {
   fields: {
     first: types.SingleLine(),
@@ -55,6 +72,12 @@ export const Related = Record("Related", {
   }
 });
 
+if (DEBUG_LOG === "debug") {
+  // @ts-ignore
+  // tslint:disable-next-line
+  console.log(formatDescriptor(Related.descriptor));
+}
+
 export const Nesting = Record("Nesting", {
   fields: {
     people: types
@@ -67,6 +90,12 @@ export const Nesting = Record("Nesting", {
       .required()
   }
 });
+
+if (DEBUG_LOG === "debug") {
+  // @ts-ignore
+  // tslint:disable-next-line
+  console.log(formatDescriptor(Nesting.descriptor));
+}
 
 // export const Cursor: () => Type = opaque(
 //   "Cursor",

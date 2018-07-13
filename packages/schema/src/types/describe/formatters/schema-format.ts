@@ -2,13 +2,34 @@ import { PrimitiveDescriptor } from "../../fundamental/descriptor";
 import { JSONValue } from "../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { Position, ReporterDelegate } from "../reporter";
+import { Pos, ReporterDelegate, hasMore, inList, inPointer } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
+  openAlias({ descriptor }) {
+    return descriptor.name;
+  },
+
+  closeAlias() {
+    /* TODO */
+  },
+
+  openRequired() {
+    /* noop */
+  },
+
+  closeRequired({ descriptor, position }) {
+    if (descriptor.args.required && !inList(position) && !inPointer(position)) {
+      return `.required()`;
+    } else {
+      return;
+    }
+  },
+
   openRecord({ descriptor }) {
     let name = descriptor.name;
     return `Record(${JSON.stringify(name)}, {\n`;
   },
+
   closeRecord({ buffer, descriptor, nesting }) {
     buffer.push("})");
 
@@ -42,16 +63,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   emitKey({ key, nesting }): string {
     return `${pad(nesting * 2)}${key}: `;
   },
-  closeDictionary({ buffer, nesting, position, descriptor }): string | void {
+  closeDictionary({ buffer, nesting }): string | void {
     buffer.push(`${pad(nesting * 2)}})`);
-
-    if (
-      descriptor.required &&
-      position !== Position.ListItem &&
-      position !== Position.PointerItem
-    ) {
-      buffer.push(".required()");
-    }
   },
 
   openGeneric({ buffer, descriptor }): void {
@@ -69,40 +82,20 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
         throw new Error("unreachable");
     }
   },
-  closeGeneric({ buffer, position, descriptor }): void {
+  closeGeneric({ buffer }): void {
     buffer.push(")");
-
-    if (
-      descriptor.required &&
-      position !== Position.ListItem &&
-      position !== Position.PointerItem
-    ) {
-      buffer.push(".required()");
-    }
-  },
-
-  emitNamedType({ descriptor, buffer }): void {
-    buffer.push(`${descriptor.name}`);
   },
 
   closeValue({ position }): string | void {
-    if (position === Position.First || position === Position.Middle) {
+    if (hasMore(position)) {
       return ",\n";
-    } else if (position === Position.Last) {
+    } else if (position & Pos.InDictionary) {
       return "\n";
     }
   },
 
-  emitPrimitive({ descriptor, position, buffer }): void {
+  emitPrimitive({ descriptor, buffer }): void {
     buffer.push(formatType(descriptor));
-
-    if (
-      descriptor.required &&
-      position !== Position.ListItem &&
-      position !== Position.IteratorItem
-    ) {
-      buffer.push(`.required()`);
-    }
   }
 };
 

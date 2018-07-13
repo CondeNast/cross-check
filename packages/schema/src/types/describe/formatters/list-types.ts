@@ -1,9 +1,9 @@
 import { Dict, unknown } from "ts-std";
 import { Record } from "../../../record";
 import {
+  AliasDescriptor,
   CollectionDescriptor,
   DictionaryDescriptor,
-  NamedDescriptor,
   PrimitiveDescriptor,
   RecordDescriptor
 } from "../../fundamental/descriptor";
@@ -12,7 +12,7 @@ import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
 class ListTypes implements RecursiveDelegate {
   private visitor = RecursiveVisitor.build(this);
 
-  alias({ name }: NamedDescriptor): Dict {
+  alias({ name }: AliasDescriptor): Dict {
     return { [name]: true };
   }
 

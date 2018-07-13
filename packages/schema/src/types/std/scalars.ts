@@ -6,14 +6,9 @@ import {
 } from "@cross-check/dsl";
 import { Option, unknown } from "ts-std";
 import { PrimitiveDescriptor } from "../fundamental/descriptor";
-import {
-  AbstractType,
-  Type,
-  parse,
-  serialize,
-  validationFor
-} from "../fundamental/value";
+import { AbstractType, Type } from "../fundamental/value";
 import { PrimitiveConstructor, basic } from "../type";
+import { maybe } from "../utils";
 
 export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
   readonly base = this;
@@ -23,15 +18,13 @@ export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
   }
 
   validation(): ValidationBuilder<unknown> {
-    return validationFor(this.baseValidation(), this.isRequired);
+    return maybe(this.baseValidation());
   }
 
   abstract baseValidation(): ValidationBuilder<unknown>;
 
   serialize(input: unknown): unknown {
-    return serialize(input, !this.isRequired, value =>
-      this.baseSerialize(value)
-    );
+    return this.baseSerialize(input);
   }
 
   baseSerialize(input: unknown): unknown {
@@ -39,7 +32,7 @@ export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
   }
 
   parse(input: unknown): unknown {
-    return parse(input, !this.isRequired, value => this.baseParse(value));
+    return this.baseParse(input);
   }
 
   baseParse(input: unknown): unknown {
@@ -55,13 +48,13 @@ export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
   }
 
   validation(): ValidationBuilder<unknown> {
-    return validationFor(this.baseValidation(), this.isRequired);
+    return maybe(this.baseValidation());
   }
 
   abstract baseValidation(): ValidationBuilder<unknown>;
 
   serialize(input: unknown): unknown {
-    return serialize(input, !this.isRequired, () => this.baseSerialize(input));
+    return this.baseSerialize(input);
   }
 
   baseSerialize(input: unknown): unknown {
@@ -69,7 +62,7 @@ export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
   }
 
   parse(input: unknown): unknown {
-    return parse(input, !this.isRequired, () => this.baseParse(input));
+    return this.baseParse(input);
   }
 
   baseParse(input: unknown): unknown {

@@ -1,4 +1,4 @@
-import { Record, describe, types } from "@cross-check/schema";
+import { Record, describe, formatDescriptor, types } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
 import {
   MediumArticle,
@@ -96,9 +96,9 @@ QUnit.test("detailed", assert => {
 QUnit.test("required dictionaries", assert => {
   const RECORDS: Record = Record("records", {
     fields: {
-      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
       author: types
-        .Required({
+        .RequiredFields({
           first: types.SingleLine(),
           last: types.SingleLine()
         })

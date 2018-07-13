@@ -1,7 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
+import { maybe } from "../utils";
 import { DictionaryDescriptor, RecordDescriptor } from "./descriptor";
-import { AbstractType, Type, parse, serialize, validationFor } from "./value";
+import { AbstractType, Type } from "./value";
 
 function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
   let obj = dict<ValidationBuilder<unknown>>();
@@ -27,49 +28,46 @@ export abstract class AbstractDictionary<
   }
 
   serialize(js: Dict): Option<Dict> {
-    return serialize(js, !this.isRequired, () => {
-      let out: Dict = {};
+    if (js === null) {
+      return null;
+    }
 
-      for (let [key, value] of entries(this.types)) {
-        assert(
-          key in js,
-          `Serialization error: missing field \`${key}\` (must validate before serializing)`
-        );
+    let out: Dict = {};
 
-        let result = value!.serialize(js[key]);
+    for (let [key, value] of entries(this.types)) {
+      assert(
+        key in js,
+        `Serialization error: missing field \`${key}\` (must validate before serializing)`
+      );
 
-        if (result !== null) {
-          out[key] = result;
-        }
+      let result = value!.serialize(js[key]);
+
+      if (result !== null) {
+        out[key] = result;
       }
+    }
 
-      return out;
-    });
+    return out;
   }
 
   parse(wire: Dict): Option<Dict> {
-    return parse(wire, !this.isRequired, () => {
-      let out: Dict = {};
+    let out: Dict = {};
 
-      for (let [key, value] of entries(this.types)) {
-        let raw = wire[key];
+    for (let [key, value] of entries(this.types)) {
+      let raw = wire[key];
 
-        if (raw === undefined) {
-          assert(!value!.isRequired, `Parse error: missing field \`${key}\``);
-          raw = null;
-        }
-
-        out[key] = value!.parse(raw);
+      if (raw === undefined) {
+        raw = null;
       }
 
-      return out;
-    });
+      out[key] = value!.parse(raw);
+    }
+
+    return out;
   }
 
   validation(): ValidationBuilder<unknown> {
-    let validation = buildRecordValidation(this.types);
-
-    return validationFor(validation, this.isRequired);
+    return maybe(buildRecordValidation(this.types));
   }
 }
 
@@ -88,16 +86,15 @@ export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
   }
 }
 
-export function Dictionary(dictionary: Dict<Type>): DictionaryImpl {
+export function Dictionary(dictionary: Dict<Type>): Type {
   return new DictionaryImpl({
     type: "Dictionary",
     description: "Dictionary",
     args: dictionary,
     metadata: null,
     name: null,
-    required: false,
     features: []
-  });
+  }).required(false);
 }
 
 export type ConstructDictionary = (d: Dict<Type>) => DictionaryImpl;

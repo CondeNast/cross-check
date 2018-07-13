@@ -2,7 +2,7 @@ import { Dict, dict, entries } from "ts-std";
 import { Type } from "../fundamental/value";
 import { Dictionary } from "../index";
 
-export function Required(properties: Dict<Type>): Type {
+export function RequiredFields(properties: Dict<Type>): Type {
   return Dictionary(required(properties));
 }
 

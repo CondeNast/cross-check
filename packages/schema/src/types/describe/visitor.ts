@@ -4,28 +4,42 @@ import {
   CollectionDescriptor,
   DictionaryDescriptor,
   PrimitiveDescriptor,
-  RecordDescriptor
+  RecordDescriptor,
+  RequiredDescriptor,
+  defaults
 } from "../fundamental/descriptor";
 import { Type } from "../fundamental/value";
-import { Accumulator, Position, Reporter, genericPosition } from "./reporter";
+import { exhausted } from "../utils";
+import {
+  Accumulator,
+  DictionaryPosition,
+  Pos,
+  Reporter,
+  genericPosition
+} from "./reporter";
 
 export interface VisitorDelegate {
-  alias(type: AliasDescriptor, position: Position): unknown;
-  generic(type: CollectionDescriptor, position: Position): unknown;
-  dictionary(type: DictionaryDescriptor, position: Position): unknown;
-  record(type: RecordDescriptor, position: Position): unknown;
-  primitive(type: PrimitiveDescriptor, position: Position): unknown;
+  alias(type: AliasDescriptor, position: Pos): unknown;
+  required(type: RequiredDescriptor, position: Pos): unknown;
+  generic(type: CollectionDescriptor, position: Pos): unknown;
+  dictionary(type: DictionaryDescriptor, position: Pos): unknown;
+  record(type: RecordDescriptor, position: Pos): unknown;
+  primitive(type: PrimitiveDescriptor, position: Pos): unknown;
 }
 
 export class Visitor {
   constructor(private delegate: VisitorDelegate) {}
 
-  visit(type: Type, position: Position = Position.Any): unknown {
+  visit(type: Type, position: Pos): unknown {
     let descriptor = type.descriptor;
 
     switch (descriptor.type) {
       case "Alias": {
         return this.delegate.alias(descriptor, position);
+      }
+
+      case "Required": {
+        return this.delegate.required(descriptor, position);
       }
 
       case "Pointer":
@@ -39,26 +53,32 @@ export class Visitor {
       }
 
       case "Record": {
-        return this.delegate.record(descriptor, position);
+        let desc: AliasDescriptor = defaults("Alias", {
+          name: descriptor.name,
+          args: type,
+          description: descriptor.description
+        });
+
+        return this.delegate.alias(desc, position);
       }
 
       case "Primitive": {
         return this.delegate.primitive(descriptor, position);
       }
+
+      default:
+        exhausted(descriptor);
     }
   }
 }
 
 export interface RecursiveDelegate {
+  required?(descriptor: ItemType<this>): unknown;
+  primitive(descriptor: PrimitiveDescriptor): unknown;
+  generic(of: ItemType<this>, descriptor: CollectionDescriptor): unknown;
   alias(descriptor: AliasDescriptor): unknown;
-  primitive(descriptor: PrimitiveDescriptor, required: boolean): unknown;
-  generic(
-    of: ItemType<this>,
-    descriptor: CollectionDescriptor,
-    required: boolean
-  ): unknown;
-  dictionary(descriptor: DictionaryDescriptor, required: boolean): unknown;
-  record(descriptor: RecordDescriptor, required: boolean): unknown;
+  dictionary(descriptor: DictionaryDescriptor): unknown;
+  record(descriptor: RecordDescriptor): unknown;
 }
 
 export type ItemType<D extends RecursiveDelegate> =
@@ -79,31 +99,40 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
 
   private constructor(private recursiveDelegate: D) {}
 
+  alias(descriptor: AliasDescriptor): unknown {
+    return this.recursiveDelegate.alias(descriptor);
+  }
+
+  required(descriptor: RequiredDescriptor): unknown {
+    let inner = this.visitor.visit(descriptor.args.type, Pos.Only) as ItemType<
+      D
+    >;
+    if (this.recursiveDelegate.required) {
+      return this.recursiveDelegate.required(inner);
+    } else {
+      return inner;
+    }
+  }
+
   primitive(descriptor: PrimitiveDescriptor): unknown {
-    return this.recursiveDelegate.primitive(descriptor, descriptor.required);
+    return this.recursiveDelegate.primitive(descriptor);
   }
 
   generic(descriptor: CollectionDescriptor): unknown {
+    let position = genericPosition(descriptor.type);
+
     return this.recursiveDelegate.generic(
-      this.visitor.visit(
-        descriptor.args,
-        genericPosition(descriptor.type)
-      ) as ItemType<D>,
-      descriptor,
-      descriptor.required
+      this.visitor.visit(descriptor.args, position) as ItemType<D>,
+      descriptor
     );
   }
 
   record(descriptor: RecordDescriptor): unknown {
-    return this.recursiveDelegate.record(descriptor, descriptor.required);
+    return this.recursiveDelegate.record(descriptor);
   }
 
   dictionary(descriptor: DictionaryDescriptor): unknown {
-    return this.recursiveDelegate.dictionary(descriptor, descriptor.required);
-  }
-
-  alias(descriptor: AliasDescriptor): unknown {
-    return this.recursiveDelegate.alias(descriptor);
+    return this.recursiveDelegate.dictionary(descriptor);
   }
 
   processDictionary(
@@ -115,15 +144,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
     let last = keys.length - 1;
 
     keys.forEach((key, i) => {
-      let dictPosition: Position;
-
-      if (i === 0) {
-        dictPosition = Position.First;
-      } else if (i === last) {
-        dictPosition = Position.Last;
-      } else {
-        dictPosition = Position.Middle;
-      }
+      let dictPosition = DictionaryPosition({ index: i, last });
 
       callback(
         this.visitor.visit(input[key]!, dictPosition) as ItemType<D>,
@@ -148,33 +169,39 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
-  alias(descriptor: AliasDescriptor, position: Position): unknown {
-    this.reporter.namedValue(position, descriptor);
+  alias(descriptor: AliasDescriptor, position: Pos): unknown {
+    this.reporter.startAlias(position, descriptor);
+    this.reporter.endAlias(position, descriptor);
   }
 
-  generic(descriptor: CollectionDescriptor, position: Position): unknown {
+  required(descriptor: RequiredDescriptor, position: Pos): unknown {
+    this.reporter.startRequired(position, descriptor);
+    this.visitor.visit(descriptor.args.type, position);
+    this.reporter.endRequired(position, descriptor);
+  }
+
+  generic(descriptor: CollectionDescriptor, position: Pos): unknown {
     this.reporter.startGenericValue(position, descriptor);
-
-    this.visitor.visit(descriptor.args, genericPosition(descriptor.type));
-
+    let pos = genericPosition(descriptor.type);
+    this.visitor.visit(descriptor.args, pos);
     this.reporter.endGenericValue(position, descriptor);
   }
 
-  dictionary(descriptor: DictionaryDescriptor, position: Position): void {
+  dictionary(descriptor: DictionaryDescriptor, position: Pos): void {
     this.reporter.startDictionary(position, descriptor);
     this.dictionaryBody(descriptor);
     this.reporter.endDictionary(position, descriptor);
   }
 
-  record(descriptor: RecordDescriptor): Inner {
-    this.reporter.startRecord(descriptor);
+  record(descriptor: RecordDescriptor, position: Pos): Inner {
+    this.reporter.startRecord(position, descriptor);
     this.dictionaryBody(descriptor);
-    this.reporter.endRecord(descriptor);
+    this.reporter.endRecord(position, descriptor);
 
     return this.reporter.finish();
   }
 
-  primitive(descriptor: PrimitiveDescriptor, position: Position): unknown {
+  primitive(descriptor: PrimitiveDescriptor, position: Pos): unknown {
     this.reporter.primitiveValue(position, descriptor);
   }
 
@@ -184,22 +211,11 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     let last = keys.length - 1;
 
     keys.forEach((key, i) => {
-      let itemPosition: Position;
+      let position = DictionaryPosition({ index: i, last });
 
-      switch (i) {
-        case 0:
-          itemPosition = last === 0 ? Position.Only : Position.First;
-          break;
-        case last:
-          itemPosition = Position.Last;
-          break;
-        default:
-          itemPosition = Position.Middle;
-      }
-
-      this.reporter.addKey(key, itemPosition, members[key]!.descriptor);
-      this.visitor.visit(members[key]!, itemPosition);
-      this.reporter.endValue(itemPosition, members[key]!.descriptor);
+      this.reporter.addKey(position, key, members[key]!.descriptor);
+      this.visitor.visit(members[key]!, position);
+      this.reporter.endValue(position, members[key]!.descriptor);
     });
   }
 }

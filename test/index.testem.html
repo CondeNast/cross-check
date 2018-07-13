@@ -9,6 +9,14 @@
 </head>
 
 <body>
+  <script>
+    {
+      let match = location.search.match(/debug-log=(\w+)/);
+      if (match) {
+        window.DEBUG_LOG = match[1];
+      }
+    }
+  </script>
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="qunit.js"></script>

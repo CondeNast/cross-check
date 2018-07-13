@@ -11,8 +11,8 @@ QUnit.module("Dictionaries with required fields");
 QUnit.test("optional dictionaries with required fields (geo)", async assert => {
   const RECORDS: Record = Record("records", {
     fields: {
-      geo: types.Required({ lat: types.Float(), long: types.Float() }),
-      author: types.Required({
+      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
+      author: types.RequiredFields({
         first: types.SingleLine(),
         last: types.SingleLine()
       })
@@ -90,7 +90,7 @@ QUnit.test("required dictionaries with required fields (geo)", async assert => {
   const RECORDS = Record("records", {
     fields: {
       geo: types
-        .Required({ lat: types.Float(), long: types.Float() })
+        .RequiredFields({ lat: types.Float(), long: types.Float() })
         .required()
     }
   });
@@ -152,7 +152,7 @@ QUnit.test("required dictionaries with required fields (geo)", async assert => {
   const STRING_RECORDS = Record("string-records", {
     fields: {
       author: types
-        .Required({
+        .RequiredFields({
           first: types.SingleLine(),
           last: types.SingleLine()
         })

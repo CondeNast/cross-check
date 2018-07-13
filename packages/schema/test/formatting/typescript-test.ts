@@ -91,9 +91,9 @@ QUnit.test("detailed", assert => {
 QUnit.test("records", assert => {
   const RECORDS = Record("records", {
     fields: {
-      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
       author: types
-        .Required({
+        .RequiredFields({
           first: types.SingleLine(),
           last: types.SingleLine()
         })

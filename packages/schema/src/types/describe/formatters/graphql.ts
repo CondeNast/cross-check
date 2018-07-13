@@ -80,6 +80,22 @@ class BufferStack implements Accumulator<string> {
 }
 
 const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
+  openRequired() {
+    /* TODO */
+  },
+
+  closeRequired() {
+    /* TODO */
+  },
+
+  openAlias({ buffer, descriptor }) {
+    buffer.push(descriptor.name);
+  },
+
+  closeAlias() {
+    /* TODO */
+  },
+
   openRecord({ options, buffer }): void {
     buffer.pushType(options.name);
   },
@@ -101,7 +117,9 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   },
 
   closeValue({ buffer, descriptor }): void {
-    buffer.doneValue(descriptor.required);
+    buffer.doneValue(
+      descriptor.type === "Required" && descriptor.args.required
+    );
   },
 
   openGeneric({ buffer, descriptor }): void {
@@ -122,14 +140,6 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
         break;
       case "Pointer":
       default:
-    }
-  },
-
-  emitNamedType({ descriptor, buffer, options }): void {
-    if (descriptor.type === "Primitive") {
-      primitive({ descriptor, buffer, options });
-    } else {
-      buffer.push(`${nameToString(descriptor.name)}`);
     }
   },
 

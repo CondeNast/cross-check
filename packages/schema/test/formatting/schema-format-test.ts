@@ -105,9 +105,9 @@ QUnit.test("detailed - draft", assert => {
 QUnit.test("required dictionaries", assert => {
   const RECORDS = Record("RequiredDictionary", {
     fields: {
-      geo: types.Required({ lat: types.Float(), long: types.Float() }),
+      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
       author: types
-        .Required({
+        .RequiredFields({
           first: types.SingleLine(),
           last: types.SingleLine()
         })

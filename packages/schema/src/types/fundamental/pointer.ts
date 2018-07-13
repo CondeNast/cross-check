@@ -3,9 +3,10 @@ import { unknown } from "ts-std";
 import { Record } from "../../record";
 import { ANY } from "../std/scalars";
 import { JSONValue } from "../utils";
+import { Alias } from "./alias";
 import { PointerDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { Alias, Type } from "./value";
+import { Type } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
   constructor(readonly descriptor: PointerDescriptor) {
@@ -36,10 +37,9 @@ export function hasOne(entity: Record, options: JSONValue = null): Type {
   return new PointerImpl({
     type: "Pointer",
     description: `has one ${entity.descriptor.name || "anonymous"}`,
-    args: Alias(entity.name, entity),
+    args: entity,
     metadata: options,
     name: "hasOne",
-    required: false,
     features: []
-  });
+  }).required(false);
 }

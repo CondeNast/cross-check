@@ -89,7 +89,6 @@ export function Url(...args: UrlKind[]): Type {
     args,
     metadata: null,
     name: "Url",
-    required: false,
     features: []
-  });
+  }).required(false);
 }

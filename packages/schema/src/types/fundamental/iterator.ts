@@ -1,8 +1,9 @@
 import { Record } from "../../record";
 import { JSONValue } from "../utils";
+import { Alias } from "./alias";
 import { IteratorDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { Alias, Type } from "./value";
+import { Type } from "./value";
 
 export class IteratorImpl extends ReferenceImpl {
   constructor(readonly descriptor: IteratorDescriptor) {
@@ -21,10 +22,9 @@ export function hasMany(item: Record, options: JSONValue = null): Type {
   return new IteratorImpl({
     type: "Iterator",
     description: "hasMany",
-    args: Alias(item.name, item),
+    args: item,
     metadata: options,
     name: "hasMany",
-    required: false,
     features: []
-  });
+  }).required(false);
 }

@@ -1,4 +1,5 @@
 import { ValidationError } from "@cross-check/core";
+import { formatDescriptor } from "@cross-check/schema";
 import { Task } from "no-show";
 import { Dict, unknown } from "ts-std";
 import { ENV, error, missingError, typeError, urlish } from "./support";

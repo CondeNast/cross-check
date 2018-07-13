@@ -1,8 +1,25 @@
+import { TypeDescriptor } from "../../fundamental/descriptor";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { Position, ReporterDelegate } from "../reporter";
+import { Pos, ReporterDelegate, hasMore } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
+  openRequired() {
+    /* noop */
+  },
+
+  closeRequired() {
+    /* noop */
+  },
+
+  openAlias({ descriptor }) {
+    return descriptor.name;
+  },
+
+  closeAlias() {
+    /* TODO */
+  },
+
   openRecord() {
     return `{\n`;
   },
@@ -11,8 +28,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     return `}`;
   },
 
-  emitKey({ key, required, nesting }): string {
-    return `${pad(nesting * 2)}${formattedKey(key, required)}: `;
+  emitKey({ key, nesting, descriptor }): string {
+    return `${pad(nesting * 2)}${formattedKey(key, descriptor)}: `;
   },
 
   closeDictionary({ nesting }): string {
@@ -20,7 +37,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeValue({ position }): string | void {
-    if (position === Position.First || position === Position.Middle) {
+    if (hasMore(position)) {
       return ",\n";
     } else {
       return "\n";
@@ -48,19 +65,11 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
 
   emitPrimitive({ descriptor }): string {
     return `<${descriptor.description}>`;
-  },
-
-  emitNamedType({ descriptor }): string {
-    if (descriptor.type === "Primitive") {
-      return `<${descriptor.description}>`;
-    } else {
-      return `${descriptor.name}`;
-    }
   }
 };
 
-function formattedKey(key: string, required: boolean): string {
-  if (required) {
+function formattedKey(key: string, descriptor: TypeDescriptor): string {
+  if (descriptor.type === "Required" && descriptor.args.required) {
     return key;
   } else {
     return `${key}?`;
