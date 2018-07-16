@@ -5,7 +5,6 @@ export {
   Dictionary,
   List,
   RequiredFields,
-  Interface,
   describe,
   RecursiveVisitor
 } from "./types";

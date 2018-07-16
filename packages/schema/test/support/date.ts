@@ -9,7 +9,7 @@ function isValidDate(input: string): boolean {
 }
 
 class DateType extends Scalar {
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return validators.isString().andThen(
       validators.is((v: string): v is string => {
         return isValidDate(v);
@@ -17,11 +17,11 @@ class DateType extends Scalar {
     );
   }
 
-  baseSerialize(input: Date): string {
+  serialize(input: Date): string {
     return input.toISOString();
   }
 
-  baseParse(input: string): Date {
+  parse(input: string): Date {
     return new Date(Date.parse(input));
   }
 }

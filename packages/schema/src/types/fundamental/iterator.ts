@@ -1,6 +1,5 @@
 import { Record } from "../../record";
 import { JSONValue } from "../utils";
-import { Alias } from "./alias";
 import { IteratorDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
 import { Type } from "./value";

@@ -1,6 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { maybe } from "../utils";
 import { ListDescriptor } from "./descriptor";
 import { AbstractType, Type } from "./value";
 
@@ -37,9 +36,14 @@ class ArrayImpl extends AbstractType {
     return wire.map(item => itemType.parse(item));
   }
 
-  validation(): ValidationBuilder<unknown> {
-    let validator = validators.array(this.type.validation());
-    return maybe(validator);
+  validation(requiredHint: boolean): ValidationBuilder<unknown> {
+    let validation = validators.array(this.type.validation(true));
+
+    if (requiredHint) {
+      return validation.andThen(isPresentArray());
+    } else {
+      return validation;
+    }
   }
 }
 

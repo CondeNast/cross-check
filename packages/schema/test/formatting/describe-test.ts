@@ -1,4 +1,4 @@
-import { Record, describe, formatDescriptor, types } from "@cross-check/schema";
+import { Record, describe, types } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
 import {
   MediumArticle,

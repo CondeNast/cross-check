@@ -7,8 +7,7 @@ import {
 import { Option, unknown } from "ts-std";
 import { PrimitiveDescriptor } from "../fundamental/descriptor";
 import { AbstractType, Type } from "../fundamental/value";
-import { PrimitiveConstructor, basic } from "../type";
-import { maybe } from "../utils";
+import { TypeConstructor, basic } from "../type";
 
 export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
   readonly base = this;
@@ -17,66 +16,42 @@ export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
     super(descriptor);
   }
 
-  validation(): ValidationBuilder<unknown> {
-    return maybe(this.baseValidation());
-  }
-
-  abstract baseValidation(): ValidationBuilder<unknown>;
+  abstract validation(): ValidationBuilder<unknown>;
 
   serialize(input: unknown): unknown {
-    return this.baseSerialize(input);
-  }
-
-  baseSerialize(input: unknown): unknown {
     return input;
   }
 
   parse(input: unknown): unknown {
-    return this.baseParse(input);
-  }
-
-  baseParse(input: unknown): unknown {
     return input;
   }
 }
 
 export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
-  abstract readonly base: Type<PrimitiveDescriptor>;
+  abstract readonly base: Type;
 
   constructor(descriptor: PrimitiveDescriptor) {
     super(descriptor);
   }
 
-  validation(): ValidationBuilder<unknown> {
-    return maybe(this.baseValidation());
-  }
-
-  abstract baseValidation(): ValidationBuilder<unknown>;
+  abstract validation(validationHint: boolean): ValidationBuilder<unknown>;
 
   serialize(input: unknown): unknown {
-    return this.baseSerialize(input);
-  }
-
-  baseSerialize(input: unknown): unknown {
     return this.base.serialize(input);
   }
 
   parse(input: unknown): unknown {
-    return this.baseParse(input);
-  }
-
-  baseParse(input: unknown): unknown {
     return this.base.parse(input);
   }
 }
 
 class TextPrimitive extends Scalar {
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return validators.isString();
   }
 }
 
-export const Text: PrimitiveConstructor = basic(
+export const Text: TypeConstructor = basic(
   "Text",
   TextPrimitive,
   "string",
@@ -84,12 +59,12 @@ export const Text: PrimitiveConstructor = basic(
 );
 
 class FloatPrimitive extends Scalar {
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return validators.isNumber();
   }
 }
 
-export const Float: PrimitiveConstructor = basic(
+export const Float: TypeConstructor = basic(
   "Float",
   FloatPrimitive,
   "number",
@@ -97,7 +72,7 @@ export const Float: PrimitiveConstructor = basic(
 );
 
 class IntegerPrimitive extends Scalar {
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return validators
       .isNumber()
       .andThen(
@@ -109,7 +84,7 @@ class IntegerPrimitive extends Scalar {
   }
 }
 
-export const Integer: PrimitiveConstructor = basic(
+export const Integer: TypeConstructor = basic(
   "Integer",
   IntegerPrimitive,
   "number",
@@ -117,13 +92,11 @@ export const Integer: PrimitiveConstructor = basic(
 );
 
 class SingleLinePrimitive extends Opaque {
-  name = "SingleLine";
-
   readonly base = Text();
 
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(validationHint: boolean): ValidationBuilder<unknown> {
     return this.base
-      .validation()
+      .validation(validationHint)
       .andThen(
         validators.is(
           (value: string): value is string => !/\n/.test(value),
@@ -133,7 +106,7 @@ class SingleLinePrimitive extends Opaque {
   }
 }
 
-export const SingleLine: PrimitiveConstructor = basic(
+export const SingleLine: TypeConstructor = basic(
   "SingleLine",
   SingleLinePrimitive,
   "string",
@@ -143,9 +116,9 @@ export const SingleLine: PrimitiveConstructor = basic(
 class SingleWordPrimitive extends Opaque {
   readonly base = Text();
 
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(validationHint: boolean): ValidationBuilder<unknown> {
     return this.base
-      .validation()
+      .validation(validationHint)
       .andThen(
         validators.is(
           (value: string): value is string => !/\s/.test(value),
@@ -155,7 +128,7 @@ class SingleWordPrimitive extends Opaque {
   }
 }
 
-export const SingleWord: PrimitiveConstructor = basic(
+export const SingleWord: TypeConstructor = basic(
   "SingleWord",
   SingleWordPrimitive,
   "string",
@@ -163,15 +136,13 @@ export const SingleWord: PrimitiveConstructor = basic(
 );
 
 class BooleanPrimitive extends Scalar {
-  readonly name = "Boolean";
-
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return validators.isBoolean();
   }
 }
 
 // tslint:disable-next-line:variable-name
-export const Boolean: PrimitiveConstructor = basic(
+export const Boolean: TypeConstructor = basic(
   "Boolean",
   BooleanPrimitive,
   "boolean",
@@ -179,9 +150,7 @@ export const Boolean: PrimitiveConstructor = basic(
 );
 
 class AnyPrimitive extends Scalar {
-  readonly name = "Any";
-
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return builderFor(AnyValidator)();
   }
 }
@@ -194,10 +163,5 @@ class AnyValidator extends ValueValidator<unknown, void> {
   }
 }
 
-export const Any: PrimitiveConstructor = basic(
-  "Any",
-  AnyPrimitive,
-  "any",
-  "any"
-);
+export const Any: TypeConstructor = basic("Any", AnyPrimitive, "any", "any");
 export const ANY = builderFor(AnyValidator)();

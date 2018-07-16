@@ -1,4 +1,4 @@
-import { Dict, JSONObject, Option, dict, entries, unknown } from "ts-std";
+import { Dict, JSONObject, Option, entries } from "ts-std";
 import { JSONValue, exhausted } from "../utils";
 import { Type } from "./value";
 

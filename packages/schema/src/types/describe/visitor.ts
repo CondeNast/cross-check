@@ -73,7 +73,7 @@ export class Visitor {
 }
 
 export interface RecursiveDelegate {
-  required?(descriptor: ItemType<this>): unknown;
+  required?(inner: ItemType<this>, descriptor: RequiredDescriptor): unknown;
   primitive(descriptor: PrimitiveDescriptor): unknown;
   generic(of: ItemType<this>, descriptor: CollectionDescriptor): unknown;
   alias(descriptor: AliasDescriptor): unknown;
@@ -108,7 +108,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
       D
     >;
     if (this.recursiveDelegate.required) {
-      return this.recursiveDelegate.required(inner);
+      return this.recursiveDelegate.required(inner, descriptor);
     } else {
       return inner;
     }

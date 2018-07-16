@@ -1,3 +1,4 @@
+import { isRequired } from "../../fundamental/required";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate } from "../reporter";
@@ -14,13 +15,28 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
     return `}`;
   },
 
+  openRequired() {
+    /* noop */
+  },
+  closeRequired() {
+    /* noop */
+  },
+
+  openAlias({ descriptor, buffer }): void {
+    buffer.push(`${descriptor.name}`);
+  },
+  closeAlias() {
+    /* noop */
+  },
+
   openDictionary(): string {
     return `{\n`;
   },
   closeDictionary({ buffer, nesting }): void {
     buffer.push(`${pad(nesting * 2)}}`);
   },
-  emitKey({ key, required, nesting }): string {
+  emitKey({ key, descriptor, nesting }): string {
+    let required = isRequired(descriptor);
     return `${pad(nesting * 2)}${formattedKey(key, required)}: `;
   },
   closeValue(): string {
@@ -45,10 +61,6 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
       case "Pointer":
       default:
     }
-  },
-
-  emitNamedType({ descriptor, buffer }): void {
-    buffer.push(`${descriptor.name}`);
   },
 
   emitPrimitive({ descriptor }): string {

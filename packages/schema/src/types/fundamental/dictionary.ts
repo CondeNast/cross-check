@@ -1,6 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import { maybe } from "../utils";
 import { DictionaryDescriptor, RecordDescriptor } from "./descriptor";
 import { AbstractType, Type } from "./value";
 
@@ -8,7 +7,7 @@ function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
   let obj = dict<ValidationBuilder<unknown>>();
 
   for (let [key, value] of entries(desc)) {
-    obj[key] = value!.validation();
+    obj[key] = value!.validation(false);
   }
 
   return validators.strictObject(obj);
@@ -67,7 +66,7 @@ export abstract class AbstractDictionary<
   }
 
   validation(): ValidationBuilder<unknown> {
-    return maybe(buildRecordValidation(this.types));
+    return buildRecordValidation(this.types);
   }
 }
 

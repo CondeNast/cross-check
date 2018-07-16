@@ -67,13 +67,14 @@ export function generic(callback: (...T: Type[]) => Type): Generic {
 export type Generic = (...T: TypeDescription[]) => Type;
 
 export type PrimitiveConstructor = () => Type<PrimitiveDescriptor>;
+export type TypeConstructor = () => Type;
 
 export function basic(
   name: string,
   desc: TypeDescription,
   typescript: string,
   description: string
-): () => Type {
+): TypeConstructor {
   let type = constructType(name, desc, typescript, description).required(false);
   return () => type;
 }
@@ -83,7 +84,7 @@ export function opaque(
   type: TypeDescription,
   typescript: string,
   description: string
-): () => Type {
+): TypeConstructor {
   let t = constructType(name, type, typescript, description).required(false);
   return () => t;
 }

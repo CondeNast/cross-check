@@ -63,15 +63,15 @@ class UrlType extends Opaque {
     return this.descriptor.args as UrlKind[];
   }
 
-  baseValidation(): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return url(...this.options);
   }
 
-  baseSerialize(input: Urlish): string {
+  serialize(input: Urlish): string {
     return input.toString();
   }
 
-  baseParse(input: string): Urlish {
+  parse(input: string): Urlish {
     return urlish(input);
   }
 }

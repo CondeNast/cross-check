@@ -18,7 +18,11 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
 
   required(isRequired?: boolean): Type;
   named(arg: string): Type<AliasDescriptor>;
-  validation(): ValidationBuilder<unknown>;
+
+  // `requiredHint` allows the type to do something more than just null
+  // checking, which is performed by the `.validation()` function in the
+  // `Required` Type.
+  validation(requiredHint: boolean): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown | Pass;
   parse(input: unknown): unknown | Pass;
 }
@@ -43,7 +47,7 @@ export abstract class AbstractType<
   //   return this.clone({ features });
   // }
 
-  abstract validation(): ValidationBuilder<unknown>;
+  abstract validation(requiredHint: boolean): ValidationBuilder<unknown>;
   abstract serialize(input: unknown): unknown | Pass;
   abstract parse(input: unknown): unknown | Pass;
 }
@@ -75,8 +79,9 @@ export class AliasType extends AbstractType<AliasDescriptor> {
     });
   }
 
-  validation(): ValidationBuilder<unknown> {
-    return this.type.validation();
+  validation(requiredHint: boolean): ValidationBuilder<unknown> {
+    // Aliases pass the `requiredHint` through
+    return this.type.validation(requiredHint);
   }
 
   serialize(input: unknown): unknown {
@@ -105,10 +110,14 @@ export class RequiredType extends AbstractType<RequiredDescriptor> {
   }
 
   validation(): ValidationBuilder<unknown> {
+    // The `requiredHint` originates here, based upon whether the Required
+    // descriptor is required or not. This is also the place where the
+    // extra null checks are inserted.
+
     if (this.isWrapperRequired) {
-      return validators.isPresent().andThen(this.type.validation());
+      return validators.isPresent().andThen(this.type.validation(true));
     } else {
-      return maybe(this.type.validation());
+      return maybe(this.type.validation(false));
     }
   }
 
@@ -122,17 +131,6 @@ export class RequiredType extends AbstractType<RequiredDescriptor> {
     return parse(input, !this.isWrapperRequired, value =>
       this.type.parse(value)
     );
-  }
-}
-
-export function validationFor(
-  builder: ValidationBuilder<unknown>,
-  required: boolean
-): ValidationBuilder<unknown> {
-  if (required) {
-    return validators.isPresent().andThen(builder);
-  } else {
-    return maybe(builder);
   }
 }
 

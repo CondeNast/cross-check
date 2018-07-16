@@ -5,7 +5,8 @@ import {
   CollectionDescriptor,
   DictionaryDescriptor,
   PrimitiveDescriptor,
-  RecordDescriptor
+  RecordDescriptor,
+  RequiredDescriptor
 } from "../../fundamental/descriptor";
 import { JSONValue, exhausted } from "../../utils";
 import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
@@ -42,6 +43,7 @@ interface Dictionary {
 
 interface Alias {
   alias: string;
+  required: boolean;
 }
 
 type Item = Generic | Primitive | Dictionary | Alias;
@@ -53,25 +55,27 @@ class JSONFormatter implements RecursiveDelegate {
     throw new Error("unimplemented");
   }
 
-  primitive({ name, args }: PrimitiveDescriptor, required: boolean): Primitive {
+  required(inner: Item, required: RequiredDescriptor): Item {
+    inner.required = required.args.required;
+    return inner;
+  }
+
+  primitive({ name, args }: PrimitiveDescriptor): Primitive {
     if (args !== undefined) {
-      return { type: name || "anonymous", args, required };
+      return { type: name || "anonymous", args, required: false };
     } else {
-      return { type: name || "anonymous", required };
+      return { type: name || "anonymous", required: false };
     }
   }
 
   alias(alias: AliasDescriptor): Alias {
     return {
-      alias: alias.name
+      alias: alias.name,
+      required: false
     };
   }
 
-  generic(
-    entity: Item,
-    descriptor: CollectionDescriptor,
-    required: boolean
-  ): Generic {
+  generic(entity: Item, descriptor: CollectionDescriptor): Generic {
     let { type } = descriptor;
     let options: Option<{ kind?: string; args?: JSONValue }> = {};
 
@@ -95,15 +99,15 @@ class JSONFormatter implements RecursiveDelegate {
       type,
       ...options,
       of: entity,
-      required
+      required: false
     };
   }
 
-  dictionary(descriptor: DictionaryDescriptor, required: boolean): Dictionary {
+  dictionary(descriptor: DictionaryDescriptor): Dictionary {
     return {
       type: "Dictionary",
       members: this.dictionaryOrRecord(descriptor),
-      required
+      required: false
     };
   }
 

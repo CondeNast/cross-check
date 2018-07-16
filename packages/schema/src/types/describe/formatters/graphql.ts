@@ -1,6 +1,6 @@
 import { Dict, Option } from "ts-std";
 import { Record } from "../../../record";
-import { PrimitiveDescriptor } from "../../fundamental/descriptor";
+import { isRequired } from "../../fundamental/required";
 import { titleize } from "../../utils";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate } from "../reporter";
@@ -81,11 +81,11 @@ class BufferStack implements Accumulator<string> {
 
 const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   openRequired() {
-    /* TODO */
+    /* noop */
   },
 
   closeRequired() {
-    /* TODO */
+    /* noop */
   },
 
   openAlias({ buffer, descriptor }) {
@@ -93,7 +93,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   },
 
   closeAlias() {
-    /* TODO */
+    /* TODnoopO */
   },
 
   openRecord({ options, buffer }): void {
@@ -117,9 +117,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   },
 
   closeValue({ buffer, descriptor }): void {
-    buffer.doneValue(
-      descriptor.type === "Required" && descriptor.args.required
-    );
+    buffer.doneValue(isRequired(descriptor));
   },
 
   openGeneric({ buffer, descriptor }): void {
@@ -156,26 +154,6 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   }
 };
 
-function primitive({
-  descriptor,
-  buffer,
-  options
-}: {
-  descriptor: PrimitiveDescriptor;
-  buffer: BufferStack;
-  options: GraphqlOptions;
-}): void {
-  if (descriptor.name !== null) {
-    buffer.push(`${options.scalarMap[descriptor.name]}`);
-  } else {
-    throw new Error(
-      `Primitive types must be registered in the scalar map. Found an anonymous primitive with description \`${
-        descriptor.description
-      }\`.`
-    );
-  }
-}
-
 export interface GraphqlOptions {
   name: string;
   scalarMap: Dict;
@@ -185,7 +163,3 @@ export const graphql: ((
   record: Record,
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);
-
-function nameToString(name: string | null): string {
-  return name || "anonymous";
-}

@@ -10,7 +10,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeAlias() {
-    /* TODO */
+    /* noop */
   },
 
   openRequired() {

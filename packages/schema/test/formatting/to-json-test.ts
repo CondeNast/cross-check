@@ -177,7 +177,8 @@ QUnit.test("relationships", assert => {
           kind: "hasOne",
           required: true,
           of: {
-            alias: "SimpleArticle"
+            alias: "SimpleArticle",
+            required: true
           }
         },
         articles: {
@@ -185,7 +186,8 @@ QUnit.test("relationships", assert => {
           kind: "hasMany",
           required: false,
           of: {
-            alias: "MediumArticle"
+            alias: "MediumArticle",
+            required: false
           }
         }
       },
@@ -209,7 +211,8 @@ QUnit.test("relationships", assert => {
           kind: "hasOne",
           required: false,
           of: {
-            alias: "SimpleArticle"
+            alias: "SimpleArticle",
+            required: false
           }
         },
         articles: {
@@ -217,7 +220,8 @@ QUnit.test("relationships", assert => {
           kind: "hasMany",
           required: false,
           of: {
-            alias: "MediumArticle"
+            alias: "MediumArticle",
+            required: false
           }
         }
       },

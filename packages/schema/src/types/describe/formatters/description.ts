@@ -1,7 +1,7 @@
 import { TypeDescriptor } from "../../fundamental/descriptor";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { Pos, ReporterDelegate, hasMore } from "../reporter";
+import { ReporterDelegate, hasMore } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
   openRequired() {
@@ -17,7 +17,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeAlias() {
-    /* TODO */
+    /* noop */
   },
 
   openRecord() {
