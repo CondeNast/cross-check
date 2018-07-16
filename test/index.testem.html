@@ -11,10 +11,11 @@
 <body>
   <script>
     {
-      let match = location.search.match(/debug-log=(\w+)/);
-      if (match) {
-        window.DEBUG_LOG = match[1];
-      }
+      QUnit.config.urlConfig.push({
+        id: "debug-log",
+        label: "Show more logs",
+        value: ["debug", "trace"]
+      });
     }
   </script>
   <div id="qunit"></div>

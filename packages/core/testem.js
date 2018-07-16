@@ -21,6 +21,6 @@ module.exports = {
   },
 
   disable_watching: true,
-  launch_in_dev: ["Node", "Chrome"],
-  launch_in_ci: ["Node", "Chrome"]
+  launch_in_ci: ["Node", "Chrome"],
+  launch_in_dev: ["Node", "Chrome"]
 };
