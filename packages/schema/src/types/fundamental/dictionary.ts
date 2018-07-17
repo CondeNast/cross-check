@@ -1,17 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import { DictionaryDescriptor, RecordDescriptor } from "./descriptor";
+import { isRequired } from "./required";
 import { AbstractType, Type } from "./value";
-
-function buildRecordValidation(desc: Dict<Type>): ValidationBuilder<unknown> {
-  let obj = dict<ValidationBuilder<unknown>>();
-
-  for (let [key, value] of entries(desc)) {
-    obj[key] = value!.validation(false);
-  }
-
-  return validators.strictObject(obj);
-}
 
 export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor
@@ -26,6 +17,20 @@ export abstract class AbstractDictionary<
     return this.descriptor.args;
   }
 
+  private get defaultTypes(): Dict<Type> {
+    let obj = dict<Type>();
+
+    for (let [key, value] of entries(this.types)) {
+      if (isRequired(value!.descriptor) === null) {
+        value = value!.required(false);
+      }
+
+      obj[key] = value!;
+    }
+
+    return obj;
+  }
+
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
       return null;
@@ -33,7 +38,7 @@ export abstract class AbstractDictionary<
 
     let out: Dict = {};
 
-    for (let [key, value] of entries(this.types)) {
+    for (let [key, value] of entries(this.defaultTypes)) {
       assert(
         key in js,
         `Serialization error: missing field \`${key}\` (must validate before serializing)`
@@ -52,7 +57,7 @@ export abstract class AbstractDictionary<
   parse(wire: Dict): Option<Dict> {
     let out: Dict = {};
 
-    for (let [key, value] of entries(this.types)) {
+    for (let [key, value] of entries(this.defaultTypes)) {
       let raw = wire[key];
 
       if (raw === undefined) {
@@ -66,7 +71,17 @@ export abstract class AbstractDictionary<
   }
 
   validation(): ValidationBuilder<unknown> {
-    return buildRecordValidation(this.types);
+    let obj = dict<ValidationBuilder<unknown>>();
+
+    for (let [key, value] of entries(this.defaultTypes)) {
+      if (isRequired(value!.descriptor) === null) {
+        value = value!.required(false);
+      }
+
+      obj[key] = value!.validation();
+    }
+
+    return validators.strictObject(obj);
   }
 }
 
@@ -93,7 +108,7 @@ export function Dictionary(dictionary: Dict<Type>): Type {
     metadata: null,
     name: null,
     features: []
-  }).required(false);
+  });
 }
 
 export type ConstructDictionary = (d: Dict<Type>) => DictionaryImpl;

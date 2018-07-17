@@ -72,24 +72,63 @@ export class Visitor {
   }
 }
 
-export interface RecursiveDelegate {
-  required?(inner: ItemType<this>, descriptor: RequiredDescriptor): unknown;
-  primitive(descriptor: PrimitiveDescriptor): unknown;
-  generic(of: ItemType<this>, descriptor: CollectionDescriptor): unknown;
-  alias(descriptor: AliasDescriptor): unknown;
-  dictionary(descriptor: DictionaryDescriptor): unknown;
-  record(descriptor: RecordDescriptor): unknown;
+export interface RecursiveDelegateTypes {
+  primitive: unknown;
+  generic: unknown;
+  dictionary: unknown;
+  alias: unknown;
+  record: unknown;
 }
 
-export type ItemType<D extends RecursiveDelegate> =
-  | ReturnType<D["primitive"]>
-  | ReturnType<D["generic"]>
-  | ReturnType<D["dictionary"]>;
+export type DelegateItem<T extends RecursiveDelegateTypes> =
+  | T["primitive"]
+  | T["generic"]
+  | T["alias"]
+  | T["dictionary"];
 
-export class RecursiveVisitor<D extends RecursiveDelegate>
+/**
+ * The `RecursiveDelegate` interface receives recursive events for the tree
+ * of schema elements, passing the return value of child types into the
+ * events for container types.
+ *
+ * For example, if you have this type:
+ *
+ * ```ts
+ * Record("person", {
+ *   name: SingleLineString(),
+ *   phoneNumber: List(SingleWordString())
+ * })
+ * ```
+ *
+ * In the `record` event, you should call `this.visitor.processDictionary(record, callback)`,
+ * which will invoke the following events in this order:
+ *
+ * 1. `primitive(desc)` (`desc` is a descriptor for SingleLineString in name)
+ *   a. the `processDictionary` callback will be called with `name` and the return
+ *      value of _1_
+ * 2. `primitive(desc)` (`desc` is a descriptor for SingleLineString in phoneNumber)
+ *   a. `generic(of, desc)` will be called with the return value of _2_ and the descriptor
+ *      for `List`
+ *     i. the `processDictionary` callback will be called with `phoneNumber` and
+ *        the return value of `2.a`
+ */
+export interface RecursiveDelegate<
+  T extends RecursiveDelegateTypes = RecursiveDelegateTypes
+> {
+  required(inner: DelegateItem<T>, descriptor: RequiredDescriptor): unknown;
+  primitive(descriptor: PrimitiveDescriptor): T["primitive"];
+  generic(of: DelegateItem<T>, descriptor: CollectionDescriptor): T["generic"];
+  alias(descriptor: AliasDescriptor): T["alias"];
+  dictionary(descriptor: DictionaryDescriptor): T["dictionary"];
+  record(descriptor: RecordDescriptor): T["record"];
+}
+
+export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   implements VisitorDelegate {
-  static build<D extends RecursiveDelegate>(delegate: D): RecursiveVisitor<D> {
-    let recursiveVisitor = new RecursiveVisitor(delegate);
+  static build<T extends RecursiveDelegateTypes>(
+    delegate: RecursiveDelegate<T>
+  ): RecursiveVisitor<T> {
+    let recursiveVisitor = new RecursiveVisitor<T>(delegate);
     let visitor = new Visitor(recursiveVisitor);
     recursiveVisitor.visitor = visitor;
     return recursiveVisitor;
@@ -97,21 +136,15 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
 
   private visitor!: Visitor;
 
-  private constructor(private recursiveDelegate: D) {}
+  private constructor(private recursiveDelegate: RecursiveDelegate<T>) {}
 
   alias(descriptor: AliasDescriptor): unknown {
     return this.recursiveDelegate.alias(descriptor);
   }
 
   required(descriptor: RequiredDescriptor): unknown {
-    let inner = this.visitor.visit(descriptor.args.type, Pos.Only) as ItemType<
-      D
-    >;
-    if (this.recursiveDelegate.required) {
-      return this.recursiveDelegate.required(inner, descriptor);
-    } else {
-      return inner;
-    }
+    let inner = this.visitor.visit(descriptor.args.type, Pos.Only);
+    return this.recursiveDelegate.required(inner, descriptor);
   }
 
   primitive(descriptor: PrimitiveDescriptor): unknown {
@@ -122,7 +155,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
     let position = genericPosition(descriptor.type);
 
     return this.recursiveDelegate.generic(
-      this.visitor.visit(descriptor.args, position) as ItemType<D>,
+      this.visitor.visit(descriptor.args, position),
       descriptor
     );
   }
@@ -137,7 +170,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
 
   processDictionary(
     descriptor: DictionaryDescriptor | RecordDescriptor,
-    callback: (item: ItemType<D>, key: string) => void
+    callback: (item: DelegateItem<T>, key: string) => void
   ): unknown {
     let input = descriptor.args;
     let keys = Object.keys(input);
@@ -146,13 +179,15 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
     keys.forEach((key, i) => {
       let dictPosition = DictionaryPosition({ index: i, last });
 
-      callback(
-        this.visitor.visit(input[key]!, dictPosition) as ItemType<D>,
-        key
-      );
+      callback(this.visitor.visit(input[key]!, dictPosition), key);
     });
   }
 }
+
+// export function recursiveVisit(delegate: RecursiveDelegate, record: Record) {
+//   let visitor = RecursiveVisitor.build(delegate);
+//   return visitor.record(record.descriptor);
+// }
 
 export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
   implements VisitorDelegate {

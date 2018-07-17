@@ -90,5 +90,5 @@ export function Url(...args: UrlKind[]): Type {
     metadata: null,
     name: "Url",
     features: []
-  }).required(false);
+  });
 }

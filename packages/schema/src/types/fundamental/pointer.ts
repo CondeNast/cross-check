@@ -15,7 +15,7 @@ export class PointerImpl extends ReferenceImpl {
   get base(): Type {
     return new PointerImpl({
       ...this.descriptor,
-      args: this.type.base
+      args: this.type.base.required(false)
     });
   }
 
@@ -36,9 +36,9 @@ export function hasOne(entity: Record, options: JSONValue = null): Type {
   return new PointerImpl({
     type: "Pointer",
     description: `has one ${entity.descriptor.name || "anonymous"}`,
-    args: entity.required(),
+    args: entity,
     metadata: options,
     name: "hasOne",
     features: []
-  }).required(false);
+  });
 }

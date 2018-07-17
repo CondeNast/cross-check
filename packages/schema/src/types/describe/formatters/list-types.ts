@@ -7,13 +7,29 @@ import {
   PrimitiveDescriptor,
   RecordDescriptor
 } from "../../fundamental/descriptor";
-import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
+import {
+  RecursiveDelegate,
+  RecursiveDelegateTypes,
+  RecursiveVisitor
+} from "../visitor";
 
-class ListTypes implements RecursiveDelegate {
-  private visitor = RecursiveVisitor.build(this);
+export interface ListTypesTypes extends RecursiveDelegateTypes {
+  primitive: Dict;
+  generic: Dict;
+  dictionary: Dict;
+  alias: Dict;
+  record: string[];
+}
+
+class ListTypes implements RecursiveDelegate<ListTypesTypes> {
+  private visitor = RecursiveVisitor.build<ListTypesTypes>(this);
 
   alias({ name }: AliasDescriptor): Dict {
     return { [name]: true };
+  }
+
+  required(item: Dict): Dict {
+    return item;
   }
 
   primitive({ name }: PrimitiveDescriptor): Dict {

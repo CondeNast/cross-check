@@ -2,7 +2,14 @@ import { PrimitiveDescriptor } from "../../fundamental/descriptor";
 import { JSONValue } from "../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { Pos, ReporterDelegate, hasMore, inList, inPointer } from "../reporter";
+import {
+  Pos,
+  ReporterDelegate,
+  hasMore,
+  inIterator,
+  inList,
+  inPointer
+} from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
   openAlias({ descriptor }) {
@@ -18,7 +25,12 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeRequired({ descriptor, position }) {
-    if (descriptor.args.required && !inList(position) && !inPointer(position)) {
+    if (
+      descriptor.args.required &&
+      !inList(position) &&
+      !inIterator(position) &&
+      !inPointer(position)
+    ) {
       return `.required()`;
     } else {
       return;

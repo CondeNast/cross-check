@@ -1,4 +1,4 @@
-import { Dict, Option, unknown } from "ts-std";
+import { Dict, Option, dict, unknown } from "ts-std";
 import { Record } from "../../../record";
 import {
   AliasDescriptor,
@@ -9,12 +9,16 @@ import {
   RequiredDescriptor
 } from "../../fundamental/descriptor";
 import { JSONValue, exhausted } from "../../utils";
-import { RecursiveDelegate, RecursiveVisitor } from "../visitor";
+import {
+  RecursiveDelegate,
+  RecursiveDelegateTypes,
+  RecursiveVisitor
+} from "../visitor";
 
 interface Primitive {
   type: string;
   args?: JSONValue;
-  required: boolean;
+  required: Option<boolean>;
 }
 
 interface Generic {
@@ -22,7 +26,7 @@ interface Generic {
   kind?: string;
   args?: JSONValue;
   of: Item;
-  required: boolean;
+  required: Option<boolean>;
 }
 
 interface GenericReference extends Generic {
@@ -30,7 +34,7 @@ interface GenericReference extends Generic {
   kind: string;
   args?: JSONValue;
   of: Item;
-  required: boolean;
+  required: Option<boolean>;
 }
 
 type GenericOptions = Pick<GenericReference, "kind" | "args">;
@@ -38,22 +42,26 @@ type GenericOptions = Pick<GenericReference, "kind" | "args">;
 interface Dictionary {
   type: "Dictionary";
   members: Dict<Item>;
-  required: boolean;
+  required: Option<boolean>;
 }
 
 interface Alias {
   alias: string;
-  required: boolean;
+  required: Option<boolean>;
 }
 
 type Item = Generic | Primitive | Dictionary | Alias;
 
-class JSONFormatter implements RecursiveDelegate {
-  private visitor = RecursiveVisitor.build(this);
+interface JSONTypes extends RecursiveDelegateTypes {
+  primitive: Primitive;
+  generic: Generic;
+  dictionary: Dictionary;
+  alias: Alias;
+  required: Item;
+}
 
-  templated() {
-    throw new Error("unimplemented");
-  }
+class JSONFormatter implements RecursiveDelegate<JSONTypes> {
+  private visitor = RecursiveVisitor.build<JSONTypes>(this);
 
   required(inner: Item, required: RequiredDescriptor): Item {
     inner.required = required.args.required;
@@ -62,16 +70,16 @@ class JSONFormatter implements RecursiveDelegate {
 
   primitive({ name, args }: PrimitiveDescriptor): Primitive {
     if (args !== undefined) {
-      return { type: name || "anonymous", args, required: false };
+      return { type: name || "anonymous", args, required: null };
     } else {
-      return { type: name || "anonymous", required: false };
+      return { type: name || "anonymous", required: null };
     }
   }
 
   alias(alias: AliasDescriptor): Alias {
     return {
       alias: alias.name,
-      required: false
+      required: null
     };
   }
 
@@ -99,7 +107,7 @@ class JSONFormatter implements RecursiveDelegate {
       type,
       ...options,
       of: entity,
-      required: false
+      required: null
     };
   }
 
@@ -107,7 +115,7 @@ class JSONFormatter implements RecursiveDelegate {
     return {
       type: "Dictionary",
       members: this.dictionaryOrRecord(descriptor),
-      required: false
+      required: null
     };
   }
 
@@ -126,7 +134,7 @@ class JSONFormatter implements RecursiveDelegate {
   private dictionaryOrRecord(
     descriptor: DictionaryDescriptor | RecordDescriptor
   ): Dict<Item> {
-    let members = {} as Dict<Item>;
+    let members = dict<Item>();
     this.visitor.processDictionary(descriptor, (item, key) => {
       members[key] = item;
     });

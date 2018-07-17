@@ -75,7 +75,7 @@ export function basic(
   typescript: string,
   description: string
 ): TypeConstructor {
-  let type = constructType(name, desc, typescript, description).required(false);
+  let type = constructType(name, desc, typescript, description);
   return () => type;
 }
 
@@ -85,7 +85,7 @@ export function opaque(
   typescript: string,
   description: string
 ): TypeConstructor {
-  let t = constructType(name, type, typescript, description).required(false);
+  let t = constructType(name, type, typescript, description);
   return () => t;
 }
 
@@ -95,12 +95,11 @@ function constructType(
   typescript: string,
   description: string
 ): Type<PrimitiveDescriptor> {
-  let descriptor = {
+  let descriptor: PrimitiveDescriptor = {
     type: "Primitive" as "Primitive",
     typescript,
     description,
     name,
-    required: false,
     features: [],
     metadata: null,
     args: undefined

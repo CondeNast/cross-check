@@ -18,11 +18,7 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
 
   required(isRequired?: boolean): Type;
   named(arg: string): Type<AliasDescriptor>;
-
-  // `requiredHint` allows the type to do something more than just null
-  // checking, which is performed by the `.validation()` function in the
-  // `Required` Type.
-  validation(requiredHint: boolean): ValidationBuilder<unknown>;
+  validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown | Pass;
   parse(input: unknown): unknown | Pass;
 }
@@ -47,7 +43,7 @@ export abstract class AbstractType<
   //   return this.clone({ features });
   // }
 
-  abstract validation(requiredHint: boolean): ValidationBuilder<unknown>;
+  abstract validation(): ValidationBuilder<unknown>;
   abstract serialize(input: unknown): unknown | Pass;
   abstract parse(input: unknown): unknown | Pass;
 }
@@ -79,9 +75,9 @@ export class AliasType extends AbstractType<AliasDescriptor> {
     });
   }
 
-  validation(requiredHint: boolean): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     // Aliases pass the `requiredHint` through
-    return this.type.validation(requiredHint);
+    return this.type.validation();
   }
 
   serialize(input: unknown): unknown {
@@ -115,9 +111,9 @@ export class RequiredType extends AbstractType<RequiredDescriptor> {
     // extra null checks are inserted.
 
     if (this.isWrapperRequired) {
-      return validators.isPresent().andThen(this.type.validation(true));
+      return validators.isPresent().andThen(this.type.validation());
     } else {
-      return maybe(this.type.validation(false));
+      return maybe(this.type.validation());
     }
   }
 

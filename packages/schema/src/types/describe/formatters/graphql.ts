@@ -117,7 +117,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
   },
 
   closeValue({ buffer, descriptor }): void {
-    buffer.doneValue(isRequired(descriptor));
+    buffer.doneValue(!!isRequired(descriptor));
   },
 
   openGeneric({ buffer, descriptor }): void {

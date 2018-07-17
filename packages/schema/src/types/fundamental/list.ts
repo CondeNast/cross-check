@@ -1,6 +1,7 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
 import { ListDescriptor } from "./descriptor";
+import { isRequired } from "./required";
 import { AbstractType, Type } from "./value";
 
 const isPresentArray = validators.is(
@@ -25,24 +26,26 @@ class ArrayImpl extends AbstractType {
   }
 
   serialize(js: any[]): any {
-    let itemType = this.type;
+    let itemType = this.defaultItem;
 
     return js.map(item => itemType.serialize(item));
   }
 
   parse(wire: any[]): any {
-    let itemType = this.type;
+    let itemType = this.defaultItem;
 
     return wire.map(item => itemType.parse(item));
   }
 
-  validation(requiredHint: boolean): ValidationBuilder<unknown> {
-    let validation = validators.array(this.type.validation(true));
+  validation(): ValidationBuilder<unknown> {
+    return validators.array(this.defaultItem.validation());
+  }
 
-    if (requiredHint) {
-      return validation.andThen(isPresentArray());
+  private get defaultItem(): Type {
+    if (isRequired(this.type.descriptor) === null) {
+      return this.type.required();
     } else {
-      return validation;
+      return this.type;
     }
   }
 }
@@ -51,9 +54,9 @@ export function List(item: Type): Type {
   return new ArrayImpl({
     type: "List",
     description: `List of ${item.descriptor.name || "anonymous"}`,
-    args: item.required(),
+    args: item,
     metadata: null,
     name: null,
     features: []
-  }).required(false);
+  });
 }

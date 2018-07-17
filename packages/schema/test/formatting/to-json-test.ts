@@ -7,7 +7,7 @@ QUnit.test("simple", assert => {
   assert.deepEqual(toJSON(SimpleArticle), {
     fields: {
       hed: { type: "SingleLine", required: true },
-      dek: { type: "Text", required: false },
+      dek: { type: "Text", required: null },
       body: { type: "Text", required: true }
     },
 
@@ -35,32 +35,32 @@ QUnit.test("detailed - published", assert => {
   let actual = toJSON(MediumArticle);
   let fields = {
     hed: { type: "SingleLine", required: true },
-    dek: { type: "Text", required: false },
+    dek: { type: "Text", required: null },
     body: { type: "Text", required: true },
     author: {
       type: "Dictionary",
       members: {
-        first: { type: "SingleLine", required: false },
-        last: { type: "SingleLine", required: false }
+        first: { type: "SingleLine", required: null },
+        last: { type: "SingleLine", required: null }
       },
-      required: false
+      required: null
     },
 
-    issueDate: { type: "ISODate", required: false },
-    canonicalUrl: { type: "Url", args: [], required: false },
+    issueDate: { type: "ISODate", required: null },
+    canonicalUrl: { type: "Url", args: [], required: null },
     tags: {
       type: "List",
       of: {
         type: "SingleWord",
-        required: true
+        required: null
       },
-      required: false
+      required: null
     },
     categories: {
       type: "List",
       of: {
         type: "SingleLine",
-        required: true
+        required: null
       },
       required: true
     },
@@ -70,18 +70,17 @@ QUnit.test("detailed - published", assert => {
         lat: { type: "Integer", required: true },
         long: { type: "Integer", required: true }
       },
-      required: false
+      required: null
     },
     contributors: {
       type: "List",
-      required: false,
+      required: null,
       of: {
         type: "Dictionary",
-        // list items are always required
-        required: true,
+        required: null,
         members: {
-          first: { type: "SingleLine", required: false },
-          last: { type: "SingleLine", required: false }
+          first: { type: "SingleLine", required: null },
+          last: { type: "SingleLine", required: null }
         }
       }
     }
@@ -170,24 +169,24 @@ QUnit.test("relationships", assert => {
     toJSON(Related),
     {
       fields: {
-        first: { type: "SingleLine", required: false },
-        last: { type: "Text", required: false },
+        first: { type: "SingleLine", required: null },
+        last: { type: "Text", required: null },
         person: {
           type: "Pointer",
           kind: "hasOne",
           required: true,
           of: {
             alias: "SimpleArticle",
-            required: true
+            required: null
           }
         },
         articles: {
           type: "Iterator",
           kind: "hasMany",
-          required: false,
+          required: null,
           of: {
             alias: "MediumArticle",
-            required: false
+            required: null
           }
         }
       },

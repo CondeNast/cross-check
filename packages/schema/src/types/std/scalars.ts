@@ -34,7 +34,7 @@ export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
     super(descriptor);
   }
 
-  abstract validation(validationHint: boolean): ValidationBuilder<unknown>;
+  abstract validation(): ValidationBuilder<unknown>;
 
   serialize(input: unknown): unknown {
     return this.base.serialize(input);
@@ -94,9 +94,9 @@ export const Integer: TypeConstructor = basic(
 class SingleLinePrimitive extends Opaque {
   readonly base = Text();
 
-  validation(validationHint: boolean): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return this.base
-      .validation(validationHint)
+      .validation()
       .andThen(
         validators.is(
           (value: string): value is string => !/\n/.test(value),
@@ -116,9 +116,9 @@ export const SingleLine: TypeConstructor = basic(
 class SingleWordPrimitive extends Opaque {
   readonly base = Text();
 
-  validation(validationHint: boolean): ValidationBuilder<unknown> {
+  validation(): ValidationBuilder<unknown> {
     return this.base
-      .validation(validationHint)
+      .validation()
       .andThen(
         validators.is(
           (value: string): value is string => !/\s/.test(value),

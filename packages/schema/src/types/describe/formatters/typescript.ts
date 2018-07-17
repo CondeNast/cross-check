@@ -37,7 +37,7 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
   },
   emitKey({ key, descriptor, nesting }): string {
     let required = isRequired(descriptor);
-    return `${pad(nesting * 2)}${formattedKey(key, required)}: `;
+    return `${pad(nesting * 2)}${formattedKey(key, !!required)}: `;
   },
   closeValue(): string {
     return ";\n";
