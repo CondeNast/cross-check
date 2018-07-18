@@ -1,4 +1,4 @@
-import { Dict, JSONObject, Option, entries } from "ts-std";
+import { Dict, JSONObject, Option, entries, unknown } from "ts-std";
 import { JSONValue, exhausted } from "../utils";
 import { Type } from "./value";
 
@@ -92,7 +92,7 @@ export function requiredToJSON(desc: RequiredDescriptor): DescriptorJSON {
 
 export interface ListDescriptor extends AbstractTypeDescriptor<Type> {
   readonly type: "List";
-  readonly metadata: Option<JSONValue>;
+  readonly metadata: { allowEmpty: boolean };
   readonly args: Type;
 }
 

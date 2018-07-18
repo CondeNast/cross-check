@@ -118,8 +118,7 @@ QUnit.test("detailed - draft", assert => {
       type: "List",
       of: {
         type: "Text",
-        // items inside lists are always required
-        required: true
+        required: null
       },
       required: false
     },
@@ -127,7 +126,7 @@ QUnit.test("detailed - draft", assert => {
       type: "List",
       of: {
         type: "Text",
-        required: true
+        required: null
       },
       required: false
     },
@@ -144,7 +143,7 @@ QUnit.test("detailed - draft", assert => {
       required: false,
       of: {
         type: "Dictionary",
-        required: true,
+        required: null,
         members: {
           first: { type: "Text", required: false },
           last: { type: "Text", required: false }

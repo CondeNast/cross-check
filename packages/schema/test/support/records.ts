@@ -35,7 +35,7 @@ export const MediumArticle = Record("MediumArticle", {
     }),
     issueDate: ISODate(),
     canonicalUrl: Url(),
-    tags: types.List(types.SingleWord()),
+    tags: types.List(types.SingleWord(), { allowEmpty: true }),
     categories: types.List(types.SingleLine()).required(),
     // channels: types.List(types.SingleLine()).feature("channels"),
     geo: types.Dictionary({
