@@ -3,12 +3,11 @@ import { JSONValue } from "../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import {
-  Pos,
   ReporterDelegate,
-  hasMore,
   inIterator,
   inList,
-  inPointer
+  inPointer,
+  isLast
 } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
@@ -99,10 +98,10 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeValue({ position }): string | void {
-    if (hasMore(position)) {
-      return ",\n";
-    } else if (position & Pos.InDictionary) {
+    if (isLast(position)) {
       return "\n";
+    } else {
+      return ",\n";
     }
   },
 

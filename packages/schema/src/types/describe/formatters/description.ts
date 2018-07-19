@@ -1,7 +1,7 @@
 import { TypeDescriptor } from "../../fundamental/descriptor";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { ReporterDelegate, hasMore } from "../reporter";
+import { ReporterDelegate, isLast } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
   openRequired() {
@@ -41,10 +41,10 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   },
 
   closeValue({ position }): string | void {
-    if (hasMore(position)) {
-      return ",\n";
-    } else {
+    if (isLast(position)) {
       return "\n";
+    } else {
+      return ",\n";
     }
   },
 

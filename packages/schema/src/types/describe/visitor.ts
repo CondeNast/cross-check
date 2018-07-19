@@ -121,12 +121,20 @@ export type DelegateItem<T extends RecursiveDelegateTypes> =
 export interface RecursiveDelegate<
   T extends RecursiveDelegateTypes = RecursiveDelegateTypes
 > {
-  required(inner: DelegateItem<T>, descriptor: RequiredDescriptor): unknown;
-  primitive(descriptor: PrimitiveDescriptor): T["primitive"];
-  generic(of: DelegateItem<T>, descriptor: CollectionDescriptor): T["generic"];
-  alias(descriptor: AliasDescriptor): T["alias"];
-  dictionary(descriptor: DictionaryDescriptor): T["dictionary"];
-  record(descriptor: RecordDescriptor): T["record"];
+  alias(descriptor: AliasDescriptor, pos: Pos): T["alias"];
+  required(
+    inner: DelegateItem<T>,
+    descriptor: RequiredDescriptor,
+    pos: Pos
+  ): unknown;
+  primitive(descriptor: PrimitiveDescriptor, pos: Pos): T["primitive"];
+  generic(
+    of: DelegateItem<T>,
+    descriptor: CollectionDescriptor,
+    pos: Pos
+  ): T["generic"];
+  dictionary(descriptor: DictionaryDescriptor, pos: Pos): T["dictionary"];
+  record(descriptor: RecordDescriptor, pos: Pos): T["record"];
 }
 
 export class RecursiveVisitor<T extends RecursiveDelegateTypes>
@@ -144,34 +152,35 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 
   private constructor(private recursiveDelegate: RecursiveDelegate<T>) {}
 
-  alias(descriptor: AliasDescriptor): unknown {
-    return this.recursiveDelegate.alias(descriptor);
+  alias(descriptor: AliasDescriptor, pos: Pos): unknown {
+    return this.recursiveDelegate.alias(descriptor, pos);
   }
 
-  required(descriptor: RequiredDescriptor): unknown {
+  required(descriptor: RequiredDescriptor, pos: Pos): unknown {
     let inner = this.visitor.visit(descriptor.inner, Pos.Only);
-    return this.recursiveDelegate.required(inner, descriptor);
+    return this.recursiveDelegate.required(inner, descriptor, pos);
   }
 
-  primitive(descriptor: PrimitiveDescriptor): unknown {
-    return this.recursiveDelegate.primitive(descriptor);
+  primitive(descriptor: PrimitiveDescriptor, pos: Pos): unknown {
+    return this.recursiveDelegate.primitive(descriptor, pos);
   }
 
-  generic(descriptor: CollectionDescriptor): unknown {
+  generic(descriptor: CollectionDescriptor, pos: Pos): unknown {
     let position = genericPosition(descriptor.type);
 
     return this.recursiveDelegate.generic(
       this.visitor.visit(descriptor.inner, position),
-      descriptor
+      descriptor,
+      pos
     );
   }
 
-  record(descriptor: RecordDescriptor): unknown {
-    return this.recursiveDelegate.record(descriptor);
+  record(descriptor: RecordDescriptor, pos: Pos): unknown {
+    return this.recursiveDelegate.record(descriptor, pos);
   }
 
-  dictionary(descriptor: DictionaryDescriptor): unknown {
-    return this.recursiveDelegate.dictionary(descriptor);
+  dictionary(descriptor: DictionaryDescriptor, pos: Pos): unknown {
+    return this.recursiveDelegate.dictionary(descriptor, pos);
   }
 
   processDictionary(

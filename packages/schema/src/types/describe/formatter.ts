@@ -18,6 +18,6 @@ export default function formatter<Buffer extends Accumulator<string>, Options>(
     );
     let visitor = StringVisitor.build<Buffer, string, typeof options>(reporter);
 
-    return visitor.record(type.descriptor, Pos.Any);
+    return visitor.record(type.descriptor, Pos.Only);
   }) as any;
 }

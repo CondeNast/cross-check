@@ -9,7 +9,7 @@ export {
   RecursiveVisitor
 } from "./types";
 export { Type } from "./types/fundamental/value";
-export * from "./types/describe/formatters";
+export * from "./types/describe";
 import * as types from "./types";
 export * from "./types/type";
 export { types };

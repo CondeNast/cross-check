@@ -269,8 +269,23 @@ export enum Pos {
   InDictionary = 0b0000100,
   InList       = 0b0001000 | Pos.Only,
   InPointer    = 0b0010000 | Pos.Only,
-  InIterator   = 0b0100000 | Pos.Only,
-  Any          = 0b0000000
+  InIterator   = 0b0100000 | Pos.Only
+}
+
+export function isFirst(position: Pos): boolean {
+  return (position & Pos.First) === Pos.First;
+}
+
+export function isLast(position: Pos): boolean {
+  return (position & Pos.Last) === Pos.Last;
+}
+
+export function isOnly(position: Pos): boolean {
+  return (position & Pos.Only) === Pos.Only;
+}
+
+export function inDictionary(position: Pos): boolean {
+  return (position & Pos.InDictionary) === Pos.InDictionary;
 }
 
 export function inList(position: Pos): boolean {
@@ -283,38 +298,6 @@ export function inPointer(position: Pos): boolean {
 
 export function inIterator(position: Pos): boolean {
   return (position & Pos.InIterator) === Pos.InIterator;
-}
-
-export function inDictionary(position: Pos): boolean {
-  return (position & Pos.InDictionary) === Pos.InDictionary;
-}
-
-export function isFirst(position: Pos): boolean {
-  return (position & Pos.First) === Pos.First;
-}
-
-export function isLast(position: Pos): boolean {
-  return (position & Pos.Last) === Pos.Last;
-}
-
-export function isMiddle(position: Pos): boolean {
-  return inDictionary(position) && !isFirst(position) && !isLast(position);
-}
-
-export function hasMore(position: Pos): boolean {
-  return inDictionary(position) && !isLast(position);
-}
-
-export function isFirstOfMultiple(position: Pos): boolean {
-  return inDictionary(position) && isFirst(position) && !isLast(position);
-}
-
-export function isLastOfMultiple(position: Pos): boolean {
-  return inDictionary(position) && isLast(position) && !isFirst(position);
-}
-
-export function isOnly(position: Pos): boolean {
-  return (position & Pos.Only) === Pos.Only;
 }
 
 export function genericPosition(type: CollectionDescriptor["type"]): Pos {
