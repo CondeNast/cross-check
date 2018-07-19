@@ -5,12 +5,13 @@ import { RequiredType, Type } from "./value";
 
 export function Required(type: Type, isTypeRequired = true): RequiredType {
   if (type instanceof RequiredType) {
-    return Required(type.descriptor.args.type, isTypeRequired);
+    return Required(type.descriptor.inner, isTypeRequired);
   }
 
   return new RequiredType(
     defaults("Required", {
-      args: { type, required: isTypeRequired },
+      inner: type,
+      args: { required: isTypeRequired },
       description: "required"
     })
   );
@@ -27,7 +28,8 @@ export function isRequired(desc: TypeDescriptor): Option<boolean> {
     case "Required":
       return desc.args.required;
     case "Alias":
-      return isRequired(desc.args.descriptor);
+    case "Features":
+      return isRequired(desc.inner.descriptor);
     case "Primitive":
     case "List":
     case "Dictionary":

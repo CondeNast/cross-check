@@ -14,4 +14,5 @@ import * as types from "./types";
 export * from "./types/type";
 export { types };
 export * from "./types/fundamental/descriptor";
+export * from "./types/fundamental/descriptor-debug";
 export { DEBUG_LOG } from "./debug";

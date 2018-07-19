@@ -1,5 +1,6 @@
 import { unknown } from "ts-std";
 import {
+  AbstractDictionaryDescriptor,
   AliasDescriptor,
   CollectionDescriptor,
   DictionaryDescriptor,
@@ -38,6 +39,10 @@ export class Visitor {
         return this.delegate.alias(descriptor, position);
       }
 
+      case "Features": {
+        throw new Error("Not implemented");
+      }
+
       case "Required": {
         return this.delegate.required(descriptor, position);
       }
@@ -55,7 +60,8 @@ export class Visitor {
       case "Record": {
         let desc: AliasDescriptor = defaults("Alias", {
           name: descriptor.name,
-          args: type,
+          isBase: descriptor.isBase,
+          inner: type,
           description: descriptor.description
         });
 
@@ -143,7 +149,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   }
 
   required(descriptor: RequiredDescriptor): unknown {
-    let inner = this.visitor.visit(descriptor.args.type, Pos.Only);
+    let inner = this.visitor.visit(descriptor.inner, Pos.Only);
     return this.recursiveDelegate.required(inner, descriptor);
   }
 
@@ -155,7 +161,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
     let position = genericPosition(descriptor.type);
 
     return this.recursiveDelegate.generic(
-      this.visitor.visit(descriptor.args, position),
+      this.visitor.visit(descriptor.inner, position),
       descriptor
     );
   }
@@ -172,7 +178,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
     descriptor: DictionaryDescriptor | RecordDescriptor,
     callback: (item: DelegateItem<T>, key: string) => void
   ): unknown {
-    let input = descriptor.args;
+    let input = descriptor.members;
     let keys = Object.keys(input);
     let last = keys.length - 1;
 
@@ -211,14 +217,14 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   required(descriptor: RequiredDescriptor, position: Pos): unknown {
     this.reporter.startRequired(position, descriptor);
-    this.visitor.visit(descriptor.args.type, position);
+    this.visitor.visit(descriptor.inner, position);
     this.reporter.endRequired(position, descriptor);
   }
 
   generic(descriptor: CollectionDescriptor, position: Pos): unknown {
     this.reporter.startGenericValue(position, descriptor);
     let pos = genericPosition(descriptor.type);
-    this.visitor.visit(descriptor.args, pos);
+    this.visitor.visit(descriptor.inner, pos);
     this.reporter.endGenericValue(position, descriptor);
   }
 
@@ -240,8 +246,8 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     this.reporter.primitiveValue(position, descriptor);
   }
 
-  dictionaryBody(descriptor: DictionaryDescriptor | RecordDescriptor) {
-    let members = descriptor.args;
+  dictionaryBody(descriptor: AbstractDictionaryDescriptor) {
+    let members = descriptor.members;
     let keys = Object.keys(members);
     let last = keys.length - 1;
 

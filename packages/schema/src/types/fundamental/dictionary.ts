@@ -14,7 +14,7 @@ export abstract class AbstractDictionary<
   abstract readonly base: Type<Descriptor>;
 
   protected get types(): Dict<Type> {
-    return this.descriptor.args;
+    return this.descriptor.members;
   }
 
   private get defaultTypes(): Dict<Type> {
@@ -95,7 +95,7 @@ export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
 
     return new DictionaryImpl({
       ...this.descriptor,
-      args: draftDict
+      members: draftDict
     });
   }
 }
@@ -104,10 +104,9 @@ export function Dictionary(dictionary: Dict<Type>): Type {
   return new DictionaryImpl({
     type: "Dictionary",
     description: "Dictionary",
-    args: dictionary,
-    metadata: null,
-    name: null,
-    features: []
+    members: dictionary,
+    args: null,
+    metadata: null
   });
 }
 

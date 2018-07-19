@@ -88,7 +88,6 @@ export function Url(...args: UrlKind[]): Type {
     description: "url",
     args,
     metadata: null,
-    name: "Url",
-    features: []
+    name: "Url"
   });
 }

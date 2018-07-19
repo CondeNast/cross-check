@@ -47,6 +47,7 @@ interface Dictionary {
 
 interface Alias {
   alias: string;
+  base?: true;
   required: Option<boolean>;
 }
 
@@ -77,10 +78,16 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   alias(alias: AliasDescriptor): Alias {
-    return {
+    let output: Alias = {
       alias: alias.name,
       required: null
     };
+
+    if (alias.isBase) {
+      output.base = true;
+    }
+
+    return output;
   }
 
   generic(entity: Item, descriptor: CollectionDescriptor): Generic {

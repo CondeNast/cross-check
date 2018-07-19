@@ -210,6 +210,7 @@ QUnit.test("relationships", assert => {
           required: false,
           of: {
             alias: "SimpleArticle",
+            base: true,
             required: false
           }
         },
@@ -219,6 +220,7 @@ QUnit.test("relationships", assert => {
           required: false,
           of: {
             alias: "MediumArticle",
+            base: true,
             required: false
           }
         }

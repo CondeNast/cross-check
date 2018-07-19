@@ -16,8 +16,12 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     return descriptor.name;
   },
 
-  closeAlias() {
-    /* noop */
+  closeAlias({ descriptor }) {
+    if (descriptor.isBase) {
+      return " (draft)";
+    }
+
+    return;
   },
 
   openRecord() {

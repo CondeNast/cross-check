@@ -100,7 +100,6 @@ function constructType(
     typescript,
     description,
     name,
-    features: [],
     metadata: null,
     args: undefined
   };

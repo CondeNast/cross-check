@@ -12,7 +12,7 @@ export class IteratorImpl extends ReferenceImpl {
   get base(): Type {
     return new IteratorImpl({
       ...this.descriptor,
-      args: this.type.base.required(false)
+      inner: this.type.base.required(false)
     });
   }
 }
@@ -21,9 +21,9 @@ export function hasMany(item: Record, options: JSONValue = null): Type {
   return new IteratorImpl({
     type: "Iterator",
     description: "hasMany",
-    args: item,
+    inner: item,
+    args: null,
     metadata: options,
-    name: "hasMany",
-    features: []
+    name: "hasMany"
   });
 }

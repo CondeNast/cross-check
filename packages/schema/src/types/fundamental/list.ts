@@ -15,14 +15,14 @@ class ArrayImpl extends AbstractType {
   }
 
   protected get type(): Type {
-    return this.descriptor.args;
+    return this.descriptor.inner;
   }
 
   get base(): Type {
     return new ArrayImpl({
       ...this.descriptor,
-      args: this.type.base,
-      metadata: { allowEmpty: true }
+      inner: this.type.base,
+      args: { allowEmpty: true }
     });
   }
 
@@ -40,8 +40,9 @@ class ArrayImpl extends AbstractType {
 
   validation(): ValidationBuilder<unknown> {
     let validator = validators.array(this.defaultItem.validation());
-    if (!this.descriptor.metadata.allowEmpty) {
-      validator = isPresentArray().andThen(validator);
+
+    if (!this.descriptor.args.allowEmpty) {
+      validator = validator.andThen(isPresentArray());
     }
 
     return validator;
@@ -63,10 +64,9 @@ export function List(
 ): Type {
   return new ArrayImpl({
     type: "List",
-    description: `List of ${item.descriptor.name || "anonymous"}`,
-    args: item,
-    metadata: { allowEmpty },
-    name: null,
-    features: []
+    description: "List",
+    inner: item,
+    args: { allowEmpty },
+    metadata: null
   });
 }

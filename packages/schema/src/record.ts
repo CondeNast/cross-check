@@ -17,7 +17,7 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
   }
 
   get fields(): Dict<Type> {
-    return this.descriptor.args;
+    return this.descriptor.members;
   }
 
   get metadata(): Option<JSONObject> {
@@ -33,7 +33,8 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
 
     return new RecordImpl({
       ...this.descriptor,
-      args: draftDict
+      isBase: true,
+      members: draftDict
     });
   }
 
@@ -55,10 +56,11 @@ export function Record(name: string, options: RecordOptions): Record {
   return new RecordImpl({
     type: "Record",
     description: "Record",
-    args: options.fields,
+    members: options.fields,
     metadata: options.metadata || null,
-    name,
-    features: []
+    isBase: false,
+    args: null,
+    name
   });
 }
 

@@ -157,6 +157,19 @@ QUnit.test("relationships", assert => {
       }
     `
   );
+
+  assert.equal(
+    describe(Related.draft),
+
+    strip`
+      {
+        first?: <string>,
+        last?: <string>,
+        person?: has one SimpleArticle (draft),
+        articles?: has many MediumArticle (draft)
+      }
+    `
+  );
 });
 
 QUnit.test("nested", assert => {

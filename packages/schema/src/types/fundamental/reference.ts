@@ -12,7 +12,7 @@ export abstract class ReferenceImpl extends AbstractType {
   }
 
   protected get type(): Type {
-    return this.descriptor.args;
+    return this.descriptor.inner;
   }
 
   validation(): ValidationBuilder<unknown> {

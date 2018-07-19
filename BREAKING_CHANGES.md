@@ -79,3 +79,14 @@ class JSONFormatter implements RecursiveDelegate {
   }
 }
 ```
+
+# July 18: Normalized Container Types
+
+All container types now store their inner types in normalized locations:
+
+- Single-item containers (`List`, `Pointer`, `Iterator`, `Required`, `Alias`)
+  store their inner type at `inner`.
+- Dictionary-style containers (`Dictionary`, `Record`) store a dictionary of
+  their inner types at `members`.
+
+Any additional arguments are still at `descriptor.args`.
