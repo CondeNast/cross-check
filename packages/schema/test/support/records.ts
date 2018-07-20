@@ -78,6 +78,24 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(Related.descriptor));
 }
 
+export const Features = Record("ArticleWithFlags", {
+  fields: {
+    hed: types.SingleLine(),
+    dek: types.SingleLine(),
+    categories: types.List(types.SingleLine()).features(["category-picker"])
+  },
+  metadata: {
+    collectionName: "articles-with-flags",
+    modelName: "article-with-flags"
+  }
+});
+
+if (DEBUG_LOG === "debug") {
+  // @ts-ignore
+  // tslint:disable-next-line
+  console.log(formatDescriptor(Features.descriptor));
+}
+
 export const Nesting = Record("Nesting", {
   fields: {
     people: types

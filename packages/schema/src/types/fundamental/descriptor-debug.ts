@@ -3,7 +3,6 @@ import { JSONValue, exhausted } from "../utils";
 import {
   AliasDescriptor,
   DictionaryDescriptor,
-  FeaturesDescriptor,
   IteratorDescriptor,
   ListArgs,
   ListDescriptor,
@@ -28,17 +27,6 @@ export function aliasToJSON(desc: AliasDescriptor<JSONValue>): DescriptorJSON {
     inner: descToJSON(desc.inner.descriptor),
     attributes: {
       name: desc.name,
-      args: formatJSON(desc.args)
-    }
-  };
-}
-
-export function featuresToJSON(desc: FeaturesDescriptor): DescriptorJSON {
-  return {
-    type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
-    attributes: {
-      features: desc.metadata,
       args: formatJSON(desc.args)
     }
   };
@@ -151,9 +139,6 @@ export function descToJSON(descriptor: TypeDescriptor): DescriptorJSON {
   switch (descriptor.type) {
     case "Alias":
       return aliasToJSON(descriptor);
-
-    case "Features":
-      return featuresToJSON(descriptor);
 
     case "Required":
       return requiredToJSON(descriptor);

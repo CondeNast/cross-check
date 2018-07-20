@@ -1,5 +1,5 @@
 import { PrimitiveDescriptor, TypeDescriptor } from "./fundamental/descriptor";
-import { Type } from "./fundamental/value";
+import { Type, TypeBuilder } from "./fundamental/value";
 
 /**
  * Internals Vocabulary:
@@ -34,22 +34,24 @@ import { Type } from "./fundamental/value";
  *   A type that has a strict component and a draft component. Component must either both be inline
  *   or both be references. A type's draft component corresponds to distinctions in underlying
  *   storage and user interface elements, and is intended to make it possible to auto-save
- *   in-progress work in a user interface.s
+ *   in-progress work in a user interface.
  */
 
 export interface TypeClass {
-  new (descriptor: PrimitiveDescriptor): Type<PrimitiveDescriptor>;
+  new (descriptor: PrimitiveDescriptor): TypeBuilder;
 }
 
-export type TypeDescription = TypeClass | Type<PrimitiveDescriptor>;
+export type TypeDescription = TypeClass | TypeBuilder;
 
 export interface GenericClass {
-  new (descriptor: PrimitiveDescriptor): Type<TypeDescriptor>;
+  new (descriptor: PrimitiveDescriptor): TypeBuilder;
 }
 
-export type GenericDescription = GenericClass | Type<TypeDescriptor>;
+export type GenericDescription = GenericClass | TypeBuilder;
 
-export function generic(callback: (...T: Type[]) => Type): Generic {
+export function generic(
+  callback: (...T: TypeBuilder[]) => TypeBuilder
+): Generic {
   return (...descs: GenericDescription[]) => {
     // @ts-ignore
     let types = descs.map(constructType);
@@ -64,39 +66,44 @@ export function generic(callback: (...T: Type[]) => Type): Generic {
   };
 }
 
-export type Generic = (...T: TypeDescription[]) => Type;
+export type Generic = (...T: TypeDescription[]) => TypeBuilder;
 
-export type PrimitiveConstructor = () => Type<PrimitiveDescriptor>;
-export type TypeConstructor = () => Type;
+export type PrimitiveConstructor = () => TypeBuilder;
+export type TypeConstructor = () => TypeBuilder;
 
 export function basic(
   name: string,
-  desc: TypeDescription,
+  factory: (descriptor: PrimitiveDescriptor) => Type,
   typescript: string,
   description: string
 ): TypeConstructor {
-  let type = constructType(name, desc, typescript, description);
+  let type = TypeBuilder.fromType(
+    constructType(name, factory, typescript, description)
+  );
   return () => type;
 }
 
 export function opaque(
   name: string,
-  type: TypeDescription,
+  factory: (descriptor: PrimitiveDescriptor) => Type,
   typescript: string,
   description: string
 ): TypeConstructor {
-  let t = constructType(name, type, typescript, description);
-  return () => t;
+  let type = TypeBuilder.fromType(
+    constructType(name, factory, typescript, description)
+  );
+  return () => type;
 }
 
 function constructType(
   name: string,
-  desc: TypeDescription,
+  factory: (descriptor: PrimitiveDescriptor) => Type,
   typescript: string,
   description: string
-): Type<PrimitiveDescriptor> {
+): Type {
   let descriptor: PrimitiveDescriptor = {
     type: "Primitive" as "Primitive",
+    factory,
     typescript,
     description,
     name,
@@ -104,5 +111,5 @@ function constructType(
     args: undefined
   };
 
-  return typeof desc === "function" ? new desc(descriptor) : desc;
+  return factory(descriptor);
 }

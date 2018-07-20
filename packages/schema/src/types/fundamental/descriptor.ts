@@ -2,8 +2,11 @@ import { Dict, JSONObject, Option } from "ts-std";
 import { JSONValue } from "../utils";
 import { Type } from "./value";
 
-export interface AbstractTypeDescriptor<Args extends JSONValue | undefined> {
+export interface AbstractTypeDescriptor<
+  Args extends JSONValue | undefined = JSONValue | undefined
+> {
   readonly type: TypeDescriptor["type"];
+  readonly factory: (descriptor: this) => Type;
   readonly metadata: Option<JSONValue>;
   readonly args: Args;
 
@@ -31,29 +34,53 @@ export function defaults<K extends TypeDescriptor["type"], Options>(
   );
 }
 
+/**
+ * - Design time:
+ *   - reusable anonymous type: function() { return Type().required().features(...) }
+ *   - reusable "named" type
+ *   - registering types in some kind of registry
+ *   - records
+ * - Schema Serialization
+ *   - serializing underlying validators
+ *   - type and validator registry
+ * - Introspection
+ *   -
+ * - Mapping
+ *   - Type Name -> Code
+ * - Transformation
+ *   - draft
+ *   - features
+ * - Runtime
+ *   - type.base (for primitives)
+ *   - type.serialize(model)
+ *   - type.parse(wire)
+ *   - build(type.validation())
+ *
+ *
+ * transform(hydrate(lookup(name)))
+ * hydrate(transform(lookup(name)))
+ */
+
+/**
+ * Steps:
+ *
+ * - Design time -> Descriptors
+ * - Transformation -> Descriptors
+ * - Hydration -> Types
+ */
+
 export interface AbstractContainerDescriptor<
   Args extends JSONValue = JSONValue
 > extends AbstractTypeDescriptor<Args> {
-  readonly inner: Type;
+  readonly inner: TypeDescriptor;
 }
 
+// TODO: This is not a runtime concept, but rather a transform-time feature
 export interface AliasDescriptor<Args extends JSONValue = JSONValue>
   extends AbstractContainerDescriptor<Args> {
   readonly type: "Alias";
   readonly name: string;
-  readonly isBase: boolean;
   readonly metadata: null;
-  readonly inner: Type;
-  readonly args: Args;
-}
-
-export interface FeaturesArgs extends JSONObject {
-  readonly features: string[];
-}
-
-export interface FeaturesDescriptor<Args extends FeaturesArgs = FeaturesArgs>
-  extends AbstractContainerDescriptor<FeaturesArgs> {
-  readonly type: "Features";
   readonly args: Args;
 }
 
@@ -64,7 +91,6 @@ export interface RequiredArgs extends JSONObject {
 export interface RequiredDescriptor<Args extends RequiredArgs = RequiredArgs>
   extends AbstractContainerDescriptor<Args> {
   readonly type: "Required";
-  readonly inner: Type;
   readonly args: Args;
 }
 
@@ -76,7 +102,6 @@ export interface ListDescriptor<Args extends ListArgs = ListArgs>
   extends AbstractContainerDescriptor<Args> {
   readonly type: "List";
   readonly metadata: null;
-  readonly inner: Type;
   readonly args: Args;
 }
 
@@ -85,7 +110,6 @@ export interface PointerDescriptor<Args extends JSONValue = JSONValue>
   readonly type: "Pointer";
   readonly name: string;
   readonly metadata: Option<JSONValue>;
-  readonly inner: Type;
   readonly args: Args;
 }
 
@@ -94,7 +118,6 @@ export interface IteratorDescriptor<Args extends JSONValue = JSONValue>
   readonly type: "Iterator";
   readonly name: string;
   readonly metadata: Option<JSONValue>;
-  readonly inner: Type;
   readonly args: Args;
 }
 
@@ -102,7 +125,7 @@ export interface AbstractDictionaryDescriptor<
   Args extends JSONValue = JSONValue
 > extends AbstractTypeDescriptor<Args> {
   readonly type: "Dictionary" | "Record";
-  readonly members: Dict<Type>;
+  readonly members: Dict<TypeDescriptor>;
   readonly args: Args;
 }
 export interface DictionaryDescriptor<Args extends JSONValue = JSONValue>
@@ -129,7 +152,6 @@ export interface PrimitiveDescriptor<Args extends JSONValue = JSONValue>
 }
 
 export type ContainerDescriptor =
-  | FeaturesDescriptor
   | AliasDescriptor
   | RequiredDescriptor
   | ListDescriptor
@@ -137,7 +159,11 @@ export type ContainerDescriptor =
   | IteratorDescriptor;
 
 export type TypeDescriptor =
-  | ContainerDescriptor
+  | AliasDescriptor
+  | RequiredDescriptor
+  | ListDescriptor
+  | PointerDescriptor
+  | IteratorDescriptor
   | DictionaryDescriptor
   | RecordDescriptor
   | PrimitiveDescriptor;

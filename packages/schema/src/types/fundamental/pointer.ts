@@ -5,14 +5,14 @@ import { ANY } from "../std/scalars";
 import { JSONValue } from "../utils";
 import { PointerDescriptor } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { Type } from "./value";
+import { TypeBuilder } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
   constructor(readonly descriptor: PointerDescriptor) {
     super(descriptor);
   }
 
-  get base(): Type {
+  get base(): TypeBuilder {
     return new PointerImpl({
       ...this.descriptor,
       inner: this.type.base.required(false)
@@ -32,9 +32,10 @@ export class PointerImpl extends ReferenceImpl {
   }
 }
 
-export function hasOne(entity: Record, options: JSONValue = null): Type {
+export function hasOne(entity: Record, options: JSONValue = null): TypeBuilder {
   return new PointerImpl({
     type: "Pointer",
+    factory: (descriptor: PointerDescriptor) => new PointerImpl(descriptor),
     description: `has one ${entity.descriptor.name || "anonymous"}`,
     inner: entity,
     args: options,

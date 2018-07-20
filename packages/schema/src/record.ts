@@ -4,7 +4,12 @@ import { Task } from "no-show";
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
 import { RecordDescriptor } from "./types/fundamental/descriptor";
 import { AbstractDictionary } from "./types/fundamental/dictionary";
-import { Type } from "./types/fundamental/value";
+import { Type, TypeBuilder } from "./types/fundamental/value";
+
+export interface View {
+  draft: boolean;
+  features: string[];
+}
 
 class RecordImpl extends AbstractDictionary<RecordDescriptor>
   implements Record {
@@ -25,7 +30,7 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
   }
 
   get base(): Record {
-    let draftDict = dict<Type>();
+    let draftDict = dict<TypeBuilder>();
 
     for (let [key, value] of entries(this.types)) {
       draftDict[key] = value!.base.required(false);
@@ -55,6 +60,7 @@ export interface RecordOptions {
 export function Record(name: string, options: RecordOptions): Record {
   return new RecordImpl({
     type: "Record",
+    factory: (desc: RecordDescriptor) => new RecordImpl(desc),
     description: "Record",
     members: options.fields,
     metadata: options.metadata || null,
@@ -64,7 +70,7 @@ export function Record(name: string, options: RecordOptions): Record {
   });
 }
 
-export interface Record extends Type<RecordDescriptor> {
+export interface Record extends TypeBuilder {
   readonly name: string;
   readonly draft: Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;

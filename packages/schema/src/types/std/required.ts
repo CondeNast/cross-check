@@ -1,13 +1,13 @@
 import { Dict, dict, entries } from "ts-std";
-import { Type } from "../fundamental/value";
+import { TypeBuilder } from "../fundamental/value";
 import { Dictionary } from "../index";
 
-export function RequiredFields(properties: Dict<Type>): Type {
+export function RequiredFields(properties: Dict<TypeBuilder>): TypeBuilder {
   return Dictionary(required(properties));
 }
 
-export function required(properties: Dict<Type>): Dict<Type> {
-  let out = dict<Type>();
+export function required(properties: Dict<TypeBuilder>): Dict<TypeBuilder> {
+  let out = dict<TypeBuilder>();
 
   for (let [key, value] of entries(properties)) {
     out[key] = value!.required();

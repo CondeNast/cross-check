@@ -1,5 +1,10 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Opaque, PrimitiveDescriptor, Type, types } from "@cross-check/schema";
+import {
+  Opaque,
+  PrimitiveDescriptor,
+  TypeBuilder,
+  types
+} from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { format } from "./format";
 
@@ -81,7 +86,7 @@ export function urlish(full: string) {
   return new Urlish(result[1], result[2], result[3]);
 }
 
-export function Url(...args: UrlKind[]): Type {
+export function Url(...args: UrlKind[]): TypeBuilder {
   return new UrlType({
     type: "Primitive",
     typescript: "URL",

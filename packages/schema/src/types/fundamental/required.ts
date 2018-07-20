@@ -1,15 +1,19 @@
 import { Option } from "ts-std";
 import { exhausted } from "../utils";
-import { TypeDescriptor, defaults } from "./descriptor";
-import { RequiredType, Type } from "./value";
+import { RequiredDescriptor, TypeDescriptor, defaults } from "./descriptor";
+import { RequiredType, TypeBuilder } from "./value";
 
-export function Required(type: Type, isTypeRequired = true): RequiredType {
+export function Required(
+  type: TypeBuilder,
+  isTypeRequired = true
+): RequiredType {
   if (type instanceof RequiredType) {
     return Required(type.descriptor.inner, isTypeRequired);
   }
 
   return new RequiredType(
     defaults("Required", {
+      factory: (descriptor: RequiredDescriptor) => new RequiredType(descriptor),
       inner: type,
       args: { required: isTypeRequired },
       description: "required"
@@ -28,8 +32,6 @@ export function isRequired(desc: TypeDescriptor): Option<boolean> {
     case "Required":
       return desc.args.required;
     case "Alias":
-    case "Features":
-      return isRequired(desc.inner.descriptor);
     case "Primitive":
     case "List":
     case "Dictionary":

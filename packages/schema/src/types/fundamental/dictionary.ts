@@ -1,8 +1,12 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import { DictionaryDescriptor, RecordDescriptor } from "./descriptor";
+import {
+  DictionaryDescriptor,
+  RecordDescriptor,
+  TypeDescriptor
+} from "./descriptor";
 import { isRequired } from "./required";
-import { AbstractType, Type } from "./value";
+import { AbstractType, Type, TypeBuilder } from "./value";
 
 export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor
@@ -17,8 +21,8 @@ export abstract class AbstractDictionary<
     return this.descriptor.members;
   }
 
-  private get defaultTypes(): Dict<Type> {
-    let obj = dict<Type>();
+  private get defaultTypes(): Dict<TypeBuilder> {
+    let obj = dict<TypeBuilder>();
 
     for (let [key, value] of entries(this.types)) {
       if (isRequired(value!.descriptor) === null) {
@@ -100,14 +104,22 @@ export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
   }
 }
 
-export function Dictionary(dictionary: Dict<Type>): Type {
-  return new DictionaryImpl({
+export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
+  let members = dict<TypeDescriptor>();
+
+  for (let [key, value] of entries(dictionary)) {
+    members[key] = value!.descriptor;
+  }
+
+  return new TypeBuilder({
     type: "Dictionary",
+    factory: (descriptor: DictionaryDescriptor) =>
+      new DictionaryImpl(descriptor),
     description: "Dictionary",
-    members: dictionary,
+    members,
     args: null,
     metadata: null
   });
 }
 
-export type ConstructDictionary = (d: Dict<Type>) => DictionaryImpl;
+export type ConstructDictionary = (d: Dict<TypeBuilder>) => DictionaryImpl;

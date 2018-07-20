@@ -1,0 +1,9 @@
+- [X] Schema metadata: `Record().metadata()`
+  - [ ] Follow-on: schemas for metadata (validate common metadata)
+- [ ] `.service('editorial')`
+- [ ] `.feature('flag')`
+- [ ] `.readonly()` + `.readonly({ on: 'update' })`
+  - read
+  - create
+  - update
+- [ ] `ConfigValue` type

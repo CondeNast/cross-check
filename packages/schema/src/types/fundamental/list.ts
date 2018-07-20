@@ -1,24 +1,20 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { ListDescriptor } from "./descriptor";
+import { ListDescriptor, TypeDescriptor } from "./descriptor";
 import { isRequired } from "./required";
-import { AbstractType, Type } from "./value";
+import { AbstractType, Type, TypeBuilder, instantiate } from "./value";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
   "present-array"
 );
 
-class ArrayImpl extends AbstractType {
-  constructor(readonly descriptor: ListDescriptor) {
-    super(descriptor);
-  }
-
+class ArrayImpl extends AbstractType<ListDescriptor> {
   protected get type(): Type {
-    return this.descriptor.inner;
+    return instantiate(this.descriptor.inner);
   }
 
-  get base(): Type {
+  get base(): TypeBuilder {
     return new ArrayImpl({
       ...this.descriptor,
       inner: this.type.base,
@@ -49,23 +45,30 @@ class ArrayImpl extends AbstractType {
   }
 
   private get defaultItem(): Type {
+    // TODO: Do this at transformation / tree walk
+
     // List items are required by default
+    let desc: TypeDescriptor;
+
     if (isRequired(this.type.descriptor) === null) {
-      return this.type.required();
+      desc = new TypeBuilder(this.descriptor.inner).required().descriptor;
     } else {
-      return this.type;
+      desc = this.descriptor.inner;
     }
+
+    return instantiate(desc);
   }
 }
 
 export function List(
-  item: Type,
+  item: TypeBuilder,
   { allowEmpty }: { allowEmpty: boolean } = { allowEmpty: false }
-): Type {
+): TypeBuilder {
   return new ArrayImpl({
     type: "List",
+    factory: (descriptor: ListDescriptor) => new ArrayImpl(descriptor),
     description: "List",
-    inner: item,
+    inner: item.descriptor,
     args: { allowEmpty },
     metadata: null
   });

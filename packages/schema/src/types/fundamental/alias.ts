@@ -1,6 +1,6 @@
-import { AliasType, Type } from "./value";
+import { AliasType, TypeBuilder } from "./value";
 
-export function Alias(type: Type, name: string): AliasType {
+export function Alias(type: TypeBuilder, name: string): AliasType {
   return new AliasType({
     type: "Alias",
     metadata: null,

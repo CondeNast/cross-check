@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Scalar, Type, basic } from "@cross-check/schema";
+import { Scalar, TypeBuilder, basic } from "@cross-check/schema";
 import { unknown } from "ts-std";
 
 function isValidDate(input: string): boolean {
@@ -26,7 +26,7 @@ class DateType extends Scalar {
   }
 }
 
-export const ISODate: () => Type = basic(
+export const ISODate: () => TypeBuilder = basic(
   "ISODate",
   DateType,
   "Date",

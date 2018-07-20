@@ -6,7 +6,7 @@ import {
 } from "@cross-check/dsl";
 import { Option, unknown } from "ts-std";
 import { PrimitiveDescriptor } from "../fundamental/descriptor";
-import { AbstractType, Type } from "../fundamental/value";
+import { AbstractType, Type, TypeBuilder } from "../fundamental/value";
 import { TypeConstructor, basic } from "../type";
 
 export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
@@ -53,7 +53,8 @@ class TextPrimitive extends Scalar {
 
 export const Text: TypeConstructor = basic(
   "Text",
-  TextPrimitive,
+  // TODO: Revert to old style
+  (desc: PrimitiveDescriptor) => new TextPrimitive(desc),
   "string",
   "string"
 );
@@ -66,7 +67,7 @@ class FloatPrimitive extends Scalar {
 
 export const Float: TypeConstructor = basic(
   "Float",
-  FloatPrimitive,
+  (desc: PrimitiveDescriptor) => new FloatPrimitive(desc),
   "number",
   "float"
 );
@@ -86,13 +87,13 @@ class IntegerPrimitive extends Scalar {
 
 export const Integer: TypeConstructor = basic(
   "Integer",
-  IntegerPrimitive,
+  (desc: PrimitiveDescriptor) => new IntegerPrimitive(desc),
   "number",
   "integer"
 );
 
 class SingleLinePrimitive extends Opaque {
-  readonly base = Text();
+  readonly base = Text().toType();
 
   validation(): ValidationBuilder<unknown> {
     return this.base
@@ -108,13 +109,13 @@ class SingleLinePrimitive extends Opaque {
 
 export const SingleLine: TypeConstructor = basic(
   "SingleLine",
-  SingleLinePrimitive,
+  (desc: PrimitiveDescriptor) => new SingleLinePrimitive(desc),
   "string",
   "single line string"
 );
 
 class SingleWordPrimitive extends Opaque {
-  readonly base = Text();
+  readonly base = Text().toType();
 
   validation(): ValidationBuilder<unknown> {
     return this.base
@@ -130,7 +131,7 @@ class SingleWordPrimitive extends Opaque {
 
 export const SingleWord: TypeConstructor = basic(
   "SingleWord",
-  SingleWordPrimitive,
+  (desc: PrimitiveDescriptor) => new SingleWordPrimitive(desc),
   "string",
   "single word string"
 );
@@ -144,7 +145,7 @@ class BooleanPrimitive extends Scalar {
 // tslint:disable-next-line:variable-name
 export const Boolean: TypeConstructor = basic(
   "Boolean",
-  BooleanPrimitive,
+  (desc: PrimitiveDescriptor) => new BooleanPrimitive(desc),
   "boolean",
   "boolean"
 );
@@ -163,5 +164,10 @@ class AnyValidator extends ValueValidator<unknown, void> {
   }
 }
 
-export const Any: TypeConstructor = basic("Any", AnyPrimitive, "any", "any");
+export const Any: TypeConstructor = basic(
+  "Any",
+  (desc: PrimitiveDescriptor) => new AnyPrimitive(desc),
+  "any",
+  "any"
+);
 export const ANY = builderFor(AnyValidator)();

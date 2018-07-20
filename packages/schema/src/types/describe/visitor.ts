@@ -9,7 +9,7 @@ import {
   RequiredDescriptor,
   defaults
 } from "../fundamental/descriptor";
-import { Type } from "../fundamental/value";
+import { Type, TypeBuilder } from "../fundamental/value";
 import { exhausted } from "../utils";
 import {
   Accumulator,
@@ -37,10 +37,6 @@ export class Visitor {
     switch (descriptor.type) {
       case "Alias": {
         return this.delegate.alias(descriptor, position);
-      }
-
-      case "Features": {
-        throw new Error("Not implemented");
       }
 
       case "Required": {
