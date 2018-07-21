@@ -81,8 +81,8 @@ if (DEBUG_LOG === "debug") {
 export const Features = Record("ArticleWithFlags", {
   fields: {
     hed: types.SingleLine(),
-    dek: types.SingleLine(),
-    categories: types.List(types.SingleLine()).features(["category-picker"])
+    dek: types.SingleLine()
+    // categories: types.List(types.SingleLine()).features(["category-picker"])
   },
   metadata: {
     collectionName: "articles-with-flags",

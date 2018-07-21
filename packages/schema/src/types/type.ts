@@ -37,6 +37,14 @@ import { Type, TypeBuilder } from "./fundamental/value";
  *   in-progress work in a user interface.
  */
 
+export interface PrimitiveClass {
+  base?: TypeBuilder;
+  typescript: string;
+  description: string;
+  typeName: string;
+  new (desc: PrimitiveDescriptor): Type<PrimitiveDescriptor>;
+}
+
 export interface TypeClass {
   new (descriptor: PrimitiveDescriptor): TypeBuilder;
 }
@@ -71,45 +79,31 @@ export type Generic = (...T: TypeDescription[]) => TypeBuilder;
 export type PrimitiveConstructor = () => TypeBuilder;
 export type TypeConstructor = () => TypeBuilder;
 
-export function basic(
-  name: string,
-  factory: (descriptor: PrimitiveDescriptor) => Type,
-  typescript: string,
-  description: string
-): TypeConstructor {
-  let type = TypeBuilder.fromType(
-    constructType(name, factory, typescript, description)
-  );
+export function primitive(Primitive: PrimitiveClass): TypeConstructor {
+  let type = constructType(Primitive);
   return () => type;
 }
 
-export function opaque(
-  name: string,
-  factory: (descriptor: PrimitiveDescriptor) => Type,
-  typescript: string,
-  description: string
-): TypeConstructor {
-  let type = TypeBuilder.fromType(
-    constructType(name, factory, typescript, description)
-  );
-  return () => type;
-}
+function constructType(Primitive: PrimitiveClass): TypeBuilder {
+  let base = Primitive.base ? Primitive.base.descriptor : null;
 
-function constructType(
-  name: string,
-  factory: (descriptor: PrimitiveDescriptor) => Type,
-  typescript: string,
-  description: string
-): Type {
   let descriptor: PrimitiveDescriptor = {
-    type: "Primitive" as "Primitive",
-    factory,
-    typescript,
-    description,
-    name,
+    type: "Primitive",
+    factory: {
+      instantiate(desc: PrimitiveDescriptor): Type<PrimitiveDescriptor> {
+        return new Primitive(desc);
+      },
+
+      base(desc: PrimitiveDescriptor): TypeDescriptor {
+        return base || desc;
+      }
+    },
+    typescript: Primitive.typescript,
+    description: Primitive.description,
+    name: Primitive.typeName,
     metadata: null,
     args: undefined
   };
 
-  return factory(descriptor);
+  return new TypeBuilder(descriptor);
 }

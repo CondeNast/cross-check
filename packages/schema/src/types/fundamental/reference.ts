@@ -1,17 +1,21 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
 import { ANY } from "../std/scalars";
-import { IteratorDescriptor, PointerDescriptor } from "./descriptor";
-import { AbstractType, Type, TypeBuilder } from "./value";
+import {
+  IteratorDescriptor,
+  PointerDescriptor,
+  TypeDescriptor
+} from "./descriptor";
+import { AbstractType } from "./value";
 
-export abstract class ReferenceImpl extends AbstractType {
-  abstract readonly base: TypeBuilder;
-
+export abstract class ReferenceImpl extends AbstractType<
+  IteratorDescriptor | PointerDescriptor
+> {
   constructor(readonly descriptor: IteratorDescriptor | PointerDescriptor) {
     super(descriptor);
   }
 
-  protected get type(): Type {
+  protected get type(): TypeDescriptor {
     return this.descriptor.inner;
   }
 

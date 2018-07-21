@@ -58,7 +58,7 @@ export class Urlish {
 }
 
 class UrlType extends Opaque {
-  readonly base = types.Text();
+  static readonly base = types.Text();
 
   constructor(descriptor: PrimitiveDescriptor & { args: UrlKind[] }) {
     super(descriptor);
@@ -87,10 +87,19 @@ export function urlish(full: string) {
 }
 
 export function Url(...args: UrlKind[]): TypeBuilder {
-  return new UrlType({
+  return new TypeBuilder({
     type: "Primitive",
     typescript: "URL",
     description: "url",
+    factory: {
+      instantiate(desc: PrimitiveDescriptor & { args: UrlKind[] }) {
+        return new UrlType(desc);
+      },
+
+      base() {
+        return types.Text().descriptor;
+      }
+    },
     args,
     metadata: null,
     name: "Url"

@@ -2,11 +2,42 @@ import { Dict, JSONObject, Option } from "ts-std";
 import { JSONValue } from "../utils";
 import { Type } from "./value";
 
+export interface Factory<
+  Descriptor extends AbstractTypeDescriptor,
+  T extends Type
+> {
+  instantiate(desc: Descriptor): T;
+  base(desc: Descriptor): TypeDescriptor;
+}
+
+export interface FactoryClass<
+  Descriptor extends AbstractTypeDescriptor,
+  T extends Type
+> {
+  new (desc: Descriptor): T;
+  base(desc: Descriptor): TypeDescriptor;
+}
+
+export function factory<
+  Descriptor extends AbstractTypeDescriptor,
+  T extends Type
+>(TypeClass: FactoryClass<Descriptor, T>): Factory<Descriptor, T> {
+  return {
+    instantiate(desc: Descriptor): T {
+      return new TypeClass(desc);
+    },
+
+    base(desc: Descriptor): TypeDescriptor {
+      return TypeClass.base(desc);
+    }
+  };
+}
+
 export interface AbstractTypeDescriptor<
   Args extends JSONValue | undefined = JSONValue | undefined
 > {
   readonly type: TypeDescriptor["type"];
-  readonly factory: (descriptor: this) => Type;
+  readonly factory: Factory<this, Type>;
   readonly metadata: Option<JSONValue>;
   readonly args: Args;
 
@@ -121,26 +152,25 @@ export interface IteratorDescriptor<Args extends JSONValue = JSONValue>
   readonly args: Args;
 }
 
-export interface AbstractDictionaryDescriptor<
-  Args extends JSONValue = JSONValue
-> extends AbstractTypeDescriptor<Args> {
-  readonly type: "Dictionary" | "Record";
-  readonly members: Dict<TypeDescriptor>;
-  readonly args: Args;
-}
 export interface DictionaryDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractDictionaryDescriptor<Args> {
+  extends AbstractTypeDescriptor<Args> {
   readonly type: "Dictionary";
+  readonly members: Dict<TypeDescriptor>;
   readonly metadata: null;
 }
 
 export interface RecordDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractDictionaryDescriptor<Args> {
+  extends AbstractTypeDescriptor<Args> {
   readonly type: "Record";
+  readonly members: Dict<TypeDescriptor>;
   readonly metadata: Option<JSONObject>;
   readonly isBase: boolean;
   readonly name: string;
 }
+
+export type AnyDictionaryDescriptor<Args extends JSONValue = JSONValue> =
+  | DictionaryDescriptor<Args>
+  | RecordDescriptor<Args>;
 
 export interface PrimitiveDescriptor<Args extends JSONValue = JSONValue>
   extends AbstractTypeDescriptor<Args | undefined> {

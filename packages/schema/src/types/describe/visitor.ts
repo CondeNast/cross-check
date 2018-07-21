@@ -1,15 +1,15 @@
 import { unknown } from "ts-std";
 import {
-  AbstractDictionaryDescriptor,
   AliasDescriptor,
+  AnyDictionaryDescriptor,
   CollectionDescriptor,
   DictionaryDescriptor,
   PrimitiveDescriptor,
   RecordDescriptor,
   RequiredDescriptor,
-  defaults
+  TypeDescriptor
 } from "../fundamental/descriptor";
-import { Type, TypeBuilder } from "../fundamental/value";
+import { TypeBuilder } from "../fundamental/value";
 import { exhausted } from "../utils";
 import {
   Accumulator,
@@ -31,9 +31,7 @@ export interface VisitorDelegate {
 export class Visitor {
   constructor(private delegate: VisitorDelegate) {}
 
-  visit(type: Type, position: Pos): unknown {
-    let descriptor = type.descriptor;
-
+  visit(descriptor: TypeDescriptor, position: Pos): unknown {
     switch (descriptor.type) {
       case "Alias": {
         return this.delegate.alias(descriptor, position);
@@ -54,12 +52,8 @@ export class Visitor {
       }
 
       case "Record": {
-        let desc: AliasDescriptor = defaults("Alias", {
-          name: descriptor.name,
-          isBase: descriptor.isBase,
-          inner: type,
-          description: descriptor.description
-        });
+        let desc = new TypeBuilder(descriptor).named(descriptor.name)
+          .descriptor as AliasDescriptor;
 
         return this.delegate.alias(desc, position);
       }
@@ -251,7 +245,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     this.reporter.primitiveValue(position, descriptor);
   }
 
-  dictionaryBody(descriptor: AbstractDictionaryDescriptor) {
+  dictionaryBody(descriptor: AnyDictionaryDescriptor) {
     let members = descriptor.members;
     let keys = Object.keys(members);
     let last = keys.length - 1;
@@ -259,9 +253,9 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     keys.forEach((key, i) => {
       let position = DictionaryPosition({ index: i, last });
 
-      this.reporter.addKey(position, key, members[key]!.descriptor);
+      this.reporter.addKey(position, key, members[key]!);
       this.visitor.visit(members[key]!, position);
-      this.reporter.endValue(position, members[key]!.descriptor);
+      this.reporter.endValue(position, members[key]!);
     });
   }
 }

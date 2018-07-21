@@ -1,28 +1,28 @@
 import { Record } from "../../record";
 import { JSONValue } from "../utils";
-import { IteratorDescriptor } from "./descriptor";
+import { IteratorDescriptor, TypeDescriptor, factory } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { TypeBuilder } from "./value";
+import { TypeBuilder, required } from "./value";
 
 export class IteratorImpl extends ReferenceImpl {
-  constructor(readonly descriptor: IteratorDescriptor) {
-    super(descriptor);
+  static base(descriptor: IteratorDescriptor): TypeDescriptor {
+    return {
+      ...descriptor,
+      inner: required(descriptor.inner, false)
+    };
   }
 
-  get base(): TypeBuilder {
-    return new IteratorImpl({
-      ...this.descriptor,
-      inner: this.type.base.required(false)
-    });
+  constructor(readonly descriptor: IteratorDescriptor) {
+    super(descriptor);
   }
 }
 
 export function hasMany(item: Record, options: JSONValue = null): TypeBuilder {
-  return new IteratorImpl({
+  return new TypeBuilder({
     type: "Iterator",
-    factory: (descriptor: IteratorDescriptor) => new IteratorImpl(descriptor),
+    factory: factory(IteratorImpl),
     description: "hasMany",
-    inner: item,
+    inner: item.descriptor,
     args: null,
     metadata: options,
     name: "hasMany"

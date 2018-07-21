@@ -2,9 +2,19 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
-import { RecordDescriptor } from "./types/fundamental/descriptor";
+import {
+  RecordDescriptor,
+  TypeDescriptor,
+  factory
+} from "./types/fundamental/descriptor";
 import { AbstractDictionary } from "./types/fundamental/dictionary";
-import { Type, TypeBuilder } from "./types/fundamental/value";
+import {
+  Type,
+  TypeBuilder,
+  base,
+  instantiate,
+  required
+} from "./types/fundamental/value";
 
 export interface View {
   draft: boolean;
@@ -13,6 +23,19 @@ export interface View {
 
 class RecordImpl extends AbstractDictionary<RecordDescriptor>
   implements Record {
+  static base(descriptor: RecordDescriptor): RecordDescriptor {
+    let draftDict = dict<TypeDescriptor>();
+
+    for (let [key, value] of entries(descriptor.members)) {
+      draftDict[key] = required(base(value!), false);
+    }
+
+    return {
+      ...descriptor,
+      members: draftDict
+    };
+  }
+
   constructor(readonly descriptor: RecordDescriptor) {
     super(descriptor);
   }
@@ -22,29 +45,19 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
   }
 
   get fields(): Dict<Type> {
-    return this.descriptor.members;
+    return this.types;
   }
 
   get metadata(): Option<JSONObject> {
     return this.descriptor.metadata;
   }
 
-  get base(): Record {
-    let draftDict = dict<TypeBuilder>();
-
-    for (let [key, value] of entries(this.types)) {
-      draftDict[key] = value!.base.required(false);
-    }
-
-    return new RecordImpl({
-      ...this.descriptor,
-      isBase: true,
-      members: draftDict
-    });
+  get base(): RecordDescriptor {
+    return RecordImpl.base(this.descriptor);
   }
 
   get draft(): Record {
-    return this.base;
+    return instantiate(this.base);
   }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
@@ -53,16 +66,22 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
 }
 
 export interface RecordOptions {
-  fields: Dict<Type>;
+  fields: Dict<TypeBuilder>;
   metadata?: JSONObject;
 }
 
 export function Record(name: string, options: RecordOptions): Record {
+  let members = dict<TypeDescriptor>();
+
+  for (let [key, value] of entries(options.fields)) {
+    members[key] = value!.descriptor;
+  }
+
   return new RecordImpl({
     type: "Record",
-    factory: (desc: RecordDescriptor) => new RecordImpl(desc),
+    factory: factory(RecordImpl),
     description: "Record",
-    members: options.fields,
+    members,
     metadata: options.metadata || null,
     isBase: false,
     args: null,
@@ -70,7 +89,7 @@ export function Record(name: string, options: RecordOptions): Record {
   });
 }
 
-export interface Record extends TypeBuilder {
+export interface Record extends Type<RecordDescriptor> {
   readonly name: string;
   readonly draft: Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;

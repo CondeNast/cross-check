@@ -1,8 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { ListDescriptor, TypeDescriptor } from "./descriptor";
+import { ListDescriptor, TypeDescriptor, factory } from "./descriptor";
 import { isRequired } from "./required";
-import { AbstractType, Type, TypeBuilder, instantiate } from "./value";
+import { AbstractType, Type, TypeBuilder, base, instantiate } from "./value";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
@@ -14,12 +14,12 @@ class ArrayImpl extends AbstractType<ListDescriptor> {
     return instantiate(this.descriptor.inner);
   }
 
-  get base(): TypeBuilder {
-    return new ArrayImpl({
-      ...this.descriptor,
-      inner: this.type.base,
+  static base(descriptor: ListDescriptor): TypeDescriptor {
+    return {
+      ...descriptor,
+      inner: base(descriptor.inner),
       args: { allowEmpty: true }
-    });
+    };
   }
 
   serialize(js: any[]): any {
@@ -64,9 +64,9 @@ export function List(
   item: TypeBuilder,
   { allowEmpty }: { allowEmpty: boolean } = { allowEmpty: false }
 ): TypeBuilder {
-  return new ArrayImpl({
+  return new TypeBuilder({
     type: "List",
-    factory: (descriptor: ListDescriptor) => new ArrayImpl(descriptor),
+    factory: factory(ArrayImpl),
     description: "List",
     inner: item.descriptor,
     args: { allowEmpty },

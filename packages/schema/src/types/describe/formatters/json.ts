@@ -83,10 +83,6 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
       required: null
     };
 
-    if (alias.isBase) {
-      output.base = true;
-    }
-
     return output;
   }
 

@@ -6,12 +6,10 @@ import {
 } from "@cross-check/dsl";
 import { Option, unknown } from "ts-std";
 import { PrimitiveDescriptor } from "../fundamental/descriptor";
-import { AbstractType, Type, TypeBuilder } from "../fundamental/value";
-import { TypeConstructor, basic } from "../type";
+import { AbstractType, Type, base, instantiate } from "../fundamental/value";
+import { TypeConstructor, primitive } from "../type";
 
 export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
-  readonly base = this;
-
   constructor(descriptor: PrimitiveDescriptor) {
     super(descriptor);
   }
@@ -28,7 +26,9 @@ export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
 }
 
 export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
-  abstract readonly base: Type;
+  get base(): Type {
+    return instantiate(base(this.descriptor));
+  }
 
   constructor(descriptor: PrimitiveDescriptor) {
     super(descriptor);
@@ -46,33 +46,34 @@ export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
 }
 
 class TextPrimitive extends Scalar {
+  static description = "string";
+  static typescript = "string";
+  static typeName = "Text";
+
   validation(): ValidationBuilder<unknown> {
     return validators.isString();
   }
 }
 
-export const Text: TypeConstructor = basic(
-  "Text",
-  // TODO: Revert to old style
-  (desc: PrimitiveDescriptor) => new TextPrimitive(desc),
-  "string",
-  "string"
-);
+export const Text: TypeConstructor = primitive(TextPrimitive);
 
 class FloatPrimitive extends Scalar {
+  static description = "float";
+  static typescript = "number";
+  static typeName = "Float";
+
   validation(): ValidationBuilder<unknown> {
     return validators.isNumber();
   }
 }
 
-export const Float: TypeConstructor = basic(
-  "Float",
-  (desc: PrimitiveDescriptor) => new FloatPrimitive(desc),
-  "number",
-  "float"
-);
+export const Float: TypeConstructor = primitive(FloatPrimitive);
 
 class IntegerPrimitive extends Scalar {
+  static description = "integer";
+  static typescript = "number";
+  static typeName = "Integer";
+
   validation(): ValidationBuilder<unknown> {
     return validators
       .isNumber()
@@ -85,15 +86,13 @@ class IntegerPrimitive extends Scalar {
   }
 }
 
-export const Integer: TypeConstructor = basic(
-  "Integer",
-  (desc: PrimitiveDescriptor) => new IntegerPrimitive(desc),
-  "number",
-  "integer"
-);
+export const Integer: TypeConstructor = primitive(IntegerPrimitive);
 
 class SingleLinePrimitive extends Opaque {
-  readonly base = Text().toType();
+  static base = Text();
+  static description = "single line string";
+  static typescript = "string";
+  static typeName = "SingleLine";
 
   validation(): ValidationBuilder<unknown> {
     return this.base
@@ -107,15 +106,13 @@ class SingleLinePrimitive extends Opaque {
   }
 }
 
-export const SingleLine: TypeConstructor = basic(
-  "SingleLine",
-  (desc: PrimitiveDescriptor) => new SingleLinePrimitive(desc),
-  "string",
-  "single line string"
-);
+export const SingleLine: TypeConstructor = primitive(SingleLinePrimitive);
 
 class SingleWordPrimitive extends Opaque {
-  readonly base = Text().toType();
+  static base = Text();
+  static description = "single word string";
+  static typescript = "string";
+  static typeName = "SingleWord";
 
   validation(): ValidationBuilder<unknown> {
     return this.base
@@ -129,28 +126,26 @@ class SingleWordPrimitive extends Opaque {
   }
 }
 
-export const SingleWord: TypeConstructor = basic(
-  "SingleWord",
-  (desc: PrimitiveDescriptor) => new SingleWordPrimitive(desc),
-  "string",
-  "single word string"
-);
+export const SingleWord: TypeConstructor = primitive(SingleWordPrimitive);
 
 class BooleanPrimitive extends Scalar {
+  static typeName = "Boolean";
+  static typescript = "boolean";
+  static description = "boolean";
+
   validation(): ValidationBuilder<unknown> {
     return validators.isBoolean();
   }
 }
 
 // tslint:disable-next-line:variable-name
-export const Boolean: TypeConstructor = basic(
-  "Boolean",
-  (desc: PrimitiveDescriptor) => new BooleanPrimitive(desc),
-  "boolean",
-  "boolean"
-);
+export const Boolean: TypeConstructor = primitive(BooleanPrimitive);
 
 class AnyPrimitive extends Scalar {
+  static description = "any";
+  static typescript = "any";
+  static typeName = "Any";
+
   validation(): ValidationBuilder<unknown> {
     return builderFor(AnyValidator)();
   }
@@ -164,10 +159,5 @@ class AnyValidator extends ValueValidator<unknown, void> {
   }
 }
 
-export const Any: TypeConstructor = basic(
-  "Any",
-  (desc: PrimitiveDescriptor) => new AnyPrimitive(desc),
-  "any",
-  "any"
-);
+export const Any: TypeConstructor = primitive(AnyPrimitive);
 export const ANY = builderFor(AnyValidator)();

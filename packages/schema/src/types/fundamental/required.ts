@@ -1,25 +1,6 @@
 import { Option } from "ts-std";
 import { exhausted } from "../utils";
-import { RequiredDescriptor, TypeDescriptor, defaults } from "./descriptor";
-import { RequiredType, TypeBuilder } from "./value";
-
-export function Required(
-  type: TypeBuilder,
-  isTypeRequired = true
-): RequiredType {
-  if (type instanceof RequiredType) {
-    return Required(type.descriptor.inner, isTypeRequired);
-  }
-
-  return new RequiredType(
-    defaults("Required", {
-      factory: (descriptor: RequiredDescriptor) => new RequiredType(descriptor),
-      inner: type,
-      args: { required: isTypeRequired },
-      description: "required"
-    })
-  );
-}
+import { TypeDescriptor } from "./descriptor";
 
 /**
  *

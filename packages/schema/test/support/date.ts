@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Scalar, TypeBuilder, basic } from "@cross-check/schema";
+import { Scalar, TypeBuilder, primitive } from "@cross-check/schema";
 import { unknown } from "ts-std";
 
 function isValidDate(input: string): boolean {
@@ -9,6 +9,10 @@ function isValidDate(input: string): boolean {
 }
 
 class DateType extends Scalar {
+  static description = "ISO Date";
+  static typescript = "Date";
+  static typeName = "ISODate";
+
   validation(): ValidationBuilder<unknown> {
     return validators.isString().andThen(
       validators.is((v: string): v is string => {
@@ -26,9 +30,4 @@ class DateType extends Scalar {
   }
 }
 
-export const ISODate: () => TypeBuilder = basic(
-  "ISODate",
-  DateType,
-  "Date",
-  "ISO Date"
-);
+export const ISODate: () => TypeBuilder = primitive(DateType);

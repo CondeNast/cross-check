@@ -3,10 +3,19 @@ import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import {
   DictionaryDescriptor,
   RecordDescriptor,
-  TypeDescriptor
+  TypeDescriptor,
+  factory
 } from "./descriptor";
 import { isRequired } from "./required";
-import { AbstractType, Type, TypeBuilder } from "./value";
+import {
+  AbstractType,
+  Type,
+  TypeBuilder,
+  base,
+  instantiate,
+  required,
+  transform
+} from "./value";
 
 export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor
@@ -15,18 +24,22 @@ export type AbstractDictionaryDescriptor =
 export abstract class AbstractDictionary<
   Descriptor extends AbstractDictionaryDescriptor
 > extends AbstractType<Descriptor> {
-  abstract readonly base: Type<Descriptor>;
-
   protected get types(): Dict<Type> {
-    return this.descriptor.members;
+    let fields = dict<Type>();
+
+    for (let [key, value] of entries(this.descriptor.members)) {
+      fields[key] = instantiate(value!);
+    }
+
+    return fields;
   }
 
-  private get defaultTypes(): Dict<TypeBuilder> {
-    let obj = dict<TypeBuilder>();
+  private get defaultTypes(): Dict<TypeDescriptor> {
+    let obj = dict<TypeDescriptor>();
 
-    for (let [key, value] of entries(this.types)) {
-      if (isRequired(value!.descriptor) === null) {
-        value = value!.required(false);
+    for (let [key, value] of entries(this.descriptor.members)) {
+      if (isRequired(value!) === null) {
+        value = transform(value!, type => type.required(false));
       }
 
       obj[key] = value!;
@@ -48,7 +61,7 @@ export abstract class AbstractDictionary<
         `Serialization error: missing field \`${key}\` (must validate before serializing)`
       );
 
-      let result = value!.serialize(js[key]);
+      let result = instantiate(value!).serialize(js[key]);
 
       if (result !== null) {
         out[key] = result;
@@ -68,7 +81,7 @@ export abstract class AbstractDictionary<
         raw = null;
       }
 
-      out[key] = value!.parse(raw);
+      out[key] = instantiate(value!).parse(raw);
     }
 
     return out;
@@ -78,11 +91,7 @@ export abstract class AbstractDictionary<
     let obj = dict<ValidationBuilder<unknown>>();
 
     for (let [key, value] of entries(this.defaultTypes)) {
-      if (isRequired(value!.descriptor) === null) {
-        value = value!.required(false);
-      }
-
-      obj[key] = value!.validation();
+      obj[key] = instantiate(value!).validation();
     }
 
     return validators.strictObject(obj);
@@ -90,17 +99,17 @@ export abstract class AbstractDictionary<
 }
 
 export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
-  get base(): DictionaryImpl {
-    let draftDict = dict<Type>();
+  static base(descriptor: DictionaryDescriptor): TypeDescriptor {
+    let draftDict = dict<TypeDescriptor>();
 
-    for (let [key, value] of entries(this.types)) {
-      draftDict[key] = value!.base.required(false);
+    for (let [key, value] of entries(descriptor.members)) {
+      draftDict[key] = required(base(value!), false);
     }
 
-    return new DictionaryImpl({
-      ...this.descriptor,
+    return {
+      ...descriptor,
       members: draftDict
-    });
+    };
   }
 }
 
@@ -113,8 +122,7 @@ export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
 
   return new TypeBuilder({
     type: "Dictionary",
-    factory: (descriptor: DictionaryDescriptor) =>
-      new DictionaryImpl(descriptor),
+    factory: factory(DictionaryImpl),
     description: "Dictionary",
     members,
     args: null,

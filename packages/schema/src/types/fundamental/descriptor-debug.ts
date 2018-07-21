@@ -24,7 +24,7 @@ export interface DescriptorJSON {
 export function aliasToJSON(desc: AliasDescriptor<JSONValue>): DescriptorJSON {
   return {
     type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
+    inner: descToJSON(desc.inner),
     attributes: {
       name: desc.name,
       args: formatJSON(desc.args)
@@ -37,7 +37,7 @@ export function requiredToJSON(
 ): DescriptorJSON {
   return {
     type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
+    inner: descToJSON(desc.inner),
     attributes: {
       ...desc.args
     }
@@ -47,7 +47,7 @@ export function requiredToJSON(
 export function listToJSON(desc: ListDescriptor<ListArgs>): DescriptorJSON {
   return {
     type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
+    inner: descToJSON(desc.inner),
     attributes: {
       ...desc.args
     }
@@ -59,7 +59,7 @@ export function pointerToJSON(
 ): DescriptorJSON {
   return {
     type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
+    inner: descToJSON(desc.inner),
     attributes: {
       name: desc.name,
       args: formatJSON(desc.args),
@@ -73,7 +73,7 @@ export function iteratorToJSON(
 ): DescriptorJSON {
   return {
     type: desc.type,
-    inner: descToJSON(desc.inner.descriptor),
+    inner: descToJSON(desc.inner),
     attributes: {
       name: desc.name,
       args: formatJSON(desc.args),
@@ -88,7 +88,7 @@ export function dictionaryToJSON(
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!.descriptor);
+    members[key] = descToJSON(value!);
   }
 
   return {
@@ -107,7 +107,7 @@ export function recordToJSON(
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!.descriptor);
+    members[key] = descToJSON(value!);
   }
 
   return {

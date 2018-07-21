@@ -165,8 +165,8 @@ QUnit.test("relationships", assert => {
       {
         first?: <string>,
         last?: <string>,
-        person?: has one SimpleArticle (draft),
-        articles?: has many MediumArticle (draft)
+        person?: has one SimpleArticle,
+        articles?: has many MediumArticle
       }
     `
   );

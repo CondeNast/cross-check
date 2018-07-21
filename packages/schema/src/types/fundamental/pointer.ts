@@ -3,20 +3,20 @@ import { unknown } from "ts-std";
 import { Record } from "../../record";
 import { ANY } from "../std/scalars";
 import { JSONValue } from "../utils";
-import { PointerDescriptor } from "./descriptor";
+import { PointerDescriptor, TypeDescriptor, factory } from "./descriptor";
 import { ReferenceImpl } from "./reference";
-import { TypeBuilder } from "./value";
+import { TypeBuilder, base } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
-  constructor(readonly descriptor: PointerDescriptor) {
-    super(descriptor);
+  static base(descriptor: PointerDescriptor): TypeDescriptor {
+    return {
+      ...descriptor,
+      inner: base(descriptor.inner)
+    };
   }
 
-  get base(): TypeBuilder {
-    return new PointerImpl({
-      ...this.descriptor,
-      inner: this.type.base.required(false)
-    });
+  constructor(readonly descriptor: PointerDescriptor) {
+    super(descriptor);
   }
 
   validation(): ValidationBuilder<unknown> {
@@ -33,11 +33,11 @@ export class PointerImpl extends ReferenceImpl {
 }
 
 export function hasOne(entity: Record, options: JSONValue = null): TypeBuilder {
-  return new PointerImpl({
+  return new TypeBuilder({
     type: "Pointer",
-    factory: (descriptor: PointerDescriptor) => new PointerImpl(descriptor),
+    factory: factory(PointerImpl),
     description: `has one ${entity.descriptor.name || "anonymous"}`,
-    inner: entity,
+    inner: entity.descriptor,
     args: options,
     metadata: null,
     name: "hasOne"

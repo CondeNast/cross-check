@@ -4,15 +4,14 @@ import { maybe } from "../utils";
 import {
   AliasDescriptor,
   ContainerDescriptor,
+  Factory,
   RequiredDescriptor,
-  TypeDescriptor
+  TypeDescriptor,
+  factory
 } from "./descriptor";
 
 export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
   readonly descriptor: Descriptor;
-
-  // This should probably be a static that is a (Descriptor) => Descriptor
-  readonly base: Type;
 
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown;
@@ -21,8 +20,6 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
 
 export abstract class AbstractType<Descriptor extends TypeDescriptor>
   implements Type<Descriptor> {
-  abstract readonly base: Type;
-
   constructor(readonly descriptor: Descriptor) {}
 
   abstract validation(): ValidationBuilder<unknown>;
@@ -30,9 +27,62 @@ export abstract class AbstractType<Descriptor extends TypeDescriptor>
   abstract parse(input: unknown): unknown;
 }
 
-export function instantiate(descriptor: TypeDescriptor): Type {
-  let factory = descriptor.factory as (descriptor: TypeDescriptor) => Type;
-  return factory(descriptor);
+export function instantiate<D extends TypeDescriptor, T extends Type<D>>(
+  descriptor: D
+): T {
+  let instantiateFactory = (descriptor.factory as Factory<D, T>).instantiate;
+  return instantiateFactory(descriptor);
+}
+
+export function transform(
+  desc: TypeDescriptor,
+  callback: (type: TypeBuilder) => TypeBuilder
+): TypeDescriptor {
+  return callback(new TypeBuilder(desc)).descriptor;
+}
+
+export function base<D extends TypeDescriptor, T extends Type<D>>(
+  descriptor: D
+): TypeDescriptor {
+  let baseFactory = (descriptor.factory as Factory<D, T>).base;
+  return baseFactory(descriptor);
+}
+
+export function alias(
+  descriptor: TypeDescriptor,
+  name: string
+): AliasDescriptor {
+  return {
+    type: "Alias",
+    factory: {
+      instantiate(desc: AliasDescriptor) {
+        return instantiate(desc.inner);
+      },
+
+      base(desc: AliasDescriptor) {
+        return base(desc.inner);
+      }
+    },
+    metadata: null,
+    inner: descriptor,
+    args: null,
+    name,
+    description: `alias`
+  };
+}
+
+export function required(
+  desc: TypeDescriptor,
+  isRequired = true
+): RequiredDescriptor {
+  return {
+    type: "Required",
+    factory: factory(RequiredType),
+    metadata: null,
+    inner: desc,
+    args: { required: isRequired },
+    description: "required"
+  };
 }
 
 export class TypeBuilder {
@@ -50,33 +100,14 @@ export class TypeBuilder {
   }
 
   named(name: string): TypeBuilder {
-    return new TypeBuilder({
-      type: "Alias",
-      factory: (desc: AliasDescriptor) => instantiate(desc.inner),
-      metadata: null,
-      inner: this.descriptor,
-      args: null,
-      name,
-      description: `alias`
-    });
+    return new TypeBuilder(alias(this.descriptor, name));
   }
 
   required(isRequired = true): TypeBuilder {
-    // if (this.descriptor.type === "Required") {
-    //   return Required(type.descriptor.inner, isTypeRequired);
-    // }
-
-    return new TypeBuilder({
-      type: "Required",
-      factory: (desc: RequiredDescriptor) => new RequiredType(desc),
-      metadata: null,
-      inner: this.descriptor,
-      args: { required: isRequired },
-      description: "required"
-    });
+    return new TypeBuilder(required(this.descriptor, isRequired));
   }
 
-  features(features: string[]): TypeBuilder {
+  features(_features: string[]): TypeBuilder {
     throw new Error("not implemented");
   }
 }
@@ -87,8 +118,6 @@ export abstract class AbstractContainerType<
   protected get type(): Type {
     return instantiate(this.descriptor.inner);
   }
-
-  abstract base: Type;
 
   validation(): ValidationBuilder<unknown> {
     return this.type.validation();
@@ -109,13 +138,12 @@ export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
     return this.descriptor.args.required;
   }
 
-  get base(): Type {
-    // return Required(this, false);
-    return new RequiredType({
-      ...this.descriptor,
-      inner: this.type.base.descriptor,
+  static base(desc: RequiredDescriptor): TypeDescriptor {
+    return {
+      ...desc,
+      inner: base(desc.inner),
       args: { required: false }
-    });
+    };
   }
 
   validation(): ValidationBuilder<unknown> {
