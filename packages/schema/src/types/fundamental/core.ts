@@ -13,7 +13,8 @@ import {
   TypeDescriptor,
   factory
 } from "../../descriptors";
-import { maybe } from "../../utils";
+import { exhausted, maybe } from "../../utils";
+import { isRequired } from "./index";
 
 /**
  * The API for a Type in Crosscheck. It essentially provides the runtime code
@@ -122,16 +123,54 @@ export function alias(
  */
 export function required(
   desc: TypeDescriptor,
-  isRequired = true
+  isRequiredType = true
 ): RequiredDescriptor {
+  let normalized = desc.type === "Required" ? desc.inner : desc;
+
   return {
     type: "Required",
     factory: factory(RequiredType),
     metadata: null,
-    inner: desc,
-    args: { required: isRequired },
+    inner: normalized,
+    args: { required: isRequiredType },
     description: "required"
   };
+}
+
+export interface BuildOptions {
+  position: "Dictionary" | "List" | "Iterator" | "Pointer";
+}
+
+export function buildType(
+  desc: TypeDescriptor,
+  options: BuildOptions
+): TypeDescriptor {
+  if (isRequired(desc) !== null) {
+    return desc;
+  }
+
+  let requiredDefault: boolean;
+
+  switch (options.position) {
+    case "Dictionary":
+      requiredDefault = false;
+      break;
+
+    // null is usually undesirable in Lists, so assume non-null by default
+    case "List":
+    // If the server provides a URL, you can assume it dereferences into *something*
+    case "Pointer":
+    // If the server provides a URL, it should, by default, dereference into the same
+    // thing as `List`, which doesn't include nulls.
+    case "Iterator":
+      requiredDefault = true;
+      break;
+
+    default:
+      return exhausted(options.position);
+  }
+
+  return transform(desc, type => type.required(requiredDefault));
 }
 
 export class TypeBuilder {
@@ -190,8 +229,7 @@ export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
   static base(desc: RequiredDescriptor): TypeDescriptor {
     return {
       ...desc,
-      inner: base(desc.inner),
-      args: { required: false }
+      inner: base(desc.inner)
     };
   }
 

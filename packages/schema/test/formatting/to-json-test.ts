@@ -7,7 +7,7 @@ QUnit.test("simple", assert => {
   assert.deepEqual(toJSON(SimpleArticle), {
     fields: {
       hed: { type: "SingleLine", required: true },
-      dek: { type: "Text", required: null },
+      dek: { type: "Text", required: false },
       body: { type: "Text", required: true }
     },
 
@@ -35,32 +35,32 @@ QUnit.test("detailed - published", assert => {
   let actual = toJSON(MediumArticle);
   let fields = {
     hed: { type: "SingleLine", required: true },
-    dek: { type: "Text", required: null },
+    dek: { type: "Text", required: false },
     body: { type: "Text", required: true },
     author: {
       type: "Dictionary",
       members: {
-        first: { type: "SingleLine", required: null },
-        last: { type: "SingleLine", required: null }
+        first: { type: "SingleLine", required: false },
+        last: { type: "SingleLine", required: false }
       },
-      required: null
+      required: false
     },
 
-    issueDate: { type: "ISODate", required: null },
-    canonicalUrl: { type: "Url", args: [], required: null },
+    issueDate: { type: "ISODate", required: false },
+    canonicalUrl: { type: "Url", args: [], required: false },
     tags: {
       type: "List",
       of: {
         type: "SingleWord",
-        required: null
+        required: true
       },
-      required: null
+      required: false
     },
     categories: {
       type: "List",
       of: {
         type: "SingleLine",
-        required: null
+        required: true
       },
       required: true
     },
@@ -70,17 +70,17 @@ QUnit.test("detailed - published", assert => {
         lat: { type: "Integer", required: true },
         long: { type: "Integer", required: true }
       },
-      required: null
+      required: false
     },
     contributors: {
       type: "List",
-      required: null,
+      required: false,
       of: {
         type: "Dictionary",
-        required: null,
+        required: true,
         members: {
-          first: { type: "SingleLine", required: null },
-          last: { type: "SingleLine", required: null }
+          first: { type: "SingleLine", required: false },
+          last: { type: "SingleLine", required: false }
         }
       }
     }
@@ -118,7 +118,7 @@ QUnit.test("detailed - draft", assert => {
       type: "List",
       of: {
         type: "Text",
-        required: null
+        required: true
       },
       required: false
     },
@@ -126,7 +126,7 @@ QUnit.test("detailed - draft", assert => {
       type: "List",
       of: {
         type: "Text",
-        required: null
+        required: true
       },
       required: false
     },
@@ -143,7 +143,7 @@ QUnit.test("detailed - draft", assert => {
       required: false,
       of: {
         type: "Dictionary",
-        required: null,
+        required: true,
         members: {
           first: { type: "Text", required: false },
           last: { type: "Text", required: false }
@@ -168,24 +168,24 @@ QUnit.test("relationships", assert => {
     toJSON(Related),
     {
       fields: {
-        first: { type: "SingleLine", required: null },
-        last: { type: "Text", required: null },
+        first: { type: "SingleLine", required: false },
+        last: { type: "Text", required: false },
         person: {
           type: "Pointer",
           kind: "hasOne",
           required: true,
           of: {
             alias: "SimpleArticle",
-            required: null
+            required: true
           }
         },
         articles: {
           type: "Iterator",
           kind: "hasMany",
-          required: null,
+          required: false,
           of: {
             alias: "MediumArticle",
-            required: null
+            required: true
           }
         }
       },
@@ -210,7 +210,7 @@ QUnit.test("relationships", assert => {
           required: false,
           of: {
             alias: "SimpleArticle",
-            required: null
+            required: true
           }
         },
         articles: {
@@ -219,7 +219,7 @@ QUnit.test("relationships", assert => {
           required: false,
           of: {
             alias: "MediumArticle",
-            required: false
+            required: true
           }
         }
       },

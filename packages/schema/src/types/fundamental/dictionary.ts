@@ -8,14 +8,12 @@ import {
 } from "../../descriptors";
 import {
   AbstractType,
-  Type,
   TypeBuilder,
   base,
+  buildType,
   instantiate,
-  required,
-  transform
+  required
 } from "./core";
-import { isRequired } from "./required";
 
 export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor
@@ -24,30 +22,6 @@ export type AbstractDictionaryDescriptor =
 export abstract class AbstractDictionary<
   Descriptor extends AbstractDictionaryDescriptor
 > extends AbstractType<Descriptor> {
-  protected get types(): Dict<Type> {
-    let fields = dict<Type>();
-
-    for (let [key, value] of entries(this.descriptor.members)) {
-      fields[key] = instantiate(value!);
-    }
-
-    return fields;
-  }
-
-  private get defaultTypes(): Dict<TypeDescriptor> {
-    let obj = dict<TypeDescriptor>();
-
-    for (let [key, value] of entries(this.descriptor.members)) {
-      if (isRequired(value!) === null) {
-        value = transform(value!, type => type.required(false));
-      }
-
-      obj[key] = value!;
-    }
-
-    return obj;
-  }
-
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
       return null;
@@ -55,7 +29,7 @@ export abstract class AbstractDictionary<
 
     let out: Dict = {};
 
-    for (let [key, value] of entries(this.defaultTypes)) {
+    for (let [key, value] of entries(this.descriptor.members)) {
       assert(
         key in js,
         `Serialization error: missing field \`${key}\` (must validate before serializing)`
@@ -74,7 +48,7 @@ export abstract class AbstractDictionary<
   parse(wire: Dict): Option<Dict> {
     let out: Dict = {};
 
-    for (let [key, value] of entries(this.defaultTypes)) {
+    for (let [key, value] of entries(this.descriptor.members)) {
       let raw = wire[key];
 
       if (raw === undefined) {
@@ -90,7 +64,7 @@ export abstract class AbstractDictionary<
   validation(): ValidationBuilder<unknown> {
     let obj = dict<ValidationBuilder<unknown>>();
 
-    for (let [key, value] of entries(this.defaultTypes)) {
+    for (let [key, value] of entries(this.descriptor.members)) {
       obj[key] = instantiate(value!).validation();
     }
 
@@ -117,7 +91,7 @@ export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
   let members = dict<TypeDescriptor>();
 
   for (let [key, value] of entries(dictionary)) {
-    members[key] = value!.descriptor;
+    members[key] = buildType(value!.descriptor, { position: "Dictionary" });
   }
 
   return new TypeBuilder({

@@ -1,14 +1,14 @@
 import { IteratorDescriptor, TypeDescriptor, factory } from "../../descriptors";
 import { Record } from "../../record";
 import { JSONValue } from "../../utils";
-import { TypeBuilder, required } from "./core";
+import { TypeBuilder, buildType } from "./core";
 import { ReferenceImpl } from "./reference";
 
 export class IteratorImpl extends ReferenceImpl {
   static base(descriptor: IteratorDescriptor): TypeDescriptor {
     return {
       ...descriptor,
-      inner: required(descriptor.inner, false)
+      inner: descriptor.inner
     };
   }
 
@@ -22,7 +22,7 @@ export function hasMany(item: Record, options: JSONValue = null): TypeBuilder {
     type: "Iterator",
     factory: factory(IteratorImpl),
     description: "hasMany",
-    inner: item.descriptor,
+    inner: buildType(item.descriptor, { position: "Iterator" }),
     args: null,
     metadata: options,
     name: "hasMany"

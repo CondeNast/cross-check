@@ -8,6 +8,7 @@ import {
   Type,
   TypeBuilder,
   base,
+  buildType,
   instantiate,
   required
 } from "./types/fundamental";
@@ -41,7 +42,13 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
   }
 
   get fields(): Dict<Type> {
-    return this.types;
+    let obj = dict<Type>();
+
+    for (let [key, value] of entries(this.descriptor.members)) {
+      obj[key] = instantiate(value!);
+    }
+
+    return obj;
   }
 
   get metadata(): Option<JSONObject> {
@@ -70,7 +77,7 @@ export function Record(name: string, options: RecordOptions): Record {
   let members = dict<TypeDescriptor>();
 
   for (let [key, value] of entries(options.fields)) {
-    members[key] = value!.descriptor;
+    members[key] = buildType(value!.descriptor, { position: "Dictionary" });
   }
 
   return new RecordImpl({
