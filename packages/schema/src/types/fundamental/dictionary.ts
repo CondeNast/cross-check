@@ -2,6 +2,7 @@ import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import {
   DictionaryDescriptor,
+  MembersMeta,
   RecordDescriptor,
   TypeDescriptor,
   factory
@@ -10,6 +11,7 @@ import {
   AbstractType,
   TypeBuilder,
   base,
+  buildMeta,
   buildType,
   instantiate,
   required
@@ -19,9 +21,24 @@ export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor
   | RecordDescriptor;
 
-export abstract class AbstractDictionary<
+export class DictionaryImpl<
   Descriptor extends AbstractDictionaryDescriptor
 > extends AbstractType<Descriptor> {
+  static base(
+    descriptor: DictionaryDescriptor | RecordDescriptor
+  ): TypeDescriptor {
+    let draftDict = dict<TypeDescriptor>();
+
+    for (let [key, value] of entries(descriptor.members)) {
+      draftDict[key] = required(base(value!), false);
+    }
+
+    return {
+      ...descriptor,
+      members: draftDict
+    };
+  }
+
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
       return null;
@@ -72,36 +89,33 @@ export abstract class AbstractDictionary<
   }
 }
 
-export class DictionaryImpl extends AbstractDictionary<DictionaryDescriptor> {
-  static base(descriptor: DictionaryDescriptor): TypeDescriptor {
-    let draftDict = dict<TypeDescriptor>();
+export function buildMembers(
+  dictionary: Dict<TypeBuilder>
+): {
+  members: Dict<TypeDescriptor>;
+  membersMeta: Dict<MembersMeta>;
+} {
+  let membersDict = dict<TypeDescriptor>();
+  let membersMeta = dict<MembersMeta>();
 
-    for (let [key, value] of entries(descriptor.members)) {
-      draftDict[key] = required(base(value!), false);
-    }
-
-    return {
-      ...descriptor,
-      members: draftDict
-    };
+  for (let [key, value] of entries(dictionary)) {
+    membersDict[key] = buildType(value!.descriptor, { position: "Dictionary" });
+    membersMeta[key] = buildMeta(value!, { position: "Dictionary" });
   }
+
+  return { members: membersDict, membersMeta };
 }
 
 export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
-  let members = dict<TypeDescriptor>();
-
-  for (let [key, value] of entries(dictionary)) {
-    members[key] = buildType(value!.descriptor, { position: "Dictionary" });
-  }
+  let { members, membersMeta } = buildMembers(dictionary);
 
   return new TypeBuilder({
     type: "Dictionary",
     factory: factory(DictionaryImpl),
     description: "Dictionary",
     members,
+    membersMeta,
     args: null,
     metadata: null
   });
 }
-
-export type ConstructDictionary = (d: Dict<TypeBuilder>) => DictionaryImpl;

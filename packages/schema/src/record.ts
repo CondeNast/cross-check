@@ -4,35 +4,14 @@ import { Task } from "no-show";
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
 import { RecordDescriptor, TypeDescriptor, factory } from "./descriptors";
 import {
-  AbstractDictionary,
+  DictionaryImpl,
   Type,
   TypeBuilder,
-  base,
-  buildType,
-  instantiate,
-  required
+  buildMembers,
+  instantiate
 } from "./types/fundamental";
 
-export interface View {
-  draft: boolean;
-  features: string[];
-}
-
-class RecordImpl extends AbstractDictionary<RecordDescriptor>
-  implements Record {
-  static base(descriptor: RecordDescriptor): RecordDescriptor {
-    let draftDict = dict<TypeDescriptor>();
-
-    for (let [key, value] of entries(descriptor.members)) {
-      draftDict[key] = required(base(value!), false);
-    }
-
-    return {
-      ...descriptor,
-      members: draftDict
-    };
-  }
-
+class RecordImpl extends DictionaryImpl<RecordDescriptor> implements Record {
   constructor(readonly descriptor: RecordDescriptor) {
     super(descriptor);
   }
@@ -55,7 +34,7 @@ class RecordImpl extends AbstractDictionary<RecordDescriptor>
     return this.descriptor.metadata;
   }
 
-  get base(): RecordDescriptor {
+  get base(): TypeDescriptor {
     return RecordImpl.base(this.descriptor);
   }
 
@@ -73,20 +52,19 @@ export interface RecordOptions {
   metadata?: JSONObject;
 }
 
-export function Record(name: string, options: RecordOptions): Record {
-  let members = dict<TypeDescriptor>();
-
-  for (let [key, value] of entries(options.fields)) {
-    members[key] = buildType(value!.descriptor, { position: "Dictionary" });
-  }
+export function Record(
+  name: string,
+  { fields, metadata = null }: RecordOptions
+): Record {
+  let { members, membersMeta } = buildMembers(fields);
 
   return new RecordImpl({
     type: "Record",
     factory: factory(RecordImpl),
     description: "Record",
     members,
-    metadata: options.metadata || null,
-    isBase: false,
+    membersMeta,
+    metadata,
     args: null,
     name
   });

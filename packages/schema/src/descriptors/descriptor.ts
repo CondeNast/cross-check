@@ -152,10 +152,16 @@ export interface IteratorDescriptor<Args extends JSONValue = JSONValue>
   readonly args: Args;
 }
 
+export interface MembersMeta extends JSONObject {
+  [key: string]: JSONValue | undefined;
+  features?: string[];
+}
+
 export interface DictionaryDescriptor<Args extends JSONValue = JSONValue>
   extends AbstractTypeDescriptor<Args> {
   readonly type: "Dictionary";
   readonly members: Dict<TypeDescriptor>;
+  readonly membersMeta: Dict<MembersMeta>;
   readonly metadata: null;
 }
 
@@ -163,8 +169,8 @@ export interface RecordDescriptor<Args extends JSONValue = JSONValue>
   extends AbstractTypeDescriptor<Args> {
   readonly type: "Record";
   readonly members: Dict<TypeDescriptor>;
+  readonly membersMeta: Dict<JSONValue>;
   readonly metadata: Option<JSONObject>;
-  readonly isBase: boolean;
   readonly name: string;
 }
 

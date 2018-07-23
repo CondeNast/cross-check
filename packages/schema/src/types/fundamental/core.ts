@@ -9,6 +9,7 @@ import {
   AliasDescriptor,
   ContainerDescriptor,
   Factory,
+  MembersMeta,
   RequiredDescriptor,
   TypeDescriptor,
   factory
@@ -152,6 +153,8 @@ export function buildType(
   let requiredDefault: boolean;
 
   switch (options.position) {
+    // Fields in a dictionary or record are optional by default, and .required() makes
+    // a type required.
     case "Dictionary":
       requiredDefault = false;
       break;
@@ -173,31 +176,60 @@ export function buildType(
   return transform(desc, type => type.required(requiredDefault));
 }
 
-export class TypeBuilder {
-  // TODO: If we need this at the very end of the refactor, we failed
-  // This is because design-time to runtime should be a one-way trip.
-  // We probably need some conveniences to make it true.
-  static fromType(type: Type): TypeBuilder {
-    return new TypeBuilder(type.descriptor);
-  }
+export function buildMeta(
+  builder: TypeBuilder,
+  options: BuildOptions
+): MembersMeta {
+  switch (options.position) {
+    case "Dictionary": {
+      return { features: getFeatures(builder) };
+    }
 
-  constructor(readonly descriptor: TypeDescriptor) {}
+    default: {
+      // TODO: Improve user-facing description
+      throw new Error(`You cannot use .features() in a ${options.position}`);
+    }
+  }
+}
+
+export interface BuilderMetadata {
+  features: Option<string[]>;
+}
+
+const DEFAULT_METADATA = {
+  features: null
+};
+
+export class TypeBuilder {
+  constructor(
+    readonly descriptor: TypeDescriptor,
+    /** @internal */
+    readonly metadata: BuilderMetadata = DEFAULT_METADATA
+  ) {}
 
   toType(): Type {
     return instantiate(this.descriptor);
   }
 
   named(name: string): TypeBuilder {
-    return new TypeBuilder(alias(this.descriptor, name));
+    return new TypeBuilder(alias(this.descriptor, name), this.metadata);
   }
 
-  required(isRequired = true): TypeBuilder {
-    return new TypeBuilder(required(this.descriptor, isRequired));
+  required(isRequiredType = true): TypeBuilder {
+    return new TypeBuilder(
+      required(this.descriptor, isRequiredType),
+      this.metadata
+    );
   }
 
-  features(_features: string[]): TypeBuilder {
-    throw new Error("not implemented");
+  features(features: string[]): TypeBuilder {
+    // TODO: Concat with old features?
+    return new TypeBuilder(this.descriptor, { features });
   }
+}
+
+export function getFeatures(builder: TypeBuilder): string[] | undefined {
+  return builder.metadata.features || undefined;
 }
 
 export abstract class AbstractContainerType<
