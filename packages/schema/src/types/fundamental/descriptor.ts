@@ -1,5 +1,6 @@
 import { Dict, JSONObject, Option } from "ts-std";
 import { JSONValue } from "../utils";
+import { Dictionary } from "./index";
 import { Type } from "./value";
 
 export interface Factory<
@@ -188,15 +189,18 @@ export type ContainerDescriptor =
   | PointerDescriptor
   | IteratorDescriptor;
 
-export type TypeDescriptor =
-  | AliasDescriptor
-  | RequiredDescriptor
-  | ListDescriptor
-  | PointerDescriptor
-  | IteratorDescriptor
-  | DictionaryDescriptor
-  | RecordDescriptor
-  | PrimitiveDescriptor;
+export interface TypeDescriptors {
+  Alias: AliasDescriptor;
+  Required: RequiredDescriptor;
+  List: ListDescriptor;
+  Pointer: PointerDescriptor;
+  Iterator: IteratorDescriptor;
+  Dictionary: DictionaryDescriptor;
+  Record: RecordDescriptor;
+  Primitive: PrimitiveDescriptor;
+}
+
+export type TypeDescriptor = TypeDescriptors[keyof TypeDescriptors];
 
 // Is a concrete type (not a wrapper type like Required or Alias)
 // and has an `inner` type

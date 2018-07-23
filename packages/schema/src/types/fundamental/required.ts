@@ -13,6 +13,7 @@ export function isRequired(desc: TypeDescriptor): Option<boolean> {
     case "Required":
       return desc.args.required;
     case "Alias":
+      return isRequired(desc.inner);
     case "Primitive":
     case "List":
     case "Dictionary":
