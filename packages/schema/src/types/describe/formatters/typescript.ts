@@ -1,4 +1,4 @@
-import { isRequired } from "../../fundamental/required";
+import { isRequired } from "../../fundamental";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate } from "../reporter";

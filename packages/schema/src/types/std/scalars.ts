@@ -1,12 +1,7 @@
-import {
-  ValidationBuilder,
-  ValueValidator,
-  builderFor,
-  validators
-} from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
-import { PrimitiveDescriptor } from "../fundamental/descriptor";
-import { AbstractType, Type, base, instantiate } from "../fundamental/value";
+import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { unknown } from "ts-std";
+import { PrimitiveDescriptor } from "../../descriptors";
+import { ANY, AbstractType, Type, base, instantiate } from "../fundamental";
 import { TypeConstructor, primitive } from "../type";
 
 export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
@@ -147,17 +142,8 @@ class AnyPrimitive extends Scalar {
   static typeName = "Any";
 
   validation(): ValidationBuilder<unknown> {
-    return builderFor(AnyValidator)();
-  }
-}
-
-class AnyValidator extends ValueValidator<unknown, void> {
-  static validatorName = "any";
-
-  validate(_value: unknown, _context: Option<string>): void {
-    return;
+    return ANY;
   }
 }
 
 export const Any: TypeConstructor = primitive(AnyPrimitive);
-export const ANY = builderFor(AnyValidator)();

@@ -1,8 +1,8 @@
+import { IteratorDescriptor, TypeDescriptor, factory } from "../../descriptors";
 import { Record } from "../../record";
-import { JSONValue } from "../utils";
-import { IteratorDescriptor, TypeDescriptor, factory } from "./descriptor";
+import { JSONValue } from "../../utils";
+import { TypeBuilder, required } from "./core";
 import { ReferenceImpl } from "./reference";
-import { TypeBuilder, required } from "./value";
 
 export class IteratorImpl extends ReferenceImpl {
   static base(descriptor: IteratorDescriptor): TypeDescriptor {

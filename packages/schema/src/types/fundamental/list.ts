@@ -1,8 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { ListDescriptor, TypeDescriptor, factory } from "./descriptor";
+import { ListDescriptor, TypeDescriptor, factory } from "../../descriptors";
+import { AbstractType, Type, TypeBuilder, base, instantiate } from "./core";
 import { isRequired } from "./required";
-import { AbstractType, Type, TypeBuilder, base, instantiate } from "./value";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,

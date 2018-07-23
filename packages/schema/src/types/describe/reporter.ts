@@ -6,8 +6,8 @@ import {
   RecordDescriptor,
   RequiredDescriptor,
   TypeDescriptor
-} from "../fundamental/descriptor";
-import { exhausted } from "../utils";
+} from "../../descriptors";
+import { exhausted } from "../../utils";
 import { Buffer as StringBuffer } from "./buffer";
 
 export interface Reporters<Buffer, Inner, Options> {

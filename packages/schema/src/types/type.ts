@@ -1,5 +1,5 @@
-import { PrimitiveDescriptor, TypeDescriptor } from "./fundamental/descriptor";
-import { Type, TypeBuilder } from "./fundamental/value";
+import { PrimitiveDescriptor, TypeDescriptor } from "../descriptors";
+import { Type, TypeBuilder } from "./fundamental";
 
 /**
  * Internals Vocabulary:

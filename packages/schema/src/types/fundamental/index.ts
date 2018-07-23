@@ -1,5 +1,8 @@
-export { Dictionary } from "./dictionary";
-export { List } from "./list";
-export { hasMany } from "./iterator";
-export { hasOne } from "./pointer";
-export { formatDescriptor } from "./descriptor-debug";
+export * from "./dictionary";
+export * from "./list";
+export * from "./iterator";
+export * from "./pointer";
+export { formatDescriptor } from "../../descriptors";
+export * from "./required";
+export * from "./core";
+export * from "./reference";

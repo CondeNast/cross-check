@@ -1,7 +1,7 @@
 import { Dict, Option } from "ts-std";
 import { Record } from "../../../record";
-import { isRequired } from "../../fundamental/required";
-import { titleize } from "../../utils";
+import { titleize } from "../../../utils";
+import { isRequired } from "../../fundamental";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate } from "../reporter";
 

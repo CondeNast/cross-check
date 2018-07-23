@@ -1,4 +1,4 @@
-import { TypeDescriptor } from "../../fundamental/descriptor";
+import { TypeDescriptor } from "../../../descriptors";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate, isLast } from "../reporter";

@@ -1,5 +1,4 @@
 import { Dict, Option, dict, unknown } from "ts-std";
-import { Record } from "../../../record";
 import {
   AliasDescriptor,
   CollectionDescriptor,
@@ -7,8 +6,9 @@ import {
   PrimitiveDescriptor,
   RecordDescriptor,
   RequiredDescriptor
-} from "../../fundamental/descriptor";
-import { JSONValue, exhausted } from "../../utils";
+} from "../../../descriptors";
+import { Record } from "../../../record";
+import { JSONValue, exhausted } from "../../../utils";
 import {
   RecursiveDelegate,
   RecursiveDelegateTypes,

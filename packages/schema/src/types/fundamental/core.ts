@@ -1,6 +1,10 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { assert, unknown } from "ts-std";
-import { maybe } from "../utils";
+import {
+  ValidationBuilder,
+  ValueValidator,
+  builderFor,
+  validators
+} from "@cross-check/dsl";
+import { Option, assert, unknown } from "ts-std";
 import {
   AliasDescriptor,
   ContainerDescriptor,
@@ -8,8 +12,19 @@ import {
   RequiredDescriptor,
   TypeDescriptor,
   factory
-} from "./descriptor";
+} from "../../descriptors";
+import { maybe } from "../../utils";
 
+/**
+ * The API for a Type in Crosscheck. It essentially provides the runtime code
+ * for a descriptor:
+ *
+ * - `validation()`, which provides a validation rule for the descriptor
+ * - `serialize()`, which takes an already-validated value and serializes it
+ *   into the wire format.
+ * - `parse()`, which takes a valid serialized value and parses it into
+ *   the JS representation.
+ */
 export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
   readonly descriptor: Descriptor;
 
@@ -18,6 +33,7 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
   parse(input: unknown): unknown;
 }
 
+// This class basically exists to make the constructor argument generic.
 export abstract class AbstractType<Descriptor extends TypeDescriptor>
   implements Type<Descriptor> {
   constructor(readonly descriptor: Descriptor) {}
@@ -27,6 +43,13 @@ export abstract class AbstractType<Descriptor extends TypeDescriptor>
   abstract parse(input: unknown): unknown;
 }
 
+/**
+ * Takes a `TypeDescriptor` and produces a `Type`. This works by invoking
+ * the `instantiate` factory function inside of the type descriptor with
+ * the descriptor.
+ *
+ * @param descriptor a `TypeDescriptor`
+ */
 export function instantiate<D extends TypeDescriptor, T extends Type<D>>(
   descriptor: D
 ): T {
@@ -34,6 +57,13 @@ export function instantiate<D extends TypeDescriptor, T extends Type<D>>(
   return instantiateFactory(descriptor);
 }
 
+/**
+ * Transform a `TypeDescriptor`.
+ *
+ * @param desc a `TypeDescriptor`
+ * @param callback a function that takes a `TypeBuilder` for the descriptor
+ *   and returns a `TypeBuilder` that reflects the transformation
+ */
 export function transform(
   desc: TypeDescriptor,
   callback: (type: TypeBuilder) => TypeBuilder
@@ -41,6 +71,13 @@ export function transform(
   return callback(new TypeBuilder(desc)).descriptor;
 }
 
+/**
+ * Takes a `TypeDescriptor` and returns its `base` type. This works by
+ * invoking the `base` factory function inside of the type descriptor
+ * with the descriptor.
+ *
+ * @param descriptor a `TypeDescriptor`
+ */
 export function base<D extends TypeDescriptor, T extends Type<D>>(
   descriptor: D
 ): TypeDescriptor {
@@ -48,6 +85,12 @@ export function base<D extends TypeDescriptor, T extends Type<D>>(
   return baseFactory(descriptor);
 }
 
+/**
+ * Takes a `TypeDescriptor` and produces a named alias for it.
+ *
+ * @param descriptor a `TypeDescriptor`
+ * @param name the new name of the type
+ */
 export function alias(
   descriptor: TypeDescriptor,
   name: string
@@ -71,6 +114,12 @@ export function alias(
   };
 }
 
+/**
+ * Takes a `TypeDescriptor` and makes it either required or optional.
+ *
+ * @param desc a `TypeDescriptor`
+ * @param isRequired is the descriptor required?
+ */
 export function required(
   desc: TypeDescriptor,
   isRequired = true
@@ -176,3 +225,13 @@ export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
     }
   }
 }
+
+class AnyValidator extends ValueValidator<unknown, void> {
+  static validatorName = "any";
+
+  validate(_value: unknown, _context: Option<string>): void {
+    return;
+  }
+}
+
+export const ANY = builderFor(AnyValidator)();

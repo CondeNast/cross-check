@@ -1,11 +1,10 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
+import { PointerDescriptor, TypeDescriptor, factory } from "../../descriptors";
 import { Record } from "../../record";
-import { ANY } from "../std/scalars";
-import { JSONValue } from "../utils";
-import { PointerDescriptor, TypeDescriptor, factory } from "./descriptor";
+import { JSONValue } from "../../utils";
+import { ANY, TypeBuilder, base } from "./core";
 import { ReferenceImpl } from "./reference";
-import { TypeBuilder, base } from "./value";
 
 export class PointerImpl extends ReferenceImpl {
   static base(descriptor: PointerDescriptor): TypeDescriptor {

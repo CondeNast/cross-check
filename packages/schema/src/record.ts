@@ -2,19 +2,15 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
+import { RecordDescriptor, TypeDescriptor, factory } from "./descriptors";
 import {
-  RecordDescriptor,
-  TypeDescriptor,
-  factory
-} from "./types/fundamental/descriptor";
-import { AbstractDictionary } from "./types/fundamental/dictionary";
-import {
+  AbstractDictionary,
   Type,
   TypeBuilder,
   base,
   instantiate,
   required
-} from "./types/fundamental/value";
+} from "./types/fundamental";
 
 export interface View {
   draft: boolean;

@@ -1,7 +1,6 @@
 import { Dict, JSONObject, Option } from "ts-std";
+import { Type } from "../types/fundamental";
 import { JSONValue } from "../utils";
-import { Dictionary } from "./index";
-import { Type } from "./value";
 
 export interface Factory<
   Descriptor extends AbstractTypeDescriptor,

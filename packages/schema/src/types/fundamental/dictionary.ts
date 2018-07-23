@@ -5,8 +5,7 @@ import {
   RecordDescriptor,
   TypeDescriptor,
   factory
-} from "./descriptor";
-import { isRequired } from "./required";
+} from "../../descriptors";
 import {
   AbstractType,
   Type,
@@ -15,7 +14,8 @@ import {
   instantiate,
   required,
   transform
-} from "./value";
+} from "./core";
+import { isRequired } from "./required";
 
 export type AbstractDictionaryDescriptor =
   | DictionaryDescriptor

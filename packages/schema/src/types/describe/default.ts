@@ -4,7 +4,7 @@ import {
   PrimitiveDescriptor,
   RecordDescriptor,
   TypeDescriptor
-} from "../fundamental/descriptor";
+} from "../../descriptors";
 import { Pos, ReporterState } from "./reporter";
 
 export class RecordReporter<Buffer, Inner, Options> extends ReporterState<

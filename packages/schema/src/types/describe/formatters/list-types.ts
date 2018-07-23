@@ -1,12 +1,12 @@
 import { Dict, unknown } from "ts-std";
-import { Record } from "../../../record";
 import {
   AliasDescriptor,
   CollectionDescriptor,
   DictionaryDescriptor,
   PrimitiveDescriptor,
   RecordDescriptor
-} from "../../fundamental/descriptor";
+} from "../../../descriptors";
+import { Record } from "../../../record";
 import {
   RecursiveDelegate,
   RecursiveDelegateTypes,

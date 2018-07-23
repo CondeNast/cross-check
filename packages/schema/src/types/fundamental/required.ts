@@ -1,6 +1,6 @@
 import { Option } from "ts-std";
-import { exhausted } from "../utils";
-import { TypeDescriptor } from "./descriptor";
+import { TypeDescriptor } from "../../descriptors";
+import { exhausted } from "../../utils";
 
 /**
  *

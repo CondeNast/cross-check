@@ -8,9 +8,9 @@ import {
   RecordDescriptor,
   RequiredDescriptor,
   TypeDescriptor
-} from "../fundamental/descriptor";
-import { TypeBuilder } from "../fundamental/value";
-import { exhausted } from "../utils";
+} from "../../descriptors";
+import { exhausted } from "../../utils";
+import { TypeBuilder } from "../fundamental";
 import {
   Accumulator,
   DictionaryPosition,

@@ -1,5 +1,5 @@
-import { PrimitiveDescriptor } from "../../fundamental/descriptor";
-import { JSONValue } from "../../utils";
+import { PrimitiveDescriptor } from "../../../descriptors";
+import { JSONValue } from "../../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import {
