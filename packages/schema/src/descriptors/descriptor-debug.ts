@@ -1,17 +1,17 @@
 import { Dict, JSONObject, entries } from "ts-std";
-import { JSONValue, exhausted } from "../utils";
+import { JSONValue } from "../utils";
 import {
   AliasDescriptor,
   DictionaryDescriptor,
   IteratorDescriptor,
-  ListArgs,
   ListDescriptor,
   PointerDescriptor,
   PrimitiveDescriptor,
   RecordDescriptor,
   RequiredArgs,
   RequiredDescriptor,
-  TypeDescriptor
+  TypeDescriptor,
+  isDescriptor
 } from "./descriptor";
 
 export interface DescriptorJSON {
@@ -21,13 +21,12 @@ export interface DescriptorJSON {
   attributes?: JSONObject;
 }
 
-export function aliasToJSON(desc: AliasDescriptor<JSONValue>): DescriptorJSON {
+export function aliasToJSON(desc: AliasDescriptor): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
     attributes: {
-      name: desc.name,
-      args: formatJSON(desc.args)
+      name: desc.name
     }
   };
 }
@@ -44,7 +43,7 @@ export function requiredToJSON(
   };
 }
 
-export function listToJSON(desc: ListDescriptor<ListArgs>): DescriptorJSON {
+export function listToJSON(desc: ListDescriptor): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -54,9 +53,7 @@ export function listToJSON(desc: ListDescriptor<ListArgs>): DescriptorJSON {
   };
 }
 
-export function pointerToJSON(
-  desc: PointerDescriptor<JSONValue>
-): DescriptorJSON {
+export function pointerToJSON(desc: PointerDescriptor): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -68,9 +65,7 @@ export function pointerToJSON(
   };
 }
 
-export function iteratorToJSON(
-  desc: IteratorDescriptor<JSONValue>
-): DescriptorJSON {
+export function iteratorToJSON(desc: IteratorDescriptor): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -82,9 +77,7 @@ export function iteratorToJSON(
   };
 }
 
-export function dictionaryToJSON(
-  desc: DictionaryDescriptor<JSONValue>
-): DescriptorJSON {
+export function dictionaryToJSON(desc: DictionaryDescriptor): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
@@ -101,9 +94,7 @@ export function dictionaryToJSON(
   };
 }
 
-export function recordToJSON(
-  desc: RecordDescriptor<JSONValue>
-): DescriptorJSON {
+export function recordToJSON(desc: RecordDescriptor): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
@@ -121,9 +112,7 @@ export function recordToJSON(
   };
 }
 
-export function primitiveToJSON(
-  desc: PrimitiveDescriptor<JSONValue>
-): DescriptorJSON {
+export function primitiveToJSON(desc: PrimitiveDescriptor): DescriptorJSON {
   return {
     type: desc.type,
     attributes: {
@@ -136,33 +125,24 @@ export function primitiveToJSON(
 }
 
 export function descToJSON(descriptor: TypeDescriptor): DescriptorJSON {
-  switch (descriptor.type) {
-    case "Alias":
-      return aliasToJSON(descriptor);
-
-    case "Required":
-      return requiredToJSON(descriptor);
-
-    case "List":
-      return listToJSON(descriptor);
-
-    case "Pointer":
-      return pointerToJSON(descriptor);
-
-    case "Iterator":
-      return iteratorToJSON(descriptor);
-
-    case "Dictionary":
-      return dictionaryToJSON(descriptor);
-
-    case "Record":
-      return recordToJSON(descriptor);
-
-    case "Primitive":
-      return primitiveToJSON(descriptor);
-
-    default:
-      return exhausted(descriptor);
+  if (isDescriptor(descriptor, "Alias")) {
+    return aliasToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Required")) {
+    return requiredToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "List")) {
+    return listToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Pointer")) {
+    return pointerToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Iterator")) {
+    return iteratorToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Dictionary")) {
+    return dictionaryToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Record")) {
+    return recordToJSON(descriptor);
+  } else if (isDescriptor(descriptor, "Primitive")) {
+    return primitiveToJSON(descriptor);
+  } else {
+    throw new Error("unreachable");
   }
 }
 

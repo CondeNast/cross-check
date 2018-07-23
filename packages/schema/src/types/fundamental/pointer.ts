@@ -1,13 +1,13 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { PointerDescriptor, TypeDescriptor, factory } from "../../descriptors";
+import { PointerDescriptor, factory } from "../../descriptors";
 import { Record } from "../../record";
 import { JSONValue } from "../../utils";
 import { ANY, TypeBuilder, base, buildType } from "./core";
 import { ReferenceImpl } from "./reference";
 
 export class PointerImpl extends ReferenceImpl {
-  static base(descriptor: PointerDescriptor): TypeDescriptor {
+  static base(descriptor: PointerDescriptor): PointerDescriptor {
     return {
       ...descriptor,
       inner: base(descriptor.inner)
@@ -40,5 +40,5 @@ export function hasOne(entity: Record, options: JSONValue = null): TypeBuilder {
     args: options,
     metadata: null,
     name: "hasOne"
-  });
+  } as PointerDescriptor);
 }

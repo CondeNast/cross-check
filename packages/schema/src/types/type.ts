@@ -1,4 +1,5 @@
 import { PrimitiveDescriptor, TypeDescriptor } from "../descriptors";
+import { JSONValue } from "../utils";
 import { Type, TypeBuilder } from "./fundamental";
 
 /**
@@ -37,12 +38,12 @@ import { Type, TypeBuilder } from "./fundamental";
  *   in-progress work in a user interface.
  */
 
-export interface PrimitiveClass {
+export interface AnyPrimitiveClass<Args extends JSONValue | undefined> {
   base?: TypeBuilder;
   typescript: string;
   description: string;
   typeName: string;
-  new (desc: PrimitiveDescriptor): Type<PrimitiveDescriptor>;
+  new (desc: PrimitiveDescriptor<Args>): Type<PrimitiveDescriptor<Args>>;
 }
 
 export interface TypeClass {
@@ -51,58 +52,79 @@ export interface TypeClass {
 
 export type TypeDescription = TypeClass | TypeBuilder;
 
-export interface GenericClass {
-  new (descriptor: PrimitiveDescriptor): TypeBuilder;
-}
+// export interface GenericClass {
+//   new (descriptor: PrimitiveDescriptor): TypeBuilder;
+// }
 
-export type GenericDescription = GenericClass | TypeBuilder;
+// export type GenericDescription = GenericClass | TypeBuilder;
 
-export function generic(
-  callback: (...T: TypeBuilder[]) => TypeBuilder
-): Generic {
-  return (...descs: GenericDescription[]) => {
-    // @ts-ignore
-    let types = descs.map(constructType);
-    let type = callback(...types);
+// export function generic(
+//   callback: (...T: TypeBuilder[]) => TypeBuilder
+// ): Generic {
+//   return (...descs: GenericDescription[]) => {
+//     // @ts-ignore
+//     let types = descs.map(constructType);
+//     let type = callback(...types);
 
-    let name = descs
-      // @ts-ignore
-      .map(d => typeNameOf(constructType(d).description.name))
-      .join("");
+//     let name = descs
+//       // @ts-ignore
+//       .map(d => typeNameOf(constructType(d).description.name))
+//       .join("");
 
-    return type.named(name);
-  };
-}
+//     return type.named(name);
+//   };
+// }
 
-export type Generic = (...T: TypeDescription[]) => TypeBuilder;
+// export type Generic = (...T: TypeDescription[]) => TypeBuilder;
 
 export type PrimitiveConstructor = () => TypeBuilder;
 export type TypeConstructor = () => TypeBuilder;
 
-export function primitive(Primitive: PrimitiveClass): TypeConstructor {
-  let type = constructType(Primitive);
-  return () => type;
+export type Primitive<Args extends JSONValue | undefined> = Args extends
+  | JSONValue
+  | undefined
+  ? () => TypeBuilder
+  : (args: Args) => TypeBuilder;
+
+// TODO: This branch doesn't catch calls with arity-less functions
+export function primitive<Args extends JSONValue>(
+  PrimitiveClass: AnyPrimitiveClass<Args>
+): (args: Args) => TypeBuilder;
+export function primitive<J extends JSONValue, T extends J | undefined>(
+  PrimitiveClass: AnyPrimitiveClass<T>
+): (args?: T) => TypeBuilder;
+export function primitive(
+  PrimitiveClass: AnyPrimitiveClass<JSONValue | undefined>
+): Primitive<JSONValue> | Primitive<JSONValue | undefined> {
+  return ((args?: JSONValue | undefined) => {
+    return Primitive(PrimitiveClass, args);
+  }) as any; // TODO
 }
 
-function constructType(Primitive: PrimitiveClass): TypeBuilder {
-  let base = Primitive.base ? Primitive.base.descriptor : null;
+export function Primitive<Args extends JSONValue | undefined>(
+  PrimitiveClass: AnyPrimitiveClass<Args>,
+  args: Args extends void ? undefined : Args
+): TypeBuilder<PrimitiveDescriptor<Args>> {
+  let base = PrimitiveClass.base ? PrimitiveClass.base.descriptor : null;
 
-  let descriptor: PrimitiveDescriptor = {
+  let descriptor: PrimitiveDescriptor<Args> = {
     type: "Primitive",
     factory: {
-      instantiate(desc: PrimitiveDescriptor): Type<PrimitiveDescriptor> {
-        return new Primitive(desc);
+      instantiate(
+        desc: PrimitiveDescriptor<Args>
+      ): Type<PrimitiveDescriptor<Args>> {
+        return new PrimitiveClass(desc);
       },
 
-      base(desc: PrimitiveDescriptor): TypeDescriptor {
+      base(desc: PrimitiveDescriptor<Args>): TypeDescriptor {
         return base || desc;
       }
     },
-    typescript: Primitive.typescript,
-    description: Primitive.description,
-    name: Primitive.typeName,
+    typescript: PrimitiveClass.typescript,
+    description: PrimitiveClass.description,
+    name: PrimitiveClass.typeName,
     metadata: null,
-    args: undefined
+    args
   };
 
   return new TypeBuilder(descriptor);

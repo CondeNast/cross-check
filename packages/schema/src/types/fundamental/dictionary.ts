@@ -5,6 +5,7 @@ import {
   MembersMeta,
   RecordDescriptor,
   TypeDescriptor,
+  UnknownTypeDescriptor,
   factory
 } from "../../descriptors";
 import {
@@ -26,7 +27,7 @@ export class DictionaryImpl<
 > extends AbstractType<Descriptor> {
   static base(
     descriptor: DictionaryDescriptor | RecordDescriptor
-  ): TypeDescriptor {
+  ): AbstractDictionaryDescriptor {
     let draftDict = dict<TypeDescriptor>();
 
     for (let [key, value] of entries(descriptor.members)) {
@@ -95,7 +96,7 @@ export function buildMembers(
   members: Dict<TypeDescriptor>;
   membersMeta: Dict<MembersMeta>;
 } {
-  let membersDict = dict<TypeDescriptor>();
+  let membersDict = dict<UnknownTypeDescriptor>();
   let membersMeta = dict<MembersMeta>();
 
   for (let [key, value] of entries(dictionary)) {
@@ -117,5 +118,5 @@ export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
     membersMeta,
     args: null,
     metadata: null
-  });
+  } as DictionaryDescriptor);
 }

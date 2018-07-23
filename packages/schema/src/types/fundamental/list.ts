@@ -1,6 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { ListDescriptor, TypeDescriptor, factory } from "../../descriptors";
+import { ListDescriptor, factory } from "../../descriptors";
 import {
   AbstractType,
   Type,
@@ -20,7 +20,7 @@ class ArrayImpl extends AbstractType<ListDescriptor> {
     return instantiate(this.descriptor.inner);
   }
 
-  static base(descriptor: ListDescriptor): TypeDescriptor {
+  static base(descriptor: ListDescriptor): ListDescriptor {
     return {
       ...descriptor,
       inner: base(descriptor.inner),
@@ -62,5 +62,5 @@ export function List(
     inner: buildType(item.descriptor, { position: "List" }),
     args: { allowEmpty },
     metadata: null
-  });
+  } as ListDescriptor);
 }

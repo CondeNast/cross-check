@@ -8,7 +8,7 @@ function isValidDate(input: string): boolean {
   return input === new Date(parsed).toISOString();
 }
 
-class DateType extends Scalar {
+class DateType extends Scalar<undefined> {
   static description = "ISO Date";
   static typescript = "Date";
   static typeName = "ISODate";

@@ -7,9 +7,10 @@ import {
   PrimitiveDescriptor,
   RecordDescriptor,
   RequiredDescriptor,
-  TypeDescriptor
+  TypeDescriptor,
+  isDescriptor,
+  isGenericDescriptor
 } from "../../descriptors";
-import { exhausted } from "../../utils";
 import { TypeBuilder } from "../fundamental";
 import {
   Accumulator,
@@ -32,38 +33,23 @@ export class Visitor {
   constructor(private delegate: VisitorDelegate) {}
 
   visit(descriptor: TypeDescriptor, position: Pos): unknown {
-    switch (descriptor.type) {
-      case "Alias": {
-        return this.delegate.alias(descriptor, position);
-      }
+    if (isDescriptor(descriptor, "Alias")) {
+      return this.delegate.alias(descriptor, position);
+    } else if (isDescriptor(descriptor, "Required")) {
+      return this.delegate.required(descriptor, position);
+    } else if (isGenericDescriptor(descriptor)) {
+      return this.delegate.generic(descriptor, position);
+    } else if (isDescriptor(descriptor, "Dictionary")) {
+      return this.delegate.dictionary(descriptor, position);
+    } else if (isDescriptor(descriptor, "Record")) {
+      let desc = new TypeBuilder(descriptor).named(descriptor.name)
+        .descriptor as AliasDescriptor;
 
-      case "Required": {
-        return this.delegate.required(descriptor, position);
-      }
-
-      case "Pointer":
-      case "Iterator":
-      case "List": {
-        return this.delegate.generic(descriptor, position);
-      }
-
-      case "Dictionary": {
-        return this.delegate.dictionary(descriptor, position);
-      }
-
-      case "Record": {
-        let desc = new TypeBuilder(descriptor).named(descriptor.name)
-          .descriptor as AliasDescriptor;
-
-        return this.delegate.alias(desc, position);
-      }
-
-      case "Primitive": {
-        return this.delegate.primitive(descriptor, position);
-      }
-
-      default:
-        exhausted(descriptor);
+      return this.delegate.alias(desc, position);
+    } else if (isDescriptor(descriptor, "Primitive")) {
+      return this.delegate.primitive(descriptor, position);
+    } else {
+      throw new Error("unreachable");
     }
   }
 }

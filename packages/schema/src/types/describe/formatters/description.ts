@@ -1,4 +1,4 @@
-import { TypeDescriptor } from "../../../descriptors";
+import { TypeDescriptor, isDescriptor } from "../../../descriptors";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate, isLast } from "../reporter";
@@ -69,7 +69,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
 };
 
 function formattedKey(key: string, descriptor: TypeDescriptor): string {
-  if (descriptor.type === "Required" && descriptor.args.required) {
+  if (isDescriptor(descriptor, "Required") && descriptor.args.required) {
     return key;
   } else {
     return `${key}?`;

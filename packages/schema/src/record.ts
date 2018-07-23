@@ -39,7 +39,7 @@ class RecordImpl extends DictionaryImpl<RecordDescriptor> implements Record {
   }
 
   get draft(): Record {
-    return instantiate(this.base);
+    return instantiate(this.base) as Record;
   }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
@@ -67,7 +67,7 @@ export function Record(
     metadata,
     args: null,
     name
-  });
+  } as RecordDescriptor);
 }
 
 export interface Record extends Type<RecordDescriptor> {

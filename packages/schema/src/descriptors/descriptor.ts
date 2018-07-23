@@ -2,26 +2,22 @@ import { Dict, JSONObject, Option } from "ts-std";
 import { Type } from "../types/fundamental";
 import { JSONValue } from "../utils";
 
-export interface Factory<
-  Descriptor extends AbstractTypeDescriptor,
-  T extends Type
-> {
+export interface Factory<Descriptor extends TypeDescriptor, T extends Type> {
   instantiate(desc: Descriptor): T;
   base(desc: Descriptor): TypeDescriptor;
 }
 
 export interface FactoryClass<
-  Descriptor extends AbstractTypeDescriptor,
+  Descriptor extends TypeDescriptor,
   T extends Type
 > {
   new (desc: Descriptor): T;
   base(desc: Descriptor): TypeDescriptor;
 }
 
-export function factory<
-  Descriptor extends AbstractTypeDescriptor,
-  T extends Type
->(TypeClass: FactoryClass<Descriptor, T>): Factory<Descriptor, T> {
+export function factory<Descriptor extends TypeDescriptor, T extends Type>(
+  TypeClass: FactoryClass<Descriptor, T>
+): Factory<Descriptor, T> {
   return {
     instantiate(desc: Descriptor): T {
       return new TypeClass(desc);
@@ -33,11 +29,23 @@ export function factory<
   };
 }
 
-export interface AbstractTypeDescriptor<
+export interface UnknownTypeDescriptor {
+  readonly type: keyof TypeDescriptors;
+  readonly factory: Factory<this, Type>;
+  readonly metadata: Option<JSONValue>;
+  readonly args: JSONValue | undefined;
+
+  // A human-readable description of the type. For non-primitive
+  // types, this gives custom implementations an opportunity to
+  // describe their purpose.
+  readonly description: string;
+}
+
+export interface TypeDescriptor<
   Args extends JSONValue | undefined = JSONValue | undefined
 > {
-  readonly type: TypeDescriptor["type"];
-  readonly factory: Factory<this, Type>;
+  readonly type: keyof TypeDescriptors;
+  readonly factory: Factory<this, Type<this>>;
   readonly metadata: Option<JSONValue>;
   readonly args: Args;
 
@@ -47,22 +55,24 @@ export interface AbstractTypeDescriptor<
   readonly description: string;
 }
 
-export function defaults<K extends TypeDescriptor["type"], Options>(
-  type: K,
-  options: Options
-): {
-  type: K;
-  args: null;
-  metadata: null;
-} & Options {
-  return Object.assign(
-    {
-      type,
-      args: null,
-      metadata: null
-    },
-    options
-  );
+export function isDescriptor<K extends keyof TypeDescriptors>(
+  desc: TypeDescriptor,
+  type: K
+): desc is TypeDescriptors[K] {
+  return desc.type === type;
+}
+
+export function isGenericDescriptor(
+  desc: TypeDescriptor
+): desc is ListDescriptor | PointerDescriptor | IteratorDescriptor {
+  switch (desc.type) {
+    case "Iterator":
+    case "Pointer":
+    case "List":
+      return true;
+    default:
+      return false;
+  }
 }
 
 /**
@@ -100,19 +110,13 @@ export function defaults<K extends TypeDescriptor["type"], Options>(
  * - Hydration -> Types
  */
 
-export interface AbstractContainerDescriptor<
-  Args extends JSONValue = JSONValue
-> extends AbstractTypeDescriptor<Args> {
-  readonly inner: TypeDescriptor;
-}
-
 // TODO: This is not a runtime concept, but rather a transform-time feature
-export interface AliasDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractContainerDescriptor<Args> {
+export interface AliasDescriptor extends UnknownTypeDescriptor {
   readonly type: "Alias";
   readonly name: string;
+  readonly inner: TypeDescriptor;
   readonly metadata: null;
-  readonly args: Args;
+  readonly args: undefined;
 }
 
 export interface RequiredArgs extends JSONObject {
@@ -120,8 +124,9 @@ export interface RequiredArgs extends JSONObject {
 }
 
 export interface RequiredDescriptor<Args extends RequiredArgs = RequiredArgs>
-  extends AbstractContainerDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "Required";
+  readonly inner: UnknownTypeDescriptor;
   readonly args: Args;
 }
 
@@ -130,25 +135,28 @@ export interface ListArgs extends JSONObject {
 }
 
 export interface ListDescriptor<Args extends ListArgs = ListArgs>
-  extends AbstractContainerDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "List";
   readonly metadata: null;
+  readonly inner: UnknownTypeDescriptor;
   readonly args: Args;
 }
 
 export interface PointerDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractContainerDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "Pointer";
   readonly name: string;
   readonly metadata: Option<JSONValue>;
+  readonly inner: UnknownTypeDescriptor;
   readonly args: Args;
 }
 
 export interface IteratorDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractContainerDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "Iterator";
   readonly name: string;
   readonly metadata: Option<JSONValue>;
+  readonly inner: UnknownTypeDescriptor;
   readonly args: Args;
 }
 
@@ -158,17 +166,17 @@ export interface MembersMeta extends JSONObject {
 }
 
 export interface DictionaryDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractTypeDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "Dictionary";
-  readonly members: Dict<TypeDescriptor>;
+  readonly members: Dict<UnknownTypeDescriptor>;
   readonly membersMeta: Dict<MembersMeta>;
   readonly metadata: null;
 }
 
 export interface RecordDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractTypeDescriptor<Args> {
+  extends TypeDescriptor<Args> {
   readonly type: "Record";
-  readonly members: Dict<TypeDescriptor>;
+  readonly members: Dict<UnknownTypeDescriptor>;
   readonly membersMeta: Dict<JSONValue>;
   readonly metadata: Option<JSONObject>;
   readonly name: string;
@@ -178,13 +186,16 @@ export type AnyDictionaryDescriptor<Args extends JSONValue = JSONValue> =
   | DictionaryDescriptor<Args>
   | RecordDescriptor<Args>;
 
-export interface PrimitiveDescriptor<Args extends JSONValue = JSONValue>
-  extends AbstractTypeDescriptor<Args | undefined> {
+export type PrimitiveArgs<T> = T extends void ? undefined : T;
+
+export interface PrimitiveDescriptor<
+  Args extends JSONValue | undefined = undefined
+> extends TypeDescriptor<PrimitiveArgs<Args>> {
   readonly type: "Primitive";
   readonly name: string;
   readonly typescript: string;
   readonly metadata: null;
-  readonly args: Args | undefined;
+  readonly args: PrimitiveArgs<Args>;
 }
 
 export type ContainerDescriptor =
@@ -204,8 +215,6 @@ export interface TypeDescriptors {
   Record: RecordDescriptor;
   Primitive: PrimitiveDescriptor;
 }
-
-export type TypeDescriptor = TypeDescriptors[keyof TypeDescriptors];
 
 // Is a concrete type (not a wrapper type like Required or Alias)
 // and has an `inner` type

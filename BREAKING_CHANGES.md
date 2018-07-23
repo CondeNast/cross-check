@@ -90,3 +90,21 @@ All container types now store their inner types in normalized locations:
   their inner types at `members`.
 
 Any additional arguments are still at `descriptor.args`.
+
+# July 23: Type Narrowing
+
+```ts
+if (desc.type === "Required") {
+  // desc is RequiredDescriptor inside
+}
+```
+
+to
+
+```ts
+import { isDescriptor } from "@cross-check/schema";
+
+if (isDescriptor(desc, "Required")) {
+  // desc is RequiredDescriptor inside
+}
+```

@@ -51,7 +51,9 @@ export interface ReporterDelegate<Buffer, Inner, Options> {
     }
   ): Inner | void;
   closeValue(
-    options: ReporterEvent<Buffer, Options> & { descriptor: TypeDescriptor }
+    options: ReporterEvent<Buffer, Options> & {
+      descriptor: TypeDescriptor;
+    }
   ): Inner | void;
   openDictionary(
     options: ReporterEvent<Buffer, Options> & {

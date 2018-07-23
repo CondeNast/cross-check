@@ -1,15 +1,22 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { unknown } from "ts-std";
+import { JSONObject, unknown } from "ts-std";
 import { PrimitiveDescriptor } from "../../descriptors";
+import { JSONValue } from "../../utils";
 import { ANY, AbstractType, Type, base, instantiate } from "../fundamental";
-import { TypeConstructor, primitive } from "../type";
+import { Primitive, TypeConstructor, primitive } from "../type";
 
-export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
-  constructor(descriptor: PrimitiveDescriptor) {
+export abstract class Scalar<
+  Args extends JSONValue | undefined
+> extends AbstractType<PrimitiveDescriptor<Args>> {
+  constructor(descriptor: PrimitiveDescriptor<Args>) {
     super(descriptor);
   }
 
   abstract validation(): ValidationBuilder<unknown>;
+
+  protected get args(): this["descriptor"]["args"] {
+    return this.descriptor.args;
+  }
 
   serialize(input: unknown): unknown {
     return input;
@@ -20,12 +27,14 @@ export abstract class Scalar extends AbstractType<PrimitiveDescriptor> {
   }
 }
 
-export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
+export abstract class Opaque<
+  Args extends JSONValue | undefined
+> extends AbstractType<PrimitiveDescriptor<Args>> {
   get base(): Type {
     return instantiate(base(this.descriptor));
   }
 
-  constructor(descriptor: PrimitiveDescriptor) {
+  constructor(descriptor: PrimitiveDescriptor<Args>) {
     super(descriptor);
   }
 
@@ -40,7 +49,7 @@ export abstract class Opaque extends AbstractType<PrimitiveDescriptor> {
   }
 }
 
-class TextPrimitive extends Scalar {
+class TextPrimitive extends Scalar<TextOptions | undefined> {
   static description = "string";
   static typescript = "string";
   static typeName = "Text";
@@ -50,9 +59,15 @@ class TextPrimitive extends Scalar {
   }
 }
 
-export const Text: TypeConstructor = primitive(TextPrimitive);
+export interface TextOptions extends JSONObject {
+  allowEmpty: boolean;
+}
 
-class FloatPrimitive extends Scalar {
+export const Text: Primitive<TextOptions | undefined> = primitive(
+  TextPrimitive
+);
+
+class FloatPrimitive extends Scalar<undefined> {
   static description = "float";
   static typescript = "number";
   static typeName = "Float";
@@ -64,7 +79,7 @@ class FloatPrimitive extends Scalar {
 
 export const Float: TypeConstructor = primitive(FloatPrimitive);
 
-class IntegerPrimitive extends Scalar {
+class IntegerPrimitive extends Scalar<undefined> {
   static description = "integer";
   static typescript = "number";
   static typeName = "Integer";
@@ -83,7 +98,7 @@ class IntegerPrimitive extends Scalar {
 
 export const Integer: TypeConstructor = primitive(IntegerPrimitive);
 
-class SingleLinePrimitive extends Opaque {
+class SingleLinePrimitive extends Opaque<TextOptions | undefined> {
   static base = Text();
   static description = "single line string";
   static typescript = "string";
@@ -103,7 +118,7 @@ class SingleLinePrimitive extends Opaque {
 
 export const SingleLine: TypeConstructor = primitive(SingleLinePrimitive);
 
-class SingleWordPrimitive extends Opaque {
+class SingleWordPrimitive extends Opaque<TextOptions | undefined> {
   static base = Text();
   static description = "single word string";
   static typescript = "string";
@@ -123,7 +138,7 @@ class SingleWordPrimitive extends Opaque {
 
 export const SingleWord: TypeConstructor = primitive(SingleWordPrimitive);
 
-class BooleanPrimitive extends Scalar {
+class BooleanPrimitive extends Scalar<undefined> {
   static typeName = "Boolean";
   static typescript = "boolean";
   static description = "boolean";
@@ -136,7 +151,7 @@ class BooleanPrimitive extends Scalar {
 // tslint:disable-next-line:variable-name
 export const Boolean: TypeConstructor = primitive(BooleanPrimitive);
 
-class AnyPrimitive extends Scalar {
+class AnyPrimitive extends Scalar<undefined> {
   static description = "any";
   static typescript = "any";
   static typeName = "Any";

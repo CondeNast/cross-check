@@ -8,11 +8,12 @@ import { Option, assert, unknown } from "ts-std";
 import {
   AliasDescriptor,
   ContainerDescriptor,
-  Factory,
   MembersMeta,
   RequiredDescriptor,
   TypeDescriptor,
-  factory
+  UnknownTypeDescriptor,
+  factory,
+  isDescriptor
 } from "../../descriptors";
 import { exhausted, maybe } from "../../utils";
 import { isRequired } from "./index";
@@ -52,10 +53,8 @@ export abstract class AbstractType<Descriptor extends TypeDescriptor>
  *
  * @param descriptor a `TypeDescriptor`
  */
-export function instantiate<D extends TypeDescriptor, T extends Type<D>>(
-  descriptor: D
-): T {
-  let instantiateFactory = (descriptor.factory as Factory<D, T>).instantiate;
+export function instantiate<T extends TypeDescriptor>(descriptor: T): Type<T> {
+  let instantiateFactory = descriptor.factory.instantiate;
   return instantiateFactory(descriptor);
 }
 
@@ -80,10 +79,8 @@ export function transform(
  *
  * @param descriptor a `TypeDescriptor`
  */
-export function base<D extends TypeDescriptor, T extends Type<D>>(
-  descriptor: D
-): TypeDescriptor {
-  let baseFactory = (descriptor.factory as Factory<D, T>).base;
+export function base(descriptor: TypeDescriptor): TypeDescriptor {
+  let baseFactory = descriptor.factory.base;
   return baseFactory(descriptor);
 }
 
@@ -110,7 +107,7 @@ export function alias(
     },
     metadata: null,
     inner: descriptor,
-    args: null,
+    args: undefined,
     name,
     description: `alias`
   };
@@ -126,7 +123,7 @@ export function required(
   desc: TypeDescriptor,
   isRequiredType = true
 ): RequiredDescriptor {
-  let normalized = desc.type === "Required" ? desc.inner : desc;
+  let normalized = isDescriptor(desc, "Required") ? desc.inner : desc;
 
   return {
     type: "Required",
@@ -142,10 +139,12 @@ export interface BuildOptions {
   position: "Dictionary" | "List" | "Iterator" | "Pointer";
 }
 
+// function temporaryDictionaryHack()
+
 export function buildType(
-  desc: TypeDescriptor,
+  desc: UnknownTypeDescriptor,
   options: BuildOptions
-): TypeDescriptor {
+): UnknownTypeDescriptor {
   if (isRequired(desc) !== null) {
     return desc;
   }
@@ -200,9 +199,9 @@ const DEFAULT_METADATA = {
   features: null
 };
 
-export class TypeBuilder {
+export class TypeBuilder<Descriptor extends TypeDescriptor = TypeDescriptor> {
   constructor(
-    readonly descriptor: TypeDescriptor,
+    readonly descriptor: Descriptor,
     /** @internal */
     readonly metadata: BuilderMetadata = DEFAULT_METADATA
   ) {}
@@ -258,7 +257,7 @@ export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
     return this.descriptor.args.required;
   }
 
-  static base(desc: RequiredDescriptor): TypeDescriptor {
+  static base(desc: RequiredDescriptor): RequiredDescriptor {
     return {
       ...desc,
       inner: base(desc.inner)
