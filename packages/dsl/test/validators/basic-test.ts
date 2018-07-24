@@ -1,6 +1,6 @@
 import { ValidationError, format } from "@cross-check/core";
 import validates, { BasicValidator, builderFor } from "@cross-check/dsl";
-import { Indexable, unknown } from "ts-std";
+import { Indexable } from "ts-std";
 import { buildAndRun as run } from "../support";
 
 function isNotBlank(str: unknown): boolean {

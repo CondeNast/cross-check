@@ -1,5 +1,5 @@
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
-import { assert, unknown } from "ts-std";
+import { assert } from "ts-std";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -239,7 +239,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     protected factory: ValidatorFactory<T, Options>,
     protected options: Options,
     protected contexts: ReadonlyArray<string> = []
-  ) {}
+  ) { }
 
   andAlso(validation: Buildable<T>): ValidationBuilder<T> {
     return new AndBuilder(
@@ -308,7 +308,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
 class AndBuilder<T> extends BaseValidationBuilder<
   T,
   ReadonlyArray<ValidationDescriptor>
-> {
+  > {
   andAlso(validation: ValidationBuilder<T>): ValidationBuilder<T> {
     return new AndBuilder(
       "all",
@@ -322,7 +322,7 @@ class AndBuilder<T> extends BaseValidationBuilder<
 class OrBuilder<T> extends BaseValidationBuilder<
   T,
   ReadonlyArray<ValidationDescriptor>
-> {
+  > {
   or<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
     return new OrBuilder(
       "any",
@@ -336,7 +336,7 @@ class OrBuilder<T> extends BaseValidationBuilder<
 class ChainBuilder<T> extends BaseValidationBuilder<
   T,
   ReadonlyArray<ValidationDescriptor>
-> {
+  > {
   andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
     return new ChainBuilder(
       "pipe",

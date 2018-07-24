@@ -5,7 +5,7 @@ import {
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, Indexable, Option, dict, entries, unknown } from "ts-std";
+import { Dict, Indexable, Option, dict, entries } from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject } from "./is";
@@ -31,7 +31,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
   constructor(
     protected env: Environment,
     protected descriptors: Dict<ValidationDescriptor<T>>
-  ) {}
+  ) { }
 
   run(value: Indexable<T>, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
@@ -65,7 +65,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
 export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
   static validatorName = "keys";
 
-  constructor(protected env: Environment, protected descriptorKeys: string[]) {}
+  constructor(protected env: Environment, protected descriptorKeys: string[]) { }
 
   run(value: Indexable<T>): Task<ValidationError[]> {
     return new Task(async () => {
@@ -110,7 +110,7 @@ export function fields<T>(
     factoryFor(FieldsValidator as ValidatorClass<
       Indexable<T>,
       Dict<ValidationDescriptor<T>>
-    >),
+      >),
     normalizeFields(builders)
   );
 }

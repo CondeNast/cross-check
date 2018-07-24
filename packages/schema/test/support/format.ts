@@ -5,7 +5,6 @@ import {
   builderFor,
   validators
 } from "@cross-check/dsl";
-import { unknown } from "ts-std";
 
 export class FormatValidator extends ValueValidator<string, RegExp> {
   static validatorName = "format";

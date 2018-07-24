@@ -1,7 +1,7 @@
 import { ValidationError } from "@cross-check/core";
 import { Record } from "@cross-check/schema";
 import { Task } from "no-show";
-import { Dict, Option, unknown } from "ts-std";
+import { Dict, Option } from "ts-std";
 
 export const ENV = {
   get(object: unknown, key: string): unknown {

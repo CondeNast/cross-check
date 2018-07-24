@@ -4,7 +4,7 @@ import {
   builderFor,
   validators
 } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 import { Label, label } from "../describe/label";
 import { Type, parse, serialize, validationFor } from "../fundamental/value";
 import { basic } from "../type";

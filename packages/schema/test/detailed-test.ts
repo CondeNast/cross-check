@@ -1,6 +1,6 @@
 import { ValidationError } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, unknown } from "ts-std";
+import { Dict } from "ts-std";
 import { ENV, error, missingError, typeError, urlish } from "./support";
 import { MediumArticle } from "./support/records";
 

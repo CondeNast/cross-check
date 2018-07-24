@@ -1,6 +1,5 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { Label, Opaque, Type, label, types } from "@cross-check/schema";
-import { unknown } from "ts-std";
 import { format } from "./format";
 
 export type UrlKind =
@@ -45,7 +44,7 @@ export class Urlish {
     public protocol: string,
     public host: string,
     public pathname: string
-  ) {}
+  ) { }
 
   toString(): string {
     return `${this.protocol}://${this.host}/${this.pathname}`;

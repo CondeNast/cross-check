@@ -1,5 +1,5 @@
 import { Task } from "no-show";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 
 export type ErrorPath = ReadonlyArray<string>;
 
