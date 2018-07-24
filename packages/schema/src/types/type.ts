@@ -38,11 +38,15 @@ import { Type, TypeBuilder } from "./fundamental";
  *   in-progress work in a user interface.
  */
 
-export interface AnyPrimitiveClass<Args extends JSONValue | undefined> {
-  base?: TypeBuilder;
+export interface AnyPrimitiveClass<
+  Args extends JSONValue | undefined = JSONValue | undefined
+> {
   typescript: string;
   description: string;
   typeName: string;
+  base?: (descriptor: PrimitiveDescriptor<Args>) => TypeDescriptor;
+  basePrimitive?: (args: Args) => TypeBuilder<PrimitiveDescriptor<Args>>;
+
   new (desc: PrimitiveDescriptor<Args>): Type<PrimitiveDescriptor<Args>>;
 }
 
@@ -77,36 +81,37 @@ export type TypeDescription = TypeClass | TypeBuilder;
 
 // export type Generic = (...T: TypeDescription[]) => TypeBuilder;
 
-export type PrimitiveConstructor = () => TypeBuilder;
 export type TypeConstructor = () => TypeBuilder;
 
-export type Primitive<Args extends JSONValue | undefined> = Args extends
-  | JSONValue
-  | undefined
-  ? () => TypeBuilder
-  : (args: Args) => TypeBuilder;
+export type PrimitiveConstructor<Args extends JSONValue | undefined> = [
+  Args
+] extends [undefined] // If the args are exactly undefined, the constructor is a zero-arg function
+  ? () => TypeBuilder<PrimitiveDescriptor<Args>> // Otherwise, if the args extend JSONValue (and therefore do not include // undefined), the constructor is a one-arg function that takes the args.
+  : [Args] extends [JSONValue]
+    ? (args: Args) => TypeBuilder<PrimitiveDescriptor<Args>> // Otherwise, the arguments must be JSONValue | undefined, so the // constructor is an optional one-arg function.
+    : (args?: Args) => TypeBuilder<PrimitiveDescriptor<Args>>;
 
-// TODO: This branch doesn't catch calls with arity-less functions
 export function primitive<Args extends JSONValue>(
-  PrimitiveClass: AnyPrimitiveClass<Args>
-): (args: Args) => TypeBuilder;
-export function primitive<J extends JSONValue, T extends J | undefined>(
-  PrimitiveClass: AnyPrimitiveClass<T>
-): (args?: T) => TypeBuilder;
-export function primitive(
-  PrimitiveClass: AnyPrimitiveClass<JSONValue | undefined>
-): Primitive<JSONValue> | Primitive<JSONValue | undefined> {
-  return ((args?: JSONValue | undefined) => {
-    return Primitive(PrimitiveClass, args);
-  }) as any; // TODO
+  PrimitiveClass: AnyPrimitiveClass<Args>,
+  defaultArgs: Args
+): PrimitiveConstructor<Args | undefined>;
+export function primitive<Args extends JSONValue | undefined>(
+  PrimitiveClass: AnyPrimitiveClass<Args>,
+  defaultArgs?: Args
+): PrimitiveConstructor<Args>;
+export function primitive<Args extends JSONValue | undefined>(
+  PrimitiveClass: AnyPrimitiveClass<Args>,
+  defaultArgs?: Args
+): PrimitiveConstructor<Args> {
+  return ((args: Args) => {
+    return Primitive<Args>(PrimitiveClass, args || defaultArgs);
+  }) as PrimitiveConstructor<Args>;
 }
 
 export function Primitive<Args extends JSONValue | undefined>(
   PrimitiveClass: AnyPrimitiveClass<Args>,
-  args: Args extends void ? undefined : Args
-): TypeBuilder<PrimitiveDescriptor<Args>> {
-  let base = PrimitiveClass.base ? PrimitiveClass.base.descriptor : null;
-
+  args: Args
+): TypeBuilder {
   let descriptor: PrimitiveDescriptor<Args> = {
     type: "Primitive",
     factory: {
@@ -117,7 +122,13 @@ export function Primitive<Args extends JSONValue | undefined>(
       },
 
       base(desc: PrimitiveDescriptor<Args>): TypeDescriptor {
-        return base || desc;
+        if (PrimitiveClass.base) {
+          return PrimitiveClass.base(desc);
+        } else if (PrimitiveClass.basePrimitive) {
+          return PrimitiveClass.basePrimitive(desc.args).descriptor;
+        } else {
+          return desc;
+        }
       }
     },
     typescript: PrimitiveClass.typescript,

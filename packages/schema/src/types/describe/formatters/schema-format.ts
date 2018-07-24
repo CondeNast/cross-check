@@ -3,11 +3,11 @@ import { JSONValue } from "../../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import {
+  Pos,
   ReporterDelegate,
-  inIterator,
-  inList,
-  inPointer,
-  isLast
+  isExplicitRequiredPosition,
+  isLast,
+  isRequiredPosition
 } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
@@ -23,17 +23,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     /* noop */
   },
 
-  closeRequired({ descriptor, position }) {
-    if (
-      descriptor.args.required &&
-      !inList(position) &&
-      !inIterator(position) &&
-      !inPointer(position)
-    ) {
-      return `.required()`;
-    } else {
-      return;
-    }
+  closeRequired() {
+    /* noop */
   },
 
   openRecord({ descriptor }) {
@@ -97,32 +88,56 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     buffer.push(")");
   },
 
-  closeValue({ position }): string | void {
+  closeValue({ buffer, position }): string | void {
+    if (isExplicitRequiredPosition(position)) {
+      buffer.push(".required()");
+    }
+
     if (isLast(position)) {
-      return "\n";
+      buffer.push("\n");
     } else {
-      return ",\n";
+      buffer.push(",\n");
     }
   },
 
-  emitPrimitive({ descriptor, buffer }): void {
-    buffer.push(formatType(descriptor));
+  emitPrimitive({ descriptor, position, buffer }): void {
+    buffer.push(formatType(descriptor, position));
   }
 };
 
-function formatType(descriptor: PrimitiveDescriptor) {
-  let out = `${descriptor.name || "anonymous"}(${formatArgs(descriptor.args)})`;
+function formatType(descriptor: PrimitiveDescriptor, position: Pos): string {
+  let out = `${descriptor.name || "anonymous"}(${formatArgs(
+    descriptor.name,
+    descriptor.args,
+    position
+  )})`;
 
   return out;
 }
 
-function formatArgs(args: JSONValue | undefined): string {
+function formatArgs(
+  name: string,
+  args: JSONValue | undefined,
+  position: Pos
+): string {
   if (Array.isArray(args)) {
     return JSON.stringify(args).slice(1, -1);
   } else if (args === undefined) {
     return "";
   } else {
-    return JSON.stringify(args);
+    function isText(typeName: string): boolean {
+      return (
+        typeName === "Text" ||
+        typeName === "SingleLine" ||
+        typeName === "SingleWord"
+      );
+    }
+
+    if (isText(name) && !isRequiredPosition(position)) {
+      return "";
+    } else {
+      return JSON.stringify(args);
+    }
   }
 }
 

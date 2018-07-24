@@ -9,6 +9,7 @@ import {
   AliasDescriptor,
   ContainerDescriptor,
   MembersMeta,
+  PrimitiveDescriptor,
   RequiredDescriptor,
   TypeDescriptor,
   UnknownTypeDescriptor,
@@ -16,7 +17,7 @@ import {
   isDescriptor
 } from "../../descriptors";
 import { exhausted, maybe } from "../../utils";
-import { isRequired } from "./index";
+import { isRequired, updateLeafPrimitive } from "./required";
 
 /**
  * The API for a Type in Crosscheck. It essentially provides the runtime code
@@ -139,40 +140,70 @@ export interface BuildOptions {
   position: "Dictionary" | "List" | "Iterator" | "Pointer";
 }
 
-// function temporaryDictionaryHack()
+function temporaryDictionaryHack(
+  descriptor: TypeDescriptor,
+  isRequiredType: boolean
+): TypeDescriptor {
+  function isText(name: string): boolean {
+    return name === "Text" || name === "SingleLine" || name === "SingleWord";
+  }
+
+  return updateLeafPrimitive(descriptor, desc => {
+    if (
+      isDescriptor(desc, "Primitive") &&
+      isText(desc.name) &&
+      isRequiredType === false
+    ) {
+      return {
+        ...desc,
+        args: {
+          allowEmpty: true
+        }
+      } as PrimitiveDescriptor<{ allowEmpty: boolean }>;
+    }
+
+    return desc;
+  });
+}
 
 export function buildType(
   desc: UnknownTypeDescriptor,
   options: BuildOptions
 ): UnknownTypeDescriptor {
-  if (isRequired(desc) !== null) {
-    return desc;
+  let explicitIsRequired = isRequired(desc);
+  let descriptor;
+
+  if (explicitIsRequired !== null) {
+    descriptor = temporaryDictionaryHack(desc, explicitIsRequired);
+  } else {
+    let requiredDefault: boolean;
+
+    switch (options.position) {
+      // Fields in a dictionary or record are optional by default, and .required() makes
+      // a type required.
+      case "Dictionary":
+        requiredDefault = false;
+        break;
+
+      // null is usually undesirable in Lists, so assume non-null by default
+      case "List":
+      // If the server provides a URL, you can assume it dereferences into *something*
+      case "Pointer":
+      // If the server provides a URL, it should, by default, dereference into the same
+      // thing as `List`, which doesn't include nulls.
+      case "Iterator":
+        requiredDefault = true;
+        break;
+
+      default:
+        return exhausted(options.position);
+    }
+
+    descriptor = temporaryDictionaryHack(desc, requiredDefault);
+    descriptor = transform(descriptor, type => type.required(requiredDefault));
   }
 
-  let requiredDefault: boolean;
-
-  switch (options.position) {
-    // Fields in a dictionary or record are optional by default, and .required() makes
-    // a type required.
-    case "Dictionary":
-      requiredDefault = false;
-      break;
-
-    // null is usually undesirable in Lists, so assume non-null by default
-    case "List":
-    // If the server provides a URL, you can assume it dereferences into *something*
-    case "Pointer":
-    // If the server provides a URL, it should, by default, dereference into the same
-    // thing as `List`, which doesn't include nulls.
-    case "Iterator":
-      requiredDefault = true;
-      break;
-
-    default:
-      return exhausted(options.position);
-  }
-
-  return transform(desc, type => type.required(requiredDefault));
+  return descriptor;
 }
 
 export function buildMeta(
@@ -251,7 +282,6 @@ export abstract class AbstractContainerType<
   }
 }
 
-// TODO: Moving into separate file requires figuring out cycles
 export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
   private get isWrapperRequired(): boolean {
     return this.descriptor.args.required;

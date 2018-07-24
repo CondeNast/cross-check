@@ -3,11 +3,11 @@ import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("formatting - toJSON");
 
-QUnit.test("simple", assert => {
+QUnit.test("simple - published", assert => {
   assert.deepEqual(toJSON(SimpleArticle), {
     fields: {
       hed: { type: "SingleLine", required: true },
-      dek: { type: "Text", required: false },
+      dek: { type: "Text", required: false, args: { allowEmpty: true } },
       body: { type: "Text", required: true }
     },
 
@@ -16,12 +16,14 @@ QUnit.test("simple", assert => {
       modelName: "simple-article"
     }
   });
+});
 
+QUnit.test("simple - draft", assert => {
   assert.deepEqual(toJSON(SimpleArticle.draft), {
     fields: {
-      hed: { type: "Text", required: false },
-      dek: { type: "Text", required: false },
-      body: { type: "Text", required: false }
+      hed: { type: "Text", required: false, args: { allowEmpty: true } },
+      dek: { type: "Text", required: false, args: { allowEmpty: true } },
+      body: { type: "Text", required: false, args: { allowEmpty: true } }
     },
 
     metadata: {
@@ -35,13 +37,21 @@ QUnit.test("detailed - published", assert => {
   let actual = toJSON(MediumArticle);
   let fields = {
     hed: { type: "SingleLine", required: true },
-    dek: { type: "Text", required: false },
+    dek: { type: "Text", required: false, args: { allowEmpty: true } },
     body: { type: "Text", required: true },
     author: {
       type: "Dictionary",
       members: {
-        first: { type: "SingleLine", required: false },
-        last: { type: "SingleLine", required: false }
+        first: {
+          type: "SingleLine",
+          required: false,
+          args: { allowEmpty: true }
+        },
+        last: {
+          type: "SingleLine",
+          required: false,
+          args: { allowEmpty: true }
+        }
       },
       required: false
     },
@@ -79,8 +89,16 @@ QUnit.test("detailed - published", assert => {
         type: "Dictionary",
         required: true,
         members: {
-          first: { type: "SingleLine", required: false },
-          last: { type: "SingleLine", required: false }
+          first: {
+            type: "SingleLine",
+            required: false,
+            args: { allowEmpty: true }
+          },
+          last: {
+            type: "SingleLine",
+            required: false,
+            args: { allowEmpty: true }
+          }
         }
       }
     }
@@ -100,20 +118,20 @@ QUnit.test("detailed - published", assert => {
 QUnit.test("detailed - draft", assert => {
   let actual = toJSON(MediumArticle.draft);
   let fields = {
-    hed: { type: "Text", required: false },
-    dek: { type: "Text", required: false },
-    body: { type: "Text", required: false },
+    hed: { type: "Text", required: false, args: { allowEmpty: true } },
+    dek: { type: "Text", required: false, args: { allowEmpty: true } },
+    body: { type: "Text", required: false, args: { allowEmpty: true } },
     author: {
       type: "Dictionary",
       members: {
-        first: { type: "Text", required: false },
-        last: { type: "Text", required: false }
+        first: { type: "Text", required: false, args: { allowEmpty: true } },
+        last: { type: "Text", required: false, args: { allowEmpty: true } }
       },
       required: false
     },
 
     issueDate: { type: "ISODate", required: false },
-    canonicalUrl: { type: "Text", required: false },
+    canonicalUrl: { type: "Text", required: false, args: { allowEmpty: true } },
     tags: {
       type: "List",
       of: {
@@ -145,8 +163,8 @@ QUnit.test("detailed - draft", assert => {
         type: "Dictionary",
         required: true,
         members: {
-          first: { type: "Text", required: false },
-          last: { type: "Text", required: false }
+          first: { type: "Text", required: false, args: { allowEmpty: true } },
+          last: { type: "Text", required: false, args: { allowEmpty: true } }
         }
       }
     }
@@ -168,8 +186,12 @@ QUnit.test("relationships", assert => {
     toJSON(Related),
     {
       fields: {
-        first: { type: "SingleLine", required: false },
-        last: { type: "Text", required: false },
+        first: {
+          type: "SingleLine",
+          required: false,
+          args: { allowEmpty: true }
+        },
+        last: { type: "Text", required: false, args: { allowEmpty: true } },
         person: {
           type: "Pointer",
           kind: "hasOne",
@@ -202,8 +224,8 @@ QUnit.test("relationships", assert => {
 
     {
       fields: {
-        first: { type: "Text", required: false },
-        last: { type: "Text", required: false },
+        first: { type: "Text", required: false, args: { allowEmpty: true } },
+        last: { type: "Text", required: false, args: { allowEmpty: true } },
         person: {
           type: "Pointer",
           kind: "hasOne",

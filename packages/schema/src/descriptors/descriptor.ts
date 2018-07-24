@@ -186,16 +186,14 @@ export type AnyDictionaryDescriptor<Args extends JSONValue = JSONValue> =
   | DictionaryDescriptor<Args>
   | RecordDescriptor<Args>;
 
-export type PrimitiveArgs<T> = T extends void ? undefined : T;
-
 export interface PrimitiveDescriptor<
-  Args extends JSONValue | undefined = undefined
-> extends TypeDescriptor<PrimitiveArgs<Args>> {
+  Args extends JSONValue | undefined = JSONValue | undefined
+> extends TypeDescriptor<Args> {
   readonly type: "Primitive";
   readonly name: string;
   readonly typescript: string;
   readonly metadata: null;
-  readonly args: PrimitiveArgs<Args>;
+  readonly args: Args;
 }
 
 export type ContainerDescriptor =

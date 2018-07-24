@@ -45,6 +45,20 @@ QUnit.test("published drafts must be narrow", async assert => {
   );
 });
 
+QUnit.test("empty strings are not allowed by default", async assert => {
+  assert.deepEqual(
+    await validatePublished(SimpleArticle, {
+      hed: "",
+
+      // dek is allowed to be an empty string, because its type is not required
+      dek: "",
+      body: ""
+    }),
+    [missingError("hed"), missingError("body")],
+    "published records must not be missing fields or have the widened type"
+  );
+});
+
 QUnit.test("parsing", assert => {
   assert.deepEqual(
     SimpleArticle.parse({

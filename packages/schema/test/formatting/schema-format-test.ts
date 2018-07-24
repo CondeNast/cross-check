@@ -19,21 +19,6 @@ QUnit.test("simple", assert => {
       })
     `
   );
-
-  assert.equal(
-    schemaFormat(SimpleArticle.draft),
-
-    strip`
-      Record("SimpleArticle", {
-        hed: Text(),
-        dek: Text(),
-        body: Text()
-      }).metadata({
-        collectionName: "simple-articles",
-        modelName: "simple-article"
-      })
-    `
-  );
 });
 
 QUnit.test("detailed - published", assert => {
@@ -60,39 +45,6 @@ QUnit.test("detailed - published", assert => {
         contributors: List(Dictionary({
           first: SingleLine(),
           last: SingleLine()
-        }))
-      }).metadata({
-        collectionName: "medium-articles",
-        modelName: "medium-article"
-      })
-    `
-  );
-});
-
-QUnit.test("detailed - draft", assert => {
-  assert.equal(
-    schemaFormat(MediumArticle.draft),
-
-    strip`
-      Record("MediumArticle", {
-        hed: Text(),
-        dek: Text(),
-        body: Text(),
-        author: Dictionary({
-          first: Text(),
-          last: Text()
-        }),
-        issueDate: ISODate(),
-        canonicalUrl: Text(),
-        tags: List(Text()),
-        categories: List(Text()),
-        geo: Dictionary({
-          lat: Integer(),
-          long: Integer()
-        }),
-        contributors: List(Dictionary({
-          first: Text(),
-          last: Text()
         }))
       }).metadata({
         collectionName: "medium-articles",
@@ -133,24 +85,6 @@ QUnit.test("required dictionaries", assert => {
       })
     `
   );
-
-  assert.equal(
-    schemaFormat(RECORDS.draft),
-
-    strip`
-      Record("RequiredDictionary", {
-        geo: Dictionary({
-          lat: Float(),
-          long: Float()
-        }),
-        author: Dictionary({
-          first: Text(),
-          last: Text()
-        }),
-        date: ISODate()
-      })
-    `
-  );
 });
 
 QUnit.test("relationships", assert => {
@@ -162,22 +96,6 @@ QUnit.test("relationships", assert => {
         first: SingleLine(),
         last: Text(),
         person: hasOne(SimpleArticle).required(),
-        articles: hasMany(MediumArticle)
-      }).metadata({
-        collectionName: "related-articles",
-        modelName: "related-article"
-      })
-    `
-  );
-
-  assert.equal(
-    schemaFormat(Related.draft),
-
-    strip`
-      Record("Related", {
-        first: Text(),
-        last: Text(),
-        person: hasOne(SimpleArticle),
         articles: hasMany(MediumArticle)
       }).metadata({
         collectionName: "related-articles",

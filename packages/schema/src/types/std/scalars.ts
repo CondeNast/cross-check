@@ -1,9 +1,9 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { PrimitiveDescriptor } from "../../descriptors";
+import { PrimitiveDescriptor, TypeDescriptor } from "../../descriptors";
 import { JSONValue } from "../../utils";
-import { ANY, AbstractType, Type, base, instantiate } from "../fundamental";
-import { Primitive, TypeConstructor, primitive } from "../type";
+import { ANY, AbstractType } from "../fundamental";
+import { PrimitiveConstructor, TypeConstructor, primitive } from "../type";
 
 export abstract class Scalar<
   Args extends JSONValue | undefined
@@ -27,35 +27,58 @@ export abstract class Scalar<
   }
 }
 
-export abstract class Opaque<
-  Args extends JSONValue | undefined
-> extends AbstractType<PrimitiveDescriptor<Args>> {
-  get base(): Type {
-    return instantiate(base(this.descriptor));
-  }
+// export abstract class Opaque<
+//   Args extends JSONValue | undefined
+// > extends AbstractType<PrimitiveDescriptor<Args>> {
+//   static base(
+//     descriptor: PrimitiveDescriptor<JSONValue | undefined>
+//   ): TypeDescriptor {
+//     let basePrimitive = instantiate(descriptor).base;
 
-  constructor(descriptor: PrimitiveDescriptor<Args>) {
-    super(descriptor);
-  }
+//     if (typeof basePrimitive === "function") {
+//       return basePrimitive(descriptor.args).descriptor;
+//     } else {
+//       return basePrimitive.descriptor;
+//     }
+//   }
 
-  abstract validation(): ValidationBuilder<unknown>;
+//   abstract base: PrimitiveConstructor<Args> | TypeBuilder;
 
-  serialize(input: unknown): unknown {
-    return this.base.serialize(input);
-  }
+//   constructor(descriptor: PrimitiveDescriptor<Args>) {
+//     super(descriptor);
+//   }
 
-  parse(input: unknown): unknown {
-    return this.base.parse(input);
-  }
-}
+//   validation(): ValidationBuilder<unknown> {
+//     return instantiate(base(this.descriptor)).validation();
+//   }
 
-class TextPrimitive extends Scalar<TextOptions | undefined> {
+//   serialize(input: unknown): unknown {
+//     return instantiate(base(this.descriptor)).serialize(input);
+//   }
+
+//   parse(input: unknown): unknown {
+//     return instantiate(base(this.descriptor)).parse(input);
+//   }
+// }
+
+const notBlankString = validators.is(
+  (value: string): value is string => value.length > 0,
+  "present"
+);
+
+export class TextPrimitive extends Scalar<TextOptions | undefined> {
   static description = "string";
   static typescript = "string";
   static typeName = "Text";
 
   validation(): ValidationBuilder<unknown> {
-    return validators.isString();
+    let allowEmpty = this.args === undefined ? false : this.args.allowEmpty;
+
+    if (allowEmpty) {
+      return validators.isString();
+    } else {
+      return validators.isString().andThen(notBlankString());
+    }
   }
 }
 
@@ -63,7 +86,7 @@ export interface TextOptions extends JSONObject {
   allowEmpty: boolean;
 }
 
-export const Text: Primitive<TextOptions | undefined> = primitive(
+export const Text: PrimitiveConstructor<TextOptions | undefined> = primitive(
   TextPrimitive
 );
 
@@ -77,7 +100,7 @@ class FloatPrimitive extends Scalar<undefined> {
   }
 }
 
-export const Float: TypeConstructor = primitive(FloatPrimitive);
+export const Float: PrimitiveConstructor<undefined> = primitive(FloatPrimitive);
 
 class IntegerPrimitive extends Scalar<undefined> {
   static description = "integer";
@@ -96,16 +119,23 @@ class IntegerPrimitive extends Scalar<undefined> {
   }
 }
 
-export const Integer: TypeConstructor = primitive(IntegerPrimitive);
+export const Integer: PrimitiveConstructor<undefined> = primitive(
+  IntegerPrimitive
+);
 
-class SingleLinePrimitive extends Opaque<TextOptions | undefined> {
-  static base = Text();
+class SingleLinePrimitive extends TextPrimitive {
   static description = "single line string";
   static typescript = "string";
   static typeName = "SingleLine";
 
+  static base(
+    descriptor: PrimitiveDescriptor<TextOptions | undefined>
+  ): TypeDescriptor {
+    return Text(descriptor.args).descriptor;
+  }
+
   validation(): ValidationBuilder<unknown> {
-    return this.base
+    return super
       .validation()
       .andThen(
         validators.is(
@@ -116,16 +146,23 @@ class SingleLinePrimitive extends Opaque<TextOptions | undefined> {
   }
 }
 
-export const SingleLine: TypeConstructor = primitive(SingleLinePrimitive);
+export const SingleLine: PrimitiveConstructor<
+  TextOptions | undefined
+> = primitive(SingleLinePrimitive);
 
-class SingleWordPrimitive extends Opaque<TextOptions | undefined> {
-  static base = Text();
+class SingleWordPrimitive extends TextPrimitive {
   static description = "single word string";
   static typescript = "string";
   static typeName = "SingleWord";
 
+  static base(
+    descriptor: PrimitiveDescriptor<TextOptions | undefined>
+  ): TypeDescriptor {
+    return Text(descriptor.args).descriptor;
+  }
+
   validation(): ValidationBuilder<unknown> {
-    return this.base
+    return super
       .validation()
       .andThen(
         validators.is(
@@ -136,7 +173,9 @@ class SingleWordPrimitive extends Opaque<TextOptions | undefined> {
   }
 }
 
-export const SingleWord: TypeConstructor = primitive(SingleWordPrimitive);
+export const SingleWord: PrimitiveConstructor<
+  TextOptions | undefined
+> = primitive(SingleWordPrimitive);
 
 class BooleanPrimitive extends Scalar<undefined> {
   static typeName = "Boolean";

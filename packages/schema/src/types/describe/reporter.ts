@@ -8,6 +8,7 @@ import {
   TypeDescriptor
 } from "../../descriptors";
 import { exhausted } from "../../utils";
+import { isRequired } from "../fundamental";
 import { Buffer as StringBuffer } from "./buffer";
 
 export interface Reporters<Buffer, Inner, Options> {
@@ -265,13 +266,16 @@ export interface ReporterStateConstructor<Buffer, Inner, Options> {
 
 // prettier-ignore
 export enum Pos {
-  First        = 0b0000001,
-  Last         = 0b0000010,
-  Only         = Pos.First | Pos.Last,
-  InDictionary = 0b0000100,
-  InList       = 0b0001000 | Pos.Only,
-  InPointer    = 0b0010000 | Pos.Only,
-  InIterator   = 0b0100000 | Pos.Only
+  First            = 0b00000001,
+  Last             = 0b00000010,
+  Only             = Pos.First | Pos.Last,
+  InDictionary     = 0b00000100,
+  InList           = 0b00001000 | Pos.Only,
+  InPointer        = 0b00010000 | Pos.Only,
+  InIterator       = 0b00100000 | Pos.Only,
+  ExplicitRequired = 0b01000000,
+  PositionRequired = 0b10000000,
+  IsRequired       = Pos.ExplicitRequired | Pos.PositionRequired
 }
 
 export function isFirst(position: Pos): boolean {
@@ -302,14 +306,34 @@ export function inIterator(position: Pos): boolean {
   return (position & Pos.InIterator) === Pos.InIterator;
 }
 
+export function inGeneric(position: Pos): boolean {
+  return !!(position & (Pos.InIterator | Pos.InList | Pos.InPointer));
+}
+
+export function isRequiredPosition(position: Pos): boolean {
+  return (position & Pos.IsRequired) === Pos.IsRequired;
+}
+
+export function isExplicitRequiredPosition(position: Pos): boolean {
+  return (position & Pos.ExplicitRequired) === Pos.ExplicitRequired;
+}
+
+export function requiredPosition(position: Pos, isRequiredType: boolean): Pos {
+  if (isRequiredType) {
+    return position | Pos.ExplicitRequired;
+  } else {
+    return position & ~Pos.ExplicitRequired;
+  }
+}
+
 export function genericPosition(type: CollectionDescriptor["type"]): Pos {
   switch (type) {
     case "List":
-      return Pos.InList;
+      return Pos.InList | Pos.PositionRequired;
     case "Pointer":
-      return Pos.InPointer;
+      return Pos.InPointer | Pos.PositionRequired;
     case "Iterator":
-      return Pos.InIterator;
+      return Pos.InIterator | Pos.PositionRequired;
 
     default:
       return exhausted(type);
@@ -318,10 +342,12 @@ export function genericPosition(type: CollectionDescriptor["type"]): Pos {
 
 export function DictionaryPosition({
   index,
-  last
+  last,
+  descriptor
 }: {
   index: number;
   last: number;
+  descriptor: TypeDescriptor;
 }) {
   let pos = Pos.InDictionary;
 
@@ -331,6 +357,10 @@ export function DictionaryPosition({
 
   if (index === last) {
     pos |= Pos.Last;
+  }
+
+  if (isRequired(descriptor)) {
+    pos |= Pos.ExplicitRequired;
   }
 
   return pos;

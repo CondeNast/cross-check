@@ -1,6 +1,5 @@
 export { Record } from "./record";
 export {
-  Opaque,
   Scalar,
   Dictionary,
   List,

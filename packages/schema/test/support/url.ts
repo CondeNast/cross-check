@@ -1,7 +1,7 @@
-import { ValidationBuilder } from "@cross-check/dsl";
+import { ValidationBuilder, validators } from "@cross-check/dsl";
 import {
-  Opaque,
   PrimitiveDescriptor,
+  Scalar,
   TypeBuilder,
   types
 } from "@cross-check/schema";
@@ -57,15 +57,13 @@ export class Urlish {
   }
 }
 
-class UrlType extends Opaque<UrlKind[]> {
-  static readonly base = types.Text();
-
+class UrlType extends Scalar<UrlKind[]> {
   get options(): UrlKind[] {
     return this.descriptor.args as UrlKind[];
   }
 
   validation(): ValidationBuilder<unknown> {
-    return url(...this.options);
+    return validators.isString().andThen(url(...this.options));
   }
 
   serialize(input: Urlish): string {

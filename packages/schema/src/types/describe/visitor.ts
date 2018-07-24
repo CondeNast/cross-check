@@ -17,7 +17,8 @@ import {
   DictionaryPosition,
   Pos,
   Reporter,
-  genericPosition
+  genericPosition,
+  requiredPosition
 } from "./reporter";
 
 export interface VisitorDelegate {
@@ -134,7 +135,11 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 
   required(descriptor: RequiredDescriptor, pos: Pos): unknown {
     let inner = this.visitor.visit(descriptor.inner, Pos.Only);
-    return this.recursiveDelegate.required(inner, descriptor, pos);
+    return this.recursiveDelegate.required(
+      inner,
+      descriptor,
+      requiredPosition(pos, descriptor.args.required)
+    );
   }
 
   primitive(descriptor: PrimitiveDescriptor, pos: Pos): unknown {
@@ -142,10 +147,10 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   }
 
   generic(descriptor: CollectionDescriptor, pos: Pos): unknown {
-    let position = genericPosition(descriptor.type);
+    let genericPos = genericPosition(descriptor.type);
 
     return this.recursiveDelegate.generic(
-      this.visitor.visit(descriptor.inner, position),
+      this.visitor.visit(descriptor.inner, genericPos),
       descriptor,
       pos
     );
@@ -168,17 +173,15 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
     let last = keys.length - 1;
 
     keys.forEach((key, i) => {
-      let dictPosition = DictionaryPosition({ index: i, last });
-
+      let dictPosition = DictionaryPosition({
+        index: i,
+        last,
+        descriptor: input[key]!
+      });
       callback(this.visitor.visit(input[key]!, dictPosition), key);
     });
   }
 }
-
-// export function recursiveVisit(delegate: RecursiveDelegate, record: Record) {
-//   let visitor = RecursiveVisitor.build(delegate);
-//   return visitor.record(record.descriptor);
-// }
 
 export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
   implements VisitorDelegate {
@@ -202,7 +205,10 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   required(descriptor: RequiredDescriptor, position: Pos): unknown {
     this.reporter.startRequired(position, descriptor);
-    this.visitor.visit(descriptor.inner, position);
+    this.visitor.visit(
+      descriptor.inner,
+      requiredPosition(position, descriptor.args.required)
+    );
     this.reporter.endRequired(position, descriptor);
   }
 
@@ -237,7 +243,11 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     let last = keys.length - 1;
 
     keys.forEach((key, i) => {
-      let position = DictionaryPosition({ index: i, last });
+      let position = DictionaryPosition({
+        index: i,
+        last,
+        descriptor: members[key]!
+      });
 
       this.reporter.addKey(position, key, members[key]!);
       this.visitor.visit(members[key]!, position);

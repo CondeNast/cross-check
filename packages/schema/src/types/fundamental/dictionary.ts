@@ -31,7 +31,9 @@ export class DictionaryImpl<
     let draftDict = dict<TypeDescriptor>();
 
     for (let [key, value] of entries(descriptor.members)) {
-      draftDict[key] = required(base(value!), false);
+      draftDict[key] = buildType(required(base(value!), false), {
+        position: "Dictionary"
+      });
     }
 
     return {
