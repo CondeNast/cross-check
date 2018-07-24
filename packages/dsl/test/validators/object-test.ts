@@ -1,6 +1,6 @@
 import { ValidationError, format } from "@cross-check/core";
 import validates, { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, unknown } from "ts-std";
+import { Dict, Option } from "ts-std";
 import { buildAndRun as run } from "../support";
 import { keysError } from "../utils";
 

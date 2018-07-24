@@ -1,4 +1,3 @@
-import { unknown } from "ts-std";
 import { LabelledType, NamedType, Type } from "../fundamental/value";
 import {
   DictionaryLabel,
@@ -20,7 +19,7 @@ export interface VisitorDelegate {
 }
 
 export class Visitor {
-  constructor(private delegate: VisitorDelegate) {}
+  constructor(private delegate: VisitorDelegate) { }
 
   visit(type: Type, position: Position = Position.Any): unknown {
     if (isNamed(type)) {
@@ -91,7 +90,7 @@ export class RecursiveVisitor<D extends RecursiveDelegate>
 
   private visitor!: Visitor;
 
-  private constructor(private recursiveDelegate: D) {}
+  private constructor(private recursiveDelegate: D) { }
 
   primitive({ label, isRequired }: LabelledType<PrimitiveLabel>): unknown {
     return this.recursiveDelegate.primitive(label, isRequired);
@@ -160,7 +159,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private visitor!: Visitor;
 
-  private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
+  private constructor(private reporter: Reporter<Buffer, Inner, Options>) { }
 
   primitive(type: LabelledType<PrimitiveLabel>, position: Position): unknown {
     this.reporter.primitiveValue(position, type);

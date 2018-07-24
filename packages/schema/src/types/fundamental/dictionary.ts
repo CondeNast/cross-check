@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
+import { Dict, Option, assert, dict, entries } from "ts-std";
 import { DictionaryLabel, Label, typeNameOf } from "../label";
 import { Type, parse, serialize, validationFor } from "./value";
 

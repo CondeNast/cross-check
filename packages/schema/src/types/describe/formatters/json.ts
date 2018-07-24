@@ -1,4 +1,4 @@
-import { Dict, JSON, Option, unknown } from "ts-std";
+import { Dict, JSON, Option } from "ts-std";
 import { Record } from "../../../record";
 import {
   DictionaryLabel,

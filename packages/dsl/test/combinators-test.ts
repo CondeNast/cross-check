@@ -17,7 +17,6 @@ import {
   or
 } from "@cross-check/dsl";
 import Task from "no-show";
-import { unknown } from "ts-std";
 import { run } from "./support";
 
 QUnit.module("Combinators");

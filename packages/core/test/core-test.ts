@@ -1,5 +1,4 @@
 import { ValidationDescriptor, format } from "@cross-check/core";
-import { unknown } from "ts-std";
 
 QUnit.module("@cross-check/core format");
 
@@ -33,7 +32,7 @@ QUnit.test("formatting a basic validation descriptor", assert => {
   expectFormat([undefined], "(call undefined)");
   expectFormat([null], "(call null)");
   expectFormat([() => null], "(call function() { ... })");
-  expectFormat([class X {}], "(call class X { ... })");
+  expectFormat([class X { }], "(call class X { ... })");
   expectFormat([/hello world/i], "(call /hello world/i)");
   expectFormat([{}], "(call {})");
   expectFormat({ hello: {} }, "(call hello={})");

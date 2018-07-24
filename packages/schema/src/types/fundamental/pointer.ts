@@ -1,5 +1,5 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 import { Label, PointerLabel, typeNameOf } from "../label";
 import { ANY } from "../std/scalars";
 import { ReferenceImpl } from "./reference";

@@ -3623,7 +3623,6 @@ lerna@*, lerna@^2.11.0:
 
 libkit@*, "libkit@https://github.com/tildeio/libkit.git#workspace-support":
   version "0.6.0"
-  uid "91ae66a6015d9d9f974d50a580b493208f68431f"
   resolved "https://github.com/tildeio/libkit.git#91ae66a6015d9d9f974d50a580b493208f68431f"
   dependencies:
     broccoli-caching-writer "^3.0.3"
@@ -6123,9 +6122,9 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript@*, typescript@~2.8.3, typescript@~2.8.4:
-  version "2.8.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.8.4.tgz#0b1db68e6bdfb0b767fa2ab642136a35b059b199"
+typescript@*, typescript@3.0.1-insiders.20180713, typescript@~2.8.3:
+  version "3.0.1-insiders.20180713"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.1-insiders.20180713.tgz#02775b5197ab02b79ed5b84e7483c18ed164e55e"
 
 uc.micro@^1.0.1, uc.micro@^1.0.5:
   version "1.0.5"

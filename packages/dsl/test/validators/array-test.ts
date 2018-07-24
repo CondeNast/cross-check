@@ -1,6 +1,6 @@
 import { ValidationError, format } from "@cross-check/core";
 import validates, { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 import { buildAndRun as run } from "../support";
 
 QUnit.module("Validators (array)");

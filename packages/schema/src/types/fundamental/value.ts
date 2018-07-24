@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Option, assert, unknown } from "ts-std";
+import { Option, assert } from "ts-std";
 import { Label, NamedLabel, TypeLabel } from "../label";
 import { maybe } from "../utils";
 

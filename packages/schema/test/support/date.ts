@@ -1,6 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Label, Scalar, Type, basic, label } from "@cross-check/schema";
-import { unknown } from "ts-std";
 
 function isValidDate(input: string): boolean {
   let parsed = Date.parse(input);
