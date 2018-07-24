@@ -31,7 +31,7 @@ export interface VisitorDelegate {
 }
 
 export class Visitor {
-  constructor(private delegate: VisitorDelegate) {}
+  constructor(private delegate: VisitorDelegate) { }
 
   visit(descriptor: TypeDescriptor, position: Pos): unknown {
     if (isDescriptor(descriptor, "Alias")) {
@@ -97,7 +97,7 @@ export type DelegateItem<T extends RecursiveDelegateTypes> =
  */
 export interface RecursiveDelegate<
   T extends RecursiveDelegateTypes = RecursiveDelegateTypes
-> {
+  > {
   alias(descriptor: AliasDescriptor, pos: Pos): T["alias"];
   required(
     inner: DelegateItem<T>,
@@ -127,18 +127,18 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 
   private visitor!: Visitor;
 
-  private constructor(private recursiveDelegate: RecursiveDelegate<T>) {}
+  private constructor(private recursiveDelegate: RecursiveDelegate<T>) { }
 
   alias(descriptor: AliasDescriptor, pos: Pos): unknown {
     return this.recursiveDelegate.alias(descriptor, pos);
   }
 
   required(descriptor: RequiredDescriptor, pos: Pos): unknown {
-    let inner = this.visitor.visit(descriptor.inner, Pos.Only);
+    let inner = this.visitor.visit(descriptor.inner, requiredPosition(pos, descriptor.args.required));
     return this.recursiveDelegate.required(
       inner,
       descriptor,
-      requiredPosition(pos, descriptor.args.required)
+      pos
     );
   }
 
@@ -196,7 +196,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private visitor!: Visitor;
 
-  private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
+  private constructor(private reporter: Reporter<Buffer, Inner, Options>) { }
 
   alias(descriptor: AliasDescriptor, position: Pos): unknown {
     this.reporter.startAlias(position, descriptor);
