@@ -2,7 +2,7 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, Option, unknown } from "ts-std";
-import { unresolved } from "./descriptors";
+import { builder } from "./descriptors";
 import {
   DictionaryImpl,
   Type,
@@ -12,7 +12,7 @@ import {
 import { baseType } from "./types/fundamental/refined";
 import { applyFeatures } from "./types/std/walk";
 
-class RecordBuilder extends TypeBuilder<unresolved.Record> implements Record {
+class RecordBuilder extends TypeBuilder<builder.Record> implements Record {
   get name(): string {
     return this.descriptor.name;
   }
@@ -44,7 +44,7 @@ class RecordBuilder extends TypeBuilder<unresolved.Record> implements Record {
   }
 
   private build(): Type {
-    return unresolved.instantiate(this.descriptor, true);
+    return builder.instantiate(this.descriptor, true);
   }
 }
 
@@ -60,11 +60,11 @@ export function Record(
   let { members, membersMeta } = buildMembers(fields);
 
   return new RecordBuilder(
-    unresolved.Record(members, membersMeta, metadata, DictionaryImpl, name)
+    builder.Record(members, membersMeta, metadata, DictionaryImpl, name)
   );
 }
 
-export interface Record extends TypeBuilder<unresolved.Record> {
+export interface Record extends TypeBuilder<builder.Record> {
   readonly name: string;
   readonly draft: Record;
   withFeatures(featureList: string[]): Record;

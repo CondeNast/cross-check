@@ -1,15 +1,15 @@
 import { Dict, JSONObject, entries } from "ts-std";
 import { JSONValue } from "../utils";
-import * as unresolved from "./unresolved";
+import * as builder from "./builder";
 
 export interface DescriptorJSON {
-  type: unresolved.IDescriptor["type"];
+  type: builder.IDescriptor["type"];
   inner?: DescriptorJSON;
   inners?: Dict<DescriptorJSON>;
   attributes?: JSONObject;
 }
 
-export function listToJSON(desc: unresolved.List): DescriptorJSON {
+export function listToJSON(desc: builder.List): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -19,7 +19,7 @@ export function listToJSON(desc: unresolved.List): DescriptorJSON {
   };
 }
 
-export function pointerToJSON(desc: unresolved.Pointer): DescriptorJSON {
+export function pointerToJSON(desc: builder.Pointer): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -31,7 +31,7 @@ export function pointerToJSON(desc: unresolved.Pointer): DescriptorJSON {
   };
 }
 
-export function iteratorToJSON(desc: unresolved.Iterator): DescriptorJSON {
+export function iteratorToJSON(desc: builder.Iterator): DescriptorJSON {
   return {
     type: desc.type,
     inner: descToJSON(desc.inner),
@@ -43,7 +43,7 @@ export function iteratorToJSON(desc: unresolved.Iterator): DescriptorJSON {
   };
 }
 
-export function dictionaryToJSON(desc: unresolved.Dictionary): DescriptorJSON {
+export function dictionaryToJSON(desc: builder.Dictionary): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
@@ -60,7 +60,7 @@ export function dictionaryToJSON(desc: unresolved.Dictionary): DescriptorJSON {
   };
 }
 
-export function recordToJSON(desc: unresolved.Record): DescriptorJSON {
+export function recordToJSON(desc: builder.Record): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
@@ -78,7 +78,7 @@ export function recordToJSON(desc: unresolved.Record): DescriptorJSON {
   };
 }
 
-export function primitiveToJSON(desc: unresolved.Primitive): DescriptorJSON {
+export function primitiveToJSON(desc: builder.Primitive): DescriptorJSON {
   return {
     type: desc.type,
     attributes: {
@@ -90,18 +90,18 @@ export function primitiveToJSON(desc: unresolved.Primitive): DescriptorJSON {
   };
 }
 
-export function descToJSON(descriptor: unresolved.Descriptor): DescriptorJSON {
-  if (unresolved.is(descriptor, "List")) {
+export function descToJSON(descriptor: builder.Descriptor): DescriptorJSON {
+  if (builder.is(descriptor, "List")) {
     return listToJSON(descriptor);
-  } else if (unresolved.is(descriptor, "Pointer")) {
+  } else if (builder.is(descriptor, "Pointer")) {
     return pointerToJSON(descriptor);
-  } else if (unresolved.is(descriptor, "Iterator")) {
+  } else if (builder.is(descriptor, "Iterator")) {
     return iteratorToJSON(descriptor);
-  } else if (unresolved.is(descriptor, "Dictionary")) {
+  } else if (builder.is(descriptor, "Dictionary")) {
     return dictionaryToJSON(descriptor);
-  } else if (unresolved.is(descriptor, "Record")) {
+  } else if (builder.is(descriptor, "Record")) {
     return recordToJSON(descriptor);
-  } else if (unresolved.is(descriptor, "Primitive")) {
+  } else if (builder.is(descriptor, "Primitive")) {
     return primitiveToJSON(descriptor);
   } else {
     throw new Error("unreachable");
@@ -183,6 +183,6 @@ function pad(size: number): string {
   return " ".repeat(size * 2);
 }
 
-export function formatDescriptor(descriptor: unresolved.Descriptor): string {
+export function formatDescriptor(descriptor: builder.Descriptor): string {
   return formatDescriptorJSON(descToJSON(descriptor), 0);
 }

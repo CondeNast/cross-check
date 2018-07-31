@@ -1,7 +1,7 @@
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
 import { OptionalityType, Type, TypeBuilder } from "../types/fundamental";
 import { JSONValue } from "../utils";
-import { unresolved } from "./index";
+import { builder } from "./index";
 import * as resolved from "./resolved";
 
 export type RawArgs = {} | null | undefined;
@@ -349,7 +349,7 @@ export function Generic<G>(
     metadata: null,
     args,
     description: "generic",
-    instantiate(desc: unresolved.Generic<G>): resolved.Descriptor {
+    instantiate(desc: builder.Generic<G>): resolved.Descriptor {
       return apply(desc);
     }
   };

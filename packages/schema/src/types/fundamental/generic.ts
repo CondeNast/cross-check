@@ -1,6 +1,5 @@
 import { dict, entries } from "ts-std";
-import { resolved, unresolved } from "../../descriptors";
-import { MembersMeta } from "../../descriptors/unresolved";
+import { builder, resolved } from "../../descriptors";
 import { DictionaryImpl } from "./index";
 
 export interface DictAttributes {
@@ -8,31 +7,28 @@ export interface DictAttributes {
 }
 
 export interface MapArgs {
-  T: unresolved.AnyDict;
-  C: (desc: unresolved.Descriptor, required: boolean) => unresolved.Descriptor;
+  T: builder.AnyDict;
+  C: (desc: builder.Descriptor, required: boolean) => builder.Descriptor;
 }
 
 // The name and the fact that it's generic is reflected into the formatters.
 export function MapDict(
   name: string,
-  T: unresolved.AnyDict,
-  callback: (
-    desc: unresolved.Descriptor,
-    required: boolean
-  ) => unresolved.Descriptor
-): unresolved.Generic<MapArgs> {
-  return unresolved.Generic(
+  T: builder.AnyDict,
+  callback: (desc: builder.Descriptor, required: boolean) => builder.Descriptor
+): builder.Generic<MapArgs> {
+  return builder.Generic(
     name,
     {
       T,
       C: callback
     },
-    (desc: unresolved.Generic<MapArgs>) => {
+    (desc: builder.Generic<MapArgs>) => {
       let members = dict<resolved.Descriptor>();
 
       for (let [key, value] of entries(desc.args.T.members)) {
         let meta = desc.args.T.membersMeta[key];
-        members[key] = unresolved.resolve(
+        members[key] = builder.resolve(
           desc.args.C(value!, meta!.required),
           meta!.required
         );
@@ -47,15 +43,15 @@ export function MapDict(
 }
 
 // Transparently map a dictionary into another
-export function mapDict<D extends unresolved.AnyDict>(
+export function mapDict<D extends builder.AnyDict>(
   T: D,
   callback: (
-    member: unresolved.Descriptor,
-    meta: MembersMeta
-  ) => [unresolved.Descriptor, MembersMeta]
+    member: builder.Descriptor,
+    meta: builder.MembersMeta
+  ) => [builder.Descriptor, builder.MembersMeta]
 ): D {
-  let mappedMembers = dict<unresolved.Descriptor>();
-  let mappedMetas = dict<unresolved.MembersMeta>();
+  let mappedMembers = dict<builder.Descriptor>();
+  let mappedMetas = dict<builder.MembersMeta>();
 
   for (let [key, member] of entries(T.members)) {
     let meta = T.membersMeta[key];
@@ -72,9 +68,9 @@ export function mapDict<D extends unresolved.AnyDict>(
   });
 }
 
-export function mapContainer<C extends unresolved.Container>(
+export function mapContainer<C extends builder.Container>(
   container: C,
-  callback: (T: unresolved.Descriptor) => unresolved.Descriptor
+  callback: (T: builder.Descriptor) => builder.Descriptor
 ): C {
   return Object.assign({}, container, {
     inner: callback(container.inner)

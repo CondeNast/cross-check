@@ -1,13 +1,13 @@
-import { unresolved } from "../../descriptors";
+import { builder } from "../../descriptors";
 import { exhausted } from "../../utils";
 import { mapContainer, mapDict } from "./generic";
 
-const { is, isContainer } = unresolved;
+const { is, isContainer } = builder;
 
-export function baseType(desc: unresolved.Refined): unresolved.Primitive;
-export function baseType(desc: unresolved.Alias): unresolved.Descriptor;
-export function baseType<D extends unresolved.Descriptor>(desc: D): D;
-export function baseType(desc: unresolved.Descriptor): unresolved.Descriptor {
+export function baseType(desc: builder.Refined): builder.Primitive;
+export function baseType(desc: builder.Alias): builder.Descriptor;
+export function baseType<D extends builder.Descriptor>(desc: D): D;
+export function baseType(desc: builder.Descriptor): builder.Descriptor {
   if (is(desc, "Refined")) {
     return desc.base(desc);
   } else if (is(desc, "Primitive")) {

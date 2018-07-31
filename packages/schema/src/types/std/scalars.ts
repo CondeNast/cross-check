@@ -1,6 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { resolved, unresolved } from "../../descriptors";
+import { builder, resolved } from "../../descriptors";
 import { ANY, AbstractType, TypeBuilder } from "../fundamental";
 
 export abstract class Scalar<Args> extends AbstractType<
@@ -60,8 +60,7 @@ export interface TextOptions extends JSONObject {
   allowEmpty: boolean;
 }
 
-export function Text(options?: TextOptions): TypeBuilder<unresolved.Primitive> {
-  debugger;
+export function Text(options?: TextOptions): TypeBuilder<builder.Primitive> {
   return Primitive(TextPrimitive, options);
 }
 
@@ -173,34 +172,34 @@ export function Any(): TypeBuilder {
   return Primitive(AnyPrimitive);
 }
 
-export function Primitive<A extends unresolved.RawArgs>(
-  Class: unresolved.PrimitiveClass<A | undefined>,
+export function Primitive<A extends builder.RawArgs>(
+  Class: builder.PrimitiveClass<A | undefined>,
   options?: A
-): TypeBuilder<unresolved.Primitive>;
-export function Primitive<A extends unresolved.RawArgs>(
-  Class: unresolved.PrimitiveClass<A>,
+): TypeBuilder<builder.Primitive>;
+export function Primitive<A extends builder.RawArgs>(
+  Class: builder.PrimitiveClass<A>,
   options: A
-): TypeBuilder<unresolved.Primitive>;
-export function Primitive<A extends unresolved.RawArgs>(
-  Class: unresolved.PrimitiveClass<A>,
+): TypeBuilder<builder.Primitive>;
+export function Primitive<A extends builder.RawArgs>(
+  Class: builder.PrimitiveClass<A>,
   options: A
-): TypeBuilder<unresolved.Primitive> {
-  return new TypeBuilder(unresolved.Primitive(Class, options));
+): TypeBuilder<builder.Primitive> {
+  return new TypeBuilder(builder.Primitive(Class, options));
 }
 
-export function Refined<A extends unresolved.RawArgs>(
-  Class: unresolved.RefinedClass<A | undefined>,
+export function Refined<A extends builder.RawArgs>(
+  Class: builder.RefinedClass<A | undefined>,
   options?: A
 ): TypeBuilder;
-export function Refined<A extends unresolved.RawArgs>(
-  Class: unresolved.RefinedClass<A>,
+export function Refined<A extends builder.RawArgs>(
+  Class: builder.RefinedClass<A>,
   options: A
 ): TypeBuilder;
-export function Refined<A extends unresolved.RawArgs>(
-  Class: unresolved.RefinedClass<A>,
+export function Refined<A extends builder.RawArgs>(
+  Class: builder.RefinedClass<A>,
   options: A
 ): TypeBuilder {
-  let basePrimitive = (desc: unresolved.Refined<A>) =>
+  let basePrimitive = (desc: builder.Refined<A>) =>
     Class.base(desc.args).descriptor;
-  return new TypeBuilder(unresolved.Refined(Class, basePrimitive, options));
+  return new TypeBuilder(builder.Refined(Class, basePrimitive, options));
 }

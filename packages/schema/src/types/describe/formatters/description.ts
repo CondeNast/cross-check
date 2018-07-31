@@ -1,4 +1,3 @@
-import { unresolved } from "../../../descriptors";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate, isLast, isRequiredPosition } from "../reporter";

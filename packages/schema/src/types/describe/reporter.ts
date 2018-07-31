@@ -1,6 +1,5 @@
 import { Dict } from "ts-std";
-import { unresolved } from "../../descriptors";
-import { MembersMeta } from "../../descriptors/unresolved";
+import { builder } from "../../descriptors";
 import { exhausted } from "../../utils";
 import { Buffer as StringBuffer } from "./buffer";
 
@@ -17,55 +16,55 @@ export interface State<Buffer> {
 
 export interface ReporterDelegate<Buffer, Inner, Options> {
   openAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: unresolved.Alias }
+    options: ReporterEvent<Buffer, Options> & { descriptor: builder.Alias }
   ): Inner | void;
   closeAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: unresolved.Alias }
+    options: ReporterEvent<Buffer, Options> & { descriptor: builder.Alias }
   ): Inner | void;
   openRecord(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Record;
+      descriptor: builder.Record;
     }
   ): Inner | void;
   closeRecord(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Record;
+      descriptor: builder.Record;
     }
   ): Inner | void;
   emitKey(
     options: Event<Buffer, Options> & {
       key: string;
-      descriptor: unresolved.Descriptor;
+      descriptor: builder.Descriptor;
     }
   ): Inner | void;
   closeValue(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Descriptor;
+      descriptor: builder.Descriptor;
     }
   ): Inner | void;
   openDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Dictionary;
+      descriptor: builder.Dictionary;
     }
   ): Inner | void;
   closeDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Dictionary;
+      descriptor: builder.Dictionary;
     }
   ): Inner | void;
   openGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Container;
+      descriptor: builder.Container;
     }
   ): Inner | void;
   closeGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Container;
+      descriptor: builder.Container;
     }
   ): Inner | void;
   emitPrimitive(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: unresolved.Primitive;
+      descriptor: builder.Primitive;
     }
   ): Inner | void;
 }
@@ -106,7 +105,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     }
   }
 
-  startAlias(position: Pos, descriptor: unresolved.Alias) {
+  startAlias(position: Pos, descriptor: builder.Alias) {
     this.pushStrings(
       this.reporters.openAlias({
         position,
@@ -116,7 +115,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endAlias(position: Pos, descriptor: unresolved.Alias) {
+  endAlias(position: Pos, descriptor: builder.Alias) {
     this.pushStrings(
       this.reporters.closeAlias({
         position,
@@ -126,7 +125,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
+  startDictionary(position: Pos, descriptor: builder.Dictionary): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -138,7 +137,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
+  endDictionary(position: Pos, descriptor: builder.Dictionary): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
@@ -150,7 +149,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startRecord(position: Pos, descriptor: unresolved.Record): void {
+  startRecord(position: Pos, descriptor: builder.Record): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -162,7 +161,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endRecord(position: Pos, descriptor: unresolved.Record): void {
+  endRecord(position: Pos, descriptor: builder.Record): void {
     this.pushStrings(
       this.reporters.closeRecord({
         descriptor,
@@ -172,7 +171,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  addKey(position: Pos, key: string, descriptor: unresolved.Descriptor): void {
+  addKey(position: Pos, key: string, descriptor: builder.Descriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
@@ -183,7 +182,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endValue(position: Pos, descriptor: unresolved.Descriptor): void {
+  endValue(position: Pos, descriptor: builder.Descriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
@@ -193,7 +192,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startGenericValue(position: Pos, descriptor: unresolved.Container): void {
+  startGenericValue(position: Pos, descriptor: builder.Container): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
@@ -203,7 +202,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endGenericValue(position: Pos, descriptor: unresolved.Container): void {
+  endGenericValue(position: Pos, descriptor: builder.Container): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
@@ -213,7 +212,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  primitiveValue(position: Pos, descriptor: unresolved.Primitive): void {
+  primitiveValue(position: Pos, descriptor: builder.Primitive): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
         descriptor,
@@ -307,7 +306,7 @@ export function requiredPosition(position: Pos, isRequiredType: boolean): Pos {
   }
 }
 
-export function genericPosition(type: unresolved.Container["type"]): Pos {
+export function genericPosition(type: builder.Container["type"]): Pos {
   switch (type) {
     case "List":
       return Pos.InList | Pos.PositionRequired;
@@ -328,7 +327,7 @@ export function DictionaryPosition({
 }: {
   index: number;
   last: number;
-  meta: MembersMeta;
+  meta: builder.MembersMeta;
 }) {
   let pos = Pos.InDictionary;
 
@@ -409,41 +408,41 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   startDictionary?(
     position: Pos,
-    descriptor: unresolved.Dictionary
+    descriptor: builder.Dictionary
   ): true | void;
 
-  startRecord?(position: Pos, descriptor: unresolved.Record): true | void;
+  startRecord?(position: Pos, descriptor: builder.Record): true | void;
 
   addKey?(
     position: Pos,
     key: string,
-    descriptor: unresolved.Descriptor
+    descriptor: builder.Descriptor
   ): true | void;
 
-  endValue?(position: Pos, descriptor: unresolved.Descriptor): true | void;
+  endValue?(position: Pos, descriptor: builder.Descriptor): true | void;
 
-  endDictionary?(position: Pos, descriptor: unresolved.Dictionary): true | void;
+  endDictionary?(position: Pos, descriptor: builder.Dictionary): true | void;
 
   endDictionaryBody?(
     position: Pos,
-    descriptor: unresolved.Dictionary
+    descriptor: builder.Dictionary
   ): true | void;
 
-  endRecord?(position: Pos, descriptor: unresolved.Record): true | void;
+  endRecord?(position: Pos, descriptor: builder.Record): true | void;
 
   startGenericValue?(
     position: Pos,
-    descriptor: unresolved.Container
+    descriptor: builder.Container
   ): true | void;
 
   endGenericValue?(
     position: Pos,
-    descriptor: unresolved.Container
+    descriptor: builder.Container
   ): true | void;
 
-  primitiveValue?(position: Pos, descriptor: unresolved.Primitive): void;
-  namedValue?(position: Pos, descriptor: unresolved.Descriptor): void;
+  primitiveValue?(position: Pos, descriptor: builder.Primitive): void;
+  namedValue?(position: Pos, descriptor: builder.Descriptor): void;
 
-  startType?(position: Pos, descriptor: unresolved.Descriptor): void;
-  endType?(position: Pos, descriptor: unresolved.Descriptor): true | void;
+  startType?(position: Pos, descriptor: builder.Descriptor): void;
+  endType?(position: Pos, descriptor: builder.Descriptor): true | void;
 }

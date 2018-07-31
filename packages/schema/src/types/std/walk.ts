@@ -1,5 +1,5 @@
 import { Option, dict } from "ts-std";
-import { unresolved } from "../../descriptors";
+import { builder } from "../../descriptors";
 
 /**
  * The big-picture story of the various components of Crosscheck Schema is:
@@ -22,7 +22,7 @@ import { unresolved } from "../../descriptors";
  *   - Dictionaries are mapped types that transform Required<T> -> T and T -> Optional<T>
  */
 
-class ValueAccumulator<D extends unresolved.Descriptor> {
+class ValueAccumulator<D extends builder.Descriptor> {
   constructor(
     readonly neededFeatures: Option<string[]>,
     readonly descriptor: D | null | undefined
@@ -45,9 +45,9 @@ class FeaturesVisitor {
   constructor(readonly featureList: string[]) {}
 
   Alias(
-    desc: unresolved.Alias,
-    accumulator: ValueAccumulator<unresolved.Alias>
-  ): ValueAccumulator<unresolved.Alias> {
+    desc: builder.Alias,
+    accumulator: ValueAccumulator<builder.Alias>
+  ): ValueAccumulator<builder.Alias> {
     let innerAccumulator = new ValueAccumulator(
       accumulator.neededFeatures,
       desc.inner
@@ -66,9 +66,9 @@ class FeaturesVisitor {
   }
 
   List(
-    desc: unresolved.List,
-    accumulator: ValueAccumulator<unresolved.List>
-  ): ValueAccumulator<unresolved.List> {
+    desc: builder.List,
+    accumulator: ValueAccumulator<builder.List>
+  ): ValueAccumulator<builder.List> {
     return this.visitValue(accumulator, desc.inner, mapped => ({
       ...desc,
       inner: mapped
@@ -76,9 +76,9 @@ class FeaturesVisitor {
   }
 
   Iterator(
-    desc: unresolved.Iterator,
-    accumulator: ValueAccumulator<unresolved.Iterator>
-  ): ValueAccumulator<unresolved.Iterator> {
+    desc: builder.Iterator,
+    accumulator: ValueAccumulator<builder.Iterator>
+  ): ValueAccumulator<builder.Iterator> {
     return this.visitValue(accumulator, desc.inner, mapped => ({
       ...desc,
       inner: mapped
@@ -86,9 +86,9 @@ class FeaturesVisitor {
   }
 
   Pointer(
-    desc: unresolved.Pointer,
-    accumulator: ValueAccumulator<unresolved.Pointer>
-  ): ValueAccumulator<unresolved.Pointer> {
+    desc: builder.Pointer,
+    accumulator: ValueAccumulator<builder.Pointer>
+  ): ValueAccumulator<builder.Pointer> {
     return this.visitValue(accumulator, desc.inner, mapped => ({
       ...desc,
       inner: mapped
@@ -96,23 +96,23 @@ class FeaturesVisitor {
   }
 
   Record(
-    desc: unresolved.Record,
-    accumulator: ValueAccumulator<unresolved.Record>
-  ): ValueAccumulator<unresolved.Record> {
+    desc: builder.Record,
+    accumulator: ValueAccumulator<builder.Record>
+  ): ValueAccumulator<builder.Record> {
     return this.visitDictionary(desc, accumulator);
   }
 
   Dictionary(
-    desc: unresolved.Dictionary,
-    accumulator: ValueAccumulator<unresolved.Dictionary>
-  ): ValueAccumulator<unresolved.Dictionary> {
+    desc: builder.Dictionary,
+    accumulator: ValueAccumulator<builder.Dictionary>
+  ): ValueAccumulator<builder.Dictionary> {
     return this.visitDictionary(desc, accumulator);
   }
 
   Primitive(
-    desc: unresolved.Primitive,
-    accumulator: ValueAccumulator<unresolved.Primitive>
-  ): ValueAccumulator<unresolved.Primitive> {
+    desc: builder.Primitive,
+    accumulator: ValueAccumulator<builder.Primitive>
+  ): ValueAccumulator<builder.Primitive> {
     if (
       accumulator.neededFeatures &&
       !hasFeatures(this.featureList, accumulator.neededFeatures)
@@ -123,7 +123,7 @@ class FeaturesVisitor {
     }
   }
 
-  visit<D extends unresolved.Descriptor>(
+  visit<D extends builder.Descriptor>(
     desc: D,
     featureList: string[]
   ): D | undefined {
@@ -131,10 +131,10 @@ class FeaturesVisitor {
     return this.visitDescriptor(desc, input);
   }
 
-  private visitValue<D extends unresolved.Descriptor>(
+  private visitValue<D extends builder.Descriptor>(
     accumulator: ValueAccumulator<D>,
-    innerDesc: unresolved.Descriptor,
-    update: (mappedInner: unresolved.Descriptor) => D
+    innerDesc: builder.Descriptor,
+    update: (mappedInner: builder.Descriptor) => D
   ): ValueAccumulator<D> {
     let innerAccumulator = new ValueAccumulator(
       accumulator.neededFeatures,
@@ -153,7 +153,7 @@ class FeaturesVisitor {
     }
   }
 
-  private visitDescriptor<D extends unresolved.Descriptor>(
+  private visitDescriptor<D extends builder.Descriptor>(
     desc: D,
     accumulator: ValueAccumulator<D>
   ): D | undefined {
@@ -163,13 +163,13 @@ class FeaturesVisitor {
     return accumulator.finish();
   }
 
-  private visitDictionary<D extends unresolved.Dictionary | unresolved.Record>(
+  private visitDictionary<D extends builder.Dictionary | builder.Record>(
     desc: D,
     accumulator: ValueAccumulator<D>
   ): ValueAccumulator<D> {
     let members = desc.members;
     let memberNames = Object.keys(members);
-    let mapped = dict<unresolved.Descriptor>();
+    let mapped = dict<builder.Descriptor>();
 
     memberNames.forEach((name, _index) => {
       let fieldValue = members[name]!;
@@ -204,8 +204,8 @@ function hasFeatures(
 }
 
 export function applyFeatures(
-  desc: unresolved.Record,
+  desc: builder.Record,
   featureList: string[]
-): unresolved.Record {
+): builder.Record {
   return new FeaturesVisitor(featureList).visit(desc, featureList)!;
 }

@@ -1,4 +1,4 @@
-import { unresolved } from "../../descriptors";
+import { builder } from "../../descriptors";
 import { Record } from "../../record";
 import { Accumulator, Pos, Reporter, ReporterDelegate } from "./reporter";
 import { StringVisitor } from "./visitor";
@@ -19,6 +19,6 @@ export default function formatter<Buffer extends Accumulator<string>, Options>(
     );
     let visitor = StringVisitor.build<Buffer, string, typeof options>(reporter);
 
-    return visitor.record(type.descriptor as unresolved.Record, Pos.Only);
+    return visitor.record(type.descriptor as builder.Record, Pos.Only);
   }) as any;
 }

@@ -1,6 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import { resolved, unresolved } from "../../descriptors";
+import { builder, resolved } from "../../descriptors";
 import { AbstractType, TypeBuilder } from "./core";
 
 export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
@@ -59,11 +59,11 @@ export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
 export function buildMembers(
   dictionary: Dict<TypeBuilder>
 ): {
-  members: Dict<unresolved.Descriptor>;
-  membersMeta: Dict<unresolved.MembersMeta>;
+  members: Dict<builder.Descriptor>;
+  membersMeta: Dict<builder.MembersMeta>;
 } {
-  let membersDict = dict<unresolved.Descriptor>();
-  let membersMeta = dict<unresolved.MembersMeta>();
+  let membersDict = dict<builder.Descriptor>();
+  let membersMeta = dict<builder.MembersMeta>();
 
   for (let [key, value] of entries(dictionary)) {
     membersDict[key] = value!.descriptor;
@@ -80,6 +80,6 @@ export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
   let { members, membersMeta } = buildMembers(dictionary);
 
   return new TypeBuilder(
-    unresolved.Dictionary(members, membersMeta, DictionaryImpl)
+    builder.Dictionary(members, membersMeta, DictionaryImpl)
   );
 }

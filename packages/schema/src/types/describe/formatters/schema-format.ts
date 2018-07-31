@@ -1,4 +1,4 @@
-import { unresolved } from "../../../descriptors";
+import { builder } from "../../../descriptors";
 import { JSONValue } from "../../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
@@ -97,7 +97,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   }
 };
 
-function formatType(descriptor: unresolved.Primitive, position: Pos): string {
+function formatType(descriptor: builder.Primitive, position: Pos): string {
   let out = `${descriptor.name || "anonymous"}(${formatArgs(
     descriptor.name,
     descriptor.args,

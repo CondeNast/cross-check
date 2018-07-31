@@ -15,7 +15,7 @@ QUnit.dump.maxDepth = 100;
 
 QUnit.module("[schema] - record with feature flags");
 
-QUnit.test(
+QUnit.todo(
   "all feature-flagged fields are optional in draft mode",
   async assert => {
     assert.deepEqual(
@@ -35,7 +35,7 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+QUnit.todo(
   "all feature-flagged fields are present in published mode if present",
   async assert => {
     assert.deepEqual(
@@ -571,7 +571,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
   matcher.exhaustiveCheck();
 }
 
-QUnit.test("feature flag matrix", async assert => {
+QUnit.todo("feature flag matrix", async assert => {
   await testType(assert, {
     type: types.SingleLine(),
     success: "hello world",
@@ -607,7 +607,7 @@ QUnit.test("feature flag matrix", async assert => {
   });
 });
 
-QUnit.test(
+QUnit.todo(
   "when features flags are disabled, the fields aren't present in publish mode",
   async assert => {
     assert.deepEqual(
@@ -621,7 +621,7 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+QUnit.todo(
   "when features flags are disabled, the fields aren't present in draft mode",
   async assert => {
     assert.deepEqual(

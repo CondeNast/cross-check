@@ -5,7 +5,7 @@ import {
   validators
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import { resolved, unresolved } from "../../descriptors";
+import { builder, resolved } from "../../descriptors";
 import { maybe } from "../../utils";
 
 /**
@@ -48,9 +48,7 @@ const DEFAULT_METADATA = {
   required: null
 };
 
-export class TypeBuilder<
-  D extends unresolved.Descriptor = unresolved.Descriptor
-> {
+export class TypeBuilder<D extends builder.Descriptor = builder.Descriptor> {
   constructor(
     readonly descriptor: D,
     /** @internal */
@@ -59,7 +57,7 @@ export class TypeBuilder<
 
   named(name: string): TypeBuilder {
     return new TypeBuilder(
-      unresolved.Alias(this.descriptor, name),
+      builder.Alias(this.descriptor, name),
       this.builderMetadata
     );
   }
@@ -80,8 +78,8 @@ export class TypeBuilder<
   }
 }
 
-export function getFeatures(builder: TypeBuilder): string[] | undefined {
-  return builder.builderMetadata.features || undefined;
+export function getFeatures(typeBuilder: TypeBuilder): string[] | undefined {
+  return typeBuilder.builderMetadata.features || undefined;
 }
 
 export abstract class AbstractContainerType<

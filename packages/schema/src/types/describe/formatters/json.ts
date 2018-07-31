@@ -1,5 +1,5 @@
 import { Dict, JSONObject, Option, dict, unknown } from "ts-std";
-import { unresolved } from "../../../descriptors";
+import { builder } from "../../../descriptors";
 import { Record } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
 import {
@@ -62,9 +62,9 @@ interface JSONTypes extends RecursiveDelegateTypes {
 class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   private visitor = RecursiveVisitor.build<JSONTypes>(this);
 
-  primitive(desc: unresolved.Primitive, pos: Pos): Primitive {
+  primitive(desc: builder.Primitive, pos: Pos): Primitive {
     let required = isRequiredPosition(pos);
-    let args = unresolved.buildArgs(desc, isRequiredPosition(pos));
+    let args = builder.buildArgs(desc, isRequiredPosition(pos));
 
     if (args !== undefined) {
       return { type: desc.name || "anonymous", args, required };
@@ -73,7 +73,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     }
   }
 
-  alias(alias: unresolved.Alias, pos: Pos): Alias {
+  alias(alias: builder.Alias, pos: Pos): Alias {
     let output: Alias = {
       alias: alias.name,
       required: isRequiredPosition(pos)
@@ -84,7 +84,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
 
   generic(
     entity: Item,
-    descriptor: unresolved.Iterator | unresolved.List | unresolved.Pointer,
+    descriptor: builder.Iterator | builder.List | builder.Pointer,
     pos: Pos
   ): Generic {
     let { type } = descriptor;
@@ -121,7 +121,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     };
   }
 
-  dictionary(descriptor: unresolved.Dictionary, pos: Pos): Dictionary {
+  dictionary(descriptor: builder.Dictionary, pos: Pos): Dictionary {
     return {
       type: "Dictionary",
       members: this.dictionaryOrRecord(descriptor),
@@ -130,7 +130,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   record(
-    descriptor: unresolved.Record
+    descriptor: builder.Record
   ): {
     fields: Dict<Item>;
     metadata: Option<JSONValue>;
@@ -142,7 +142,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   private dictionaryOrRecord(
-    descriptor: unresolved.Dictionary | unresolved.Record
+    descriptor: builder.Dictionary | builder.Record
   ): Dict<Item> {
     let members = dict<Item>();
     this.visitor.processDictionary(descriptor, (item, key, pos) => {
@@ -159,7 +159,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
 }
 
 function genericOptions(
-  descriptor: unresolved.Iterator | unresolved.Pointer | unresolved.List,
+  descriptor: builder.Iterator | builder.Pointer | builder.List,
   pos: Pos
 ): Pick<GenericReference, "kind" | "args"> {
   let options = {} as GenericOptions;
