@@ -1,7 +1,7 @@
 import { unresolved } from "../../../descriptors";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { ReporterDelegate, isLast } from "../reporter";
+import { ReporterDelegate, isLast, isRequiredPosition } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
   openAlias({ descriptor }) {
@@ -20,8 +20,10 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     return `}`;
   },
 
-  emitKey({ key, nesting, descriptor }): string {
-    return `${pad(nesting * 2)}${formattedKey(key, descriptor)}: `;
+  emitKey({ key, nesting, position }): string {
+    let formattedKey = isRequiredPosition(position) ? key : `${key}?`;
+
+    return `${pad(nesting * 2)}${formattedKey}: `;
   },
 
   closeDictionary({ nesting }): string {
@@ -59,10 +61,6 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
     return `<${descriptor.description}>`;
   }
 };
-
-function formattedKey(key: string, _descriptor: unresolved.Descriptor): string {
-  return `${key}?`;
-}
 
 function pad(size: number): string {
   return " ".repeat(size);

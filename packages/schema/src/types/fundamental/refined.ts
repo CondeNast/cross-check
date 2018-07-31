@@ -20,8 +20,7 @@ export function baseType(desc: unresolved.Descriptor): unresolved.Descriptor {
     return baseType(desc.inner);
   } else if (is(desc, "List")) {
     return Object.assign({}, desc, {
-      inner: baseType(desc.inner),
-      args: { ...desc.args, allowEmpty: true }
+      inner: baseType(desc.inner)
     });
   } else if (isContainer(desc)) {
     return mapContainer(desc, baseType);

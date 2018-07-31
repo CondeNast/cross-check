@@ -37,7 +37,6 @@ export const MediumArticle: Record = Record("MediumArticle", {
     canonicalUrl: Url(),
     tags: types.List(types.SingleWord()),
     categories: types.List(types.SingleLine()).required(),
-    // channels: types.List(types.SingleLine()).feature("channels"),
     geo: types.Dictionary({
       lat: types.Integer().required(),
       long: types.Integer().required()

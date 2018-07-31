@@ -56,26 +56,29 @@ export function List(
     metadata: null,
     inner,
     args,
-    instantiate: desc => instantiateList(desc, impl)
+    instantiate: (desc, required) => instantiateList(desc, required, impl)
   };
 }
 
 function instantiateList(
   desc: List,
+  required: boolean,
   impl: resolved.Factory<resolved.List>
 ): resolved.List {
-  return resolved.List(
-    resolve(desc.inner, true),
-    buildArgs<ListArgs>(desc, true),
-    impl
-  );
+  let args = buildArgs<ListArgs>(desc, true);
+
+  if (required === false) {
+    args = { ...args, allowEmpty: true };
+  }
+
+  return resolved.List(resolve(desc.inner, true), args, impl);
 }
 
 export interface Pointer<A extends JSONValue = JSONValue>
   extends IDescriptor<A> {
   readonly type: "Pointer";
   readonly name: string;
-  readonly metadata: Option<JSONValue>;
+  readonly metadata: Option<JSONObject>;
   readonly inner: Descriptor;
 }
 
@@ -87,7 +90,7 @@ export function Pointer<A extends JSONValue>({
   impl
 }: {
   name: string;
-  metadata: Option<JSONValue>;
+  metadata: Option<JSONObject>;
   inner: Descriptor;
   args: A;
   impl: resolved.Factory<resolved.Pointer>;
@@ -108,7 +111,7 @@ export interface Iterator<A extends JSONValue = JSONValue>
   extends IDescriptor<A> {
   readonly type: "Iterator";
   readonly name: string;
-  readonly metadata: Option<JSONValue>;
+  readonly metadata: Option<JSONObject>;
   readonly inner: Descriptor;
 }
 
@@ -120,7 +123,7 @@ export function Iterator<A extends JSONValue>({
   impl
 }: {
   name: string;
-  metadata: Option<JSONValue>;
+  metadata: Option<JSONObject>;
   inner: Descriptor;
   args: A;
   impl: resolved.Factory<resolved.Iterator>;
@@ -255,7 +258,8 @@ export function Refined<A extends RawArgs>(
     buildArgs: Class.buildArgs ? Class.buildArgs : a => a,
     base,
     metadata: null,
-    instantiate: () => resolved.Primitive(args, Class)
+    instantiate: (desc, required) =>
+      resolved.Primitive(desc.buildArgs(args, required), Class)
   };
 }
 
@@ -300,7 +304,8 @@ export function Primitive<A extends RawArgs>(
     args,
     buildArgs: Class.buildArgs ? Class.buildArgs : a => a,
     metadata: null,
-    instantiate: () => resolved.Primitive(args, Class)
+    instantiate: (desc, required) =>
+      resolved.Primitive(desc.buildArgs(desc.args, required), Class)
   };
 }
 

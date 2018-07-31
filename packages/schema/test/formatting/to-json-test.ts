@@ -140,6 +140,7 @@ QUnit.test("detailed - draft", assert => {
         type: "Text",
         required: true
       },
+      args: { allowEmpty: true },
       required: false
     },
     categories: {
@@ -148,6 +149,7 @@ QUnit.test("detailed - draft", assert => {
         type: "Text",
         required: true
       },
+      args: { allowEmpty: true },
       required: false
     },
     geo: {
@@ -161,6 +163,7 @@ QUnit.test("detailed - draft", assert => {
     contributors: {
       type: "List",
       required: false,
+      args: { allowEmpty: true },
       of: {
         type: "Dictionary",
         required: true,

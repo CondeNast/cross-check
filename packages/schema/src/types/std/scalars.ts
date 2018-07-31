@@ -61,6 +61,7 @@ export interface TextOptions extends JSONObject {
 }
 
 export function Text(options?: TextOptions): TypeBuilder<unresolved.Primitive> {
+  debugger;
   return Primitive(TextPrimitive, options);
 }
 

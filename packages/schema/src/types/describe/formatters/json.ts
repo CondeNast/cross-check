@@ -1,4 +1,4 @@
-import { Dict, Option, dict, unknown } from "ts-std";
+import { Dict, JSONObject, Option, dict, unknown } from "ts-std";
 import { unresolved } from "../../../descriptors";
 import { Record } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
@@ -30,7 +30,7 @@ interface Generic {
 interface GenericReference extends Generic {
   type: "Pointer" | "Iterator";
   kind: string;
-  args?: JSONValue;
+  args?: JSONObject;
   of: Item;
   required: boolean;
 }
@@ -88,16 +88,22 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     pos: Pos
   ): Generic {
     let { type } = descriptor;
-    let options: Option<{ kind?: string; args?: JSONValue }> = {};
+    let options: Option<{ kind?: string; args?: JSONObject }> = {};
 
     switch (type) {
       case "Iterator":
         options = genericOptions(descriptor, pos);
         break;
 
-      case "List":
+      case "List": {
         options = genericOptions(descriptor, pos);
+
+        if (isRequiredPosition(pos) === false) {
+          options.args = { ...options.args, allowEmpty: true };
+        }
+
         break;
+      }
 
       case "Pointer":
         options = genericOptions(descriptor, pos);
@@ -169,16 +175,6 @@ function genericOptions(
   }
 
   return options;
-}
-
-function isRequired(pos: Pos, position: "Dictionary"): Option<boolean> {
-  if (isExplicitRequiredPosition(pos)) {
-    return true;
-  } else if (isRequiredPosition(pos) === false) {
-    return false;
-  } else {
-    return null;
-  }
 }
 
 export function toJSON(record: Record): unknown {
