@@ -4,7 +4,7 @@ import { Dict, unknown } from "ts-std";
 import { ENV, error, missingError, typeError, urlish } from "./support";
 import { MediumArticle } from "./support/records";
 
-QUnit.module("@cross-check/schema - detailed schema");
+QUnit.module("[schema] - detailed schema");
 
 function create(object: Dict = {}) {
   return {

@@ -6,7 +6,7 @@ import {
 } from "@cross-check/schema";
 import { ISODate, Url } from "../support";
 
-export const SimpleArticle = Record("SimpleArticle", {
+export const SimpleArticle: Record = Record("SimpleArticle", {
   fields: {
     hed: types.SingleLine().required(),
     dek: types.Text(),
@@ -24,7 +24,7 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(SimpleArticle.descriptor));
 }
 
-export const MediumArticle = Record("MediumArticle", {
+export const MediumArticle: Record = Record("MediumArticle", {
   fields: {
     hed: types.SingleLine().required(),
     dek: types.Text(),
@@ -35,7 +35,7 @@ export const MediumArticle = Record("MediumArticle", {
     }),
     issueDate: ISODate(),
     canonicalUrl: Url(),
-    tags: types.List(types.SingleWord(), { allowEmpty: true }),
+    tags: types.List(types.SingleWord()),
     categories: types.List(types.SingleLine()).required(),
     // channels: types.List(types.SingleLine()).feature("channels"),
     geo: types.Dictionary({
@@ -81,8 +81,15 @@ if (DEBUG_LOG === "debug") {
 export const Features = Record("ArticleWithFlags", {
   fields: {
     hed: types.SingleLine(),
-    dek: types.SingleLine()
-    // categories: types.List(types.SingleLine()).features(["category-picker"])
+    dek: types.SingleLine(),
+    categories: types.List(types.SingleLine()).features(["category-picker"]),
+    description: types.Text().features(["description"]),
+    location: types
+      .Dictionary({
+        lat: types.Float(),
+        long: types.Float()
+      })
+      .features(["map"])
   },
   metadata: {
     collectionName: "articles-with-flags",

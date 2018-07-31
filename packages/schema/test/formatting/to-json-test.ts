@@ -1,7 +1,7 @@
 import { toJSON } from "@cross-check/schema";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("formatting - toJSON");
+QUnit.module("[schema] formatting - toJSON");
 
 QUnit.test("simple - published", assert => {
   assert.deepEqual(toJSON(SimpleArticle), {
@@ -64,6 +64,7 @@ QUnit.test("detailed - published", assert => {
         type: "SingleWord",
         required: true
       },
+      args: { allowEmpty: true },
       required: false
     },
     categories: {
@@ -85,6 +86,7 @@ QUnit.test("detailed - published", assert => {
     contributors: {
       type: "List",
       required: false,
+      args: { allowEmpty: true },
       of: {
         type: "Dictionary",
         required: true,

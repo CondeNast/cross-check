@@ -1,56 +1,62 @@
 import { unknown } from "ts-std";
-import {
-  AliasDescriptor,
-  AnyDictionaryDescriptor,
-  CollectionDescriptor,
-  DictionaryDescriptor,
-  PrimitiveDescriptor,
-  RecordDescriptor,
-  RequiredDescriptor,
-  TypeDescriptor,
-  isDescriptor,
-  isGenericDescriptor
-} from "../../descriptors";
+import { unresolved } from "../../descriptors";
+import { exhausted } from "../../utils";
 import { TypeBuilder } from "../fundamental";
 import {
   Accumulator,
   DictionaryPosition,
   Pos,
   Reporter,
-  genericPosition,
-  requiredPosition
+  genericPosition
 } from "./reporter";
 
 export interface VisitorDelegate {
-  alias(type: AliasDescriptor, position: Pos): unknown;
-  required(type: RequiredDescriptor, position: Pos): unknown;
-  generic(type: CollectionDescriptor, position: Pos): unknown;
-  dictionary(type: DictionaryDescriptor, position: Pos): unknown;
-  record(type: RecordDescriptor, position: Pos): unknown;
-  primitive(type: PrimitiveDescriptor, position: Pos): unknown;
+  alias(type: unresolved.Alias, position: Pos): unknown;
+  generic(type: unresolved.Container, position: Pos): unknown;
+  dictionary(type: unresolved.Dictionary, position: Pos): unknown;
+  record(type: unresolved.Record, position: Pos): unknown;
+  primitive(
+    type: unresolved.Primitive | unresolved.Refined,
+    position: Pos
+  ): unknown;
 }
 
 export class Visitor {
   constructor(private delegate: VisitorDelegate) {}
 
-  visit(descriptor: TypeDescriptor, position: Pos): unknown {
-    if (isDescriptor(descriptor, "Alias")) {
+  visit(descriptor: unresolved.Descriptor, position: Pos): unknown {
+    // switch (descriptor.type) {
+    //   case "Generic":
+    //     throw new Error("Unimplemented visitor for generic");
+    //   case "Alias":
+
+    //   default:
+    //     return exhausted(descriptor);
+    // }
+
+    if (unresolved.is(descriptor, "Alias")) {
       return this.delegate.alias(descriptor, position);
-    } else if (isDescriptor(descriptor, "Required")) {
-      return this.delegate.required(descriptor, position);
-    } else if (isGenericDescriptor(descriptor)) {
+    } else if (
+      unresolved.is(descriptor, "Pointer") ||
+      unresolved.is(descriptor, "Iterator") ||
+      unresolved.is(descriptor, "List")
+    ) {
       return this.delegate.generic(descriptor, position);
-    } else if (isDescriptor(descriptor, "Dictionary")) {
+    } else if (unresolved.is(descriptor, "Dictionary")) {
       return this.delegate.dictionary(descriptor, position);
-    } else if (isDescriptor(descriptor, "Record")) {
+    } else if (unresolved.is(descriptor, "Record")) {
       let desc = new TypeBuilder(descriptor).named(descriptor.name)
-        .descriptor as AliasDescriptor;
+        .descriptor as unresolved.Alias;
 
       return this.delegate.alias(desc, position);
-    } else if (isDescriptor(descriptor, "Primitive")) {
+    } else if (unresolved.is(descriptor, "Primitive")) {
       return this.delegate.primitive(descriptor, position);
+    } else if (unresolved.is(descriptor, "Refined")) {
+      return this.delegate.primitive(descriptor, position);
+    } else if (unresolved.is(descriptor, "Generic")) {
+      throw new Error("Unimplemented visitor for Generic");
     } else {
-      throw new Error("unreachable");
+      return exhausted(descriptor);
     }
   }
 }
@@ -98,20 +104,15 @@ export type DelegateItem<T extends RecursiveDelegateTypes> =
 export interface RecursiveDelegate<
   T extends RecursiveDelegateTypes = RecursiveDelegateTypes
 > {
-  alias(descriptor: AliasDescriptor, pos: Pos): T["alias"];
-  required(
-    inner: DelegateItem<T>,
-    descriptor: RequiredDescriptor,
-    pos: Pos
-  ): unknown;
-  primitive(descriptor: PrimitiveDescriptor, pos: Pos): T["primitive"];
+  alias(descriptor: unresolved.Alias, pos: Pos): T["alias"];
+  primitive(descriptor: unresolved.Primitive, pos: Pos): T["primitive"];
   generic(
     of: DelegateItem<T>,
-    descriptor: CollectionDescriptor,
+    descriptor: unresolved.Container,
     pos: Pos
   ): T["generic"];
-  dictionary(descriptor: DictionaryDescriptor, pos: Pos): T["dictionary"];
-  record(descriptor: RecordDescriptor, pos: Pos): T["record"];
+  dictionary(descriptor: unresolved.Dictionary, pos: Pos): T["dictionary"];
+  record(descriptor: unresolved.Record, pos: Pos): T["record"];
 }
 
 export class RecursiveVisitor<T extends RecursiveDelegateTypes>
@@ -129,24 +130,15 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 
   private constructor(private recursiveDelegate: RecursiveDelegate<T>) {}
 
-  alias(descriptor: AliasDescriptor, pos: Pos): unknown {
+  alias(descriptor: unresolved.Alias, pos: Pos): unknown {
     return this.recursiveDelegate.alias(descriptor, pos);
   }
 
-  required(descriptor: RequiredDescriptor, pos: Pos): unknown {
-    let inner = this.visitor.visit(descriptor.inner, Pos.Only);
-    return this.recursiveDelegate.required(
-      inner,
-      descriptor,
-      requiredPosition(pos, descriptor.args.required)
-    );
-  }
-
-  primitive(descriptor: PrimitiveDescriptor, pos: Pos): unknown {
+  primitive(descriptor: unresolved.Primitive, pos: Pos): unknown {
     return this.recursiveDelegate.primitive(descriptor, pos);
   }
 
-  generic(descriptor: CollectionDescriptor, pos: Pos): unknown {
+  generic(descriptor: unresolved.Container, pos: Pos): unknown {
     let genericPos = genericPosition(descriptor.type);
 
     return this.recursiveDelegate.generic(
@@ -156,19 +148,20 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
     );
   }
 
-  record(descriptor: RecordDescriptor, pos: Pos): unknown {
+  record(descriptor: unresolved.Record, pos: Pos): unknown {
     return this.recursiveDelegate.record(descriptor, pos);
   }
 
-  dictionary(descriptor: DictionaryDescriptor, pos: Pos): unknown {
+  dictionary(descriptor: unresolved.Dictionary, pos: Pos): unknown {
     return this.recursiveDelegate.dictionary(descriptor, pos);
   }
 
   processDictionary(
-    descriptor: DictionaryDescriptor | RecordDescriptor,
-    callback: (item: DelegateItem<T>, key: string) => void
+    descriptor: unresolved.Dictionary | unresolved.Record,
+    callback: (item: DelegateItem<T>, key: string, position: Pos) => void
   ): unknown {
     let input = descriptor.members;
+    let meta = descriptor.membersMeta;
     let keys = Object.keys(input);
     let last = keys.length - 1;
 
@@ -176,9 +169,13 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
       let dictPosition = DictionaryPosition({
         index: i,
         last,
-        descriptor: input[key]!
+        meta: meta[key]!
       });
-      callback(this.visitor.visit(input[key]!, dictPosition), key);
+      callback(
+        this.visitor.visit(input[key]!, dictPosition),
+        key,
+        dictPosition
+      );
     });
   }
 }
@@ -198,34 +195,25 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
-  alias(descriptor: AliasDescriptor, position: Pos): unknown {
+  alias(descriptor: unresolved.Alias, position: Pos): unknown {
     this.reporter.startAlias(position, descriptor);
     this.reporter.endAlias(position, descriptor);
   }
 
-  required(descriptor: RequiredDescriptor, position: Pos): unknown {
-    this.reporter.startRequired(position, descriptor);
-    this.visitor.visit(
-      descriptor.inner,
-      requiredPosition(position, descriptor.args.required)
-    );
-    this.reporter.endRequired(position, descriptor);
-  }
-
-  generic(descriptor: CollectionDescriptor, position: Pos): unknown {
+  generic(descriptor: unresolved.Container, position: Pos): unknown {
     this.reporter.startGenericValue(position, descriptor);
     let pos = genericPosition(descriptor.type);
     this.visitor.visit(descriptor.inner, pos);
     this.reporter.endGenericValue(position, descriptor);
   }
 
-  dictionary(descriptor: DictionaryDescriptor, position: Pos): void {
+  dictionary(descriptor: unresolved.Dictionary, position: Pos): void {
     this.reporter.startDictionary(position, descriptor);
     this.dictionaryBody(descriptor);
     this.reporter.endDictionary(position, descriptor);
   }
 
-  record(descriptor: RecordDescriptor, position: Pos): Inner {
+  record(descriptor: unresolved.Record, position: Pos): Inner {
     this.reporter.startRecord(position, descriptor);
     this.dictionaryBody(descriptor);
     this.reporter.endRecord(position, descriptor);
@@ -233,12 +221,13 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     return this.reporter.finish();
   }
 
-  primitive(descriptor: PrimitiveDescriptor, position: Pos): unknown {
+  primitive(descriptor: unresolved.Primitive, position: Pos): unknown {
     this.reporter.primitiveValue(position, descriptor);
   }
 
-  dictionaryBody(descriptor: AnyDictionaryDescriptor) {
+  dictionaryBody(descriptor: unresolved.Dictionary | unresolved.Record) {
     let members = descriptor.members;
+    let meta = descriptor.membersMeta;
     let keys = Object.keys(members);
     let last = keys.length - 1;
 
@@ -246,7 +235,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
       let position = DictionaryPosition({
         index: i,
         last,
-        descriptor: members[key]!
+        meta: meta[key]!
       });
 
       this.reporter.addKey(position, key, members[key]!);

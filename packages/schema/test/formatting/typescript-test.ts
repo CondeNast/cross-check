@@ -2,7 +2,7 @@ import { Record, types, typescript } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
 import { MediumArticle, SimpleArticle } from "../support/records";
 
-QUnit.module("formatting - typescript");
+QUnit.module("[schema] formatting - typescript");
 
 QUnit.test("simple", assert => {
   assert.equal(

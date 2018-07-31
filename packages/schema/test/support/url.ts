@@ -1,10 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import {
-  PrimitiveDescriptor,
-  Scalar,
-  TypeBuilder,
-  types
-} from "@cross-check/schema";
+import { Refined, Scalar, TypeBuilder, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { format } from "./format";
 
@@ -58,6 +53,11 @@ export class Urlish {
 }
 
 class UrlType extends Scalar<UrlKind[]> {
+  static typescript = "URL";
+  static description = "url";
+  static typeName = "Url";
+  static base = () => types.Text();
+
   get options(): UrlKind[] {
     return this.descriptor.args as UrlKind[];
   }
@@ -81,21 +81,5 @@ export function urlish(full: string) {
 }
 
 export function Url(...args: UrlKind[]): TypeBuilder {
-  return new TypeBuilder({
-    type: "Primitive",
-    typescript: "URL",
-    description: "url",
-    factory: {
-      instantiate(desc: PrimitiveDescriptor<UrlKind[]>) {
-        return new UrlType(desc);
-      },
-
-      base() {
-        return types.Text().descriptor;
-      }
-    },
-    args,
-    metadata: null,
-    name: "Url"
-  });
+  return Refined(UrlType, args);
 }

@@ -1,17 +1,9 @@
-import { TypeDescriptor, isDescriptor } from "../../../descriptors";
+import { unresolved } from "../../../descriptors";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
 import { ReporterDelegate, isLast } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
-  openRequired() {
-    /* noop */
-  },
-
-  closeRequired() {
-    /* noop */
-  },
-
   openAlias({ descriptor }) {
     return descriptor.name;
   },
@@ -68,12 +60,8 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   }
 };
 
-function formattedKey(key: string, descriptor: TypeDescriptor): string {
-  if (isDescriptor(descriptor, "Required") && descriptor.args.required) {
-    return key;
-  } else {
-    return `${key}?`;
-  }
+function formattedKey(key: string, _descriptor: unresolved.Descriptor): string {
+  return `${key}?`;
 }
 
 function pad(size: number): string {

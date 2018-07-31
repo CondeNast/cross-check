@@ -7,7 +7,7 @@ import {
 } from "./support";
 import { SimpleArticle } from "./support/records";
 
-QUnit.module("@cross-check/schema - simple schema");
+QUnit.module("[schema] - simple schema");
 
 QUnit.test("all fields are optional in draft mode", async assert => {
   assert.deepEqual(

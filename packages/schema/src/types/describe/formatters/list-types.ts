@@ -1,11 +1,5 @@
 import { Dict, unknown } from "ts-std";
-import {
-  AliasDescriptor,
-  CollectionDescriptor,
-  DictionaryDescriptor,
-  PrimitiveDescriptor,
-  RecordDescriptor
-} from "../../../descriptors";
+import { unresolved } from "../../../descriptors";
 import { Record } from "../../../record";
 import {
   RecursiveDelegate,
@@ -24,7 +18,7 @@ export interface ListTypesTypes extends RecursiveDelegateTypes {
 class ListTypes implements RecursiveDelegate<ListTypesTypes> {
   private visitor = RecursiveVisitor.build<ListTypesTypes>(this);
 
-  alias({ name }: AliasDescriptor): Dict {
+  alias({ name }: unresolved.Alias): Dict {
     return { [name]: true };
   }
 
@@ -32,25 +26,25 @@ class ListTypes implements RecursiveDelegate<ListTypesTypes> {
     return item;
   }
 
-  primitive({ name }: PrimitiveDescriptor): Dict {
+  primitive({ name }: unresolved.Primitive): Dict {
     return { [name || "anonymous"]: true };
   }
 
-  generic(of: Dict, descriptor: CollectionDescriptor): Dict {
+  generic(of: Dict, descriptor: unresolved.Container): Dict {
     let kind = descriptor.type;
     let name = `${kind[0].toUpperCase()}${kind.slice(1)}`;
     return { ...of, [name]: true };
   }
 
-  dictionary(descriptor: DictionaryDescriptor): Dict {
+  dictionary(descriptor: unresolved.Dictionary): Dict {
     return { ...this.dict(descriptor), Dictionary: true };
   }
 
-  record(descriptor: RecordDescriptor): string[] {
+  record(descriptor: unresolved.Record): string[] {
     return Object.keys(this.dict(descriptor)).sort();
   }
 
-  private dict(descriptor: DictionaryDescriptor | RecordDescriptor) {
+  private dict(descriptor: unresolved.Dictionary | unresolved.Record) {
     let members: Dict = {};
 
     this.visitor.processDictionary(descriptor, (item: Dict) => {

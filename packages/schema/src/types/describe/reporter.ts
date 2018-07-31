@@ -1,14 +1,7 @@
-import {
-  AliasDescriptor,
-  CollectionDescriptor,
-  DictionaryDescriptor,
-  PrimitiveDescriptor,
-  RecordDescriptor,
-  RequiredDescriptor,
-  TypeDescriptor
-} from "../../descriptors";
+import { Dict } from "ts-std";
+import { unresolved } from "../../descriptors";
+import { MembersMeta } from "../../descriptors/unresolved";
 import { exhausted } from "../../utils";
-import { isRequired } from "../fundamental";
 import { Buffer as StringBuffer } from "./buffer";
 
 export interface Reporters<Buffer, Inner, Options> {
@@ -23,62 +16,56 @@ export interface State<Buffer> {
 }
 
 export interface ReporterDelegate<Buffer, Inner, Options> {
-  openRequired(
-    options: ReporterEvent<Buffer, Options> & {
-      descriptor: RequiredDescriptor;
-    }
-  ): Inner | void;
-  closeRequired(
-    options: ReporterEvent<Buffer, Options> & { descriptor: RequiredDescriptor }
-  ): Inner | void;
   openAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: AliasDescriptor }
+    options: ReporterEvent<Buffer, Options> & { descriptor: unresolved.Alias }
   ): Inner | void;
   closeAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: AliasDescriptor }
+    options: ReporterEvent<Buffer, Options> & { descriptor: unresolved.Alias }
   ): Inner | void;
   openRecord(
-    options: ReporterEvent<Buffer, Options> & { descriptor: RecordDescriptor }
+    options: ReporterEvent<Buffer, Options> & {
+      descriptor: unresolved.Record;
+    }
   ): Inner | void;
   closeRecord(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: RecordDescriptor;
+      descriptor: unresolved.Record;
     }
   ): Inner | void;
   emitKey(
     options: Event<Buffer, Options> & {
       key: string;
-      descriptor: TypeDescriptor;
+      descriptor: unresolved.Descriptor;
     }
   ): Inner | void;
   closeValue(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: TypeDescriptor;
+      descriptor: unresolved.Descriptor;
     }
   ): Inner | void;
   openDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: DictionaryDescriptor;
+      descriptor: unresolved.Dictionary;
     }
   ): Inner | void;
   closeDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: DictionaryDescriptor;
+      descriptor: unresolved.Dictionary;
     }
   ): Inner | void;
   openGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: CollectionDescriptor;
+      descriptor: unresolved.Container;
     }
   ): Inner | void;
   closeGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: CollectionDescriptor;
+      descriptor: unresolved.Container;
     }
   ): Inner | void;
   emitPrimitive(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: PrimitiveDescriptor;
+      descriptor: unresolved.Primitive;
     }
   ): Inner | void;
 }
@@ -119,7 +106,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     }
   }
 
-  startAlias(position: Pos, descriptor: AliasDescriptor) {
+  startAlias(position: Pos, descriptor: unresolved.Alias) {
     this.pushStrings(
       this.reporters.openAlias({
         position,
@@ -129,7 +116,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endAlias(position: Pos, descriptor: AliasDescriptor) {
+  endAlias(position: Pos, descriptor: unresolved.Alias) {
     this.pushStrings(
       this.reporters.closeAlias({
         position,
@@ -139,27 +126,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startRequired(position: Pos, descriptor: RequiredDescriptor): void {
-    this.pushStrings(
-      this.reporters.openRequired({
-        position,
-        descriptor,
-        ...this.state
-      })
-    );
-  }
-
-  endRequired(position: Pos, descriptor: RequiredDescriptor): void {
-    this.pushStrings(
-      this.reporters.closeRequired({
-        position,
-        descriptor,
-        ...this.state
-      })
-    );
-  }
-
-  startDictionary(position: Pos, descriptor: DictionaryDescriptor): void {
+  startDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -171,7 +138,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endDictionary(position: Pos, descriptor: DictionaryDescriptor): void {
+  endDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
@@ -183,7 +150,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startRecord(position: Pos, descriptor: RecordDescriptor): void {
+  startRecord(position: Pos, descriptor: unresolved.Record): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -195,7 +162,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endRecord(position: Pos, descriptor: RecordDescriptor): void {
+  endRecord(position: Pos, descriptor: unresolved.Record): void {
     this.pushStrings(
       this.reporters.closeRecord({
         descriptor,
@@ -205,7 +172,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  addKey(position: Pos, key: string, descriptor: TypeDescriptor): void {
+  addKey(position: Pos, key: string, descriptor: unresolved.Descriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
@@ -216,7 +183,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endValue(position: Pos, descriptor: TypeDescriptor): void {
+  endValue(position: Pos, descriptor: unresolved.Descriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
@@ -226,7 +193,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startGenericValue(position: Pos, descriptor: CollectionDescriptor): void {
+  startGenericValue(position: Pos, descriptor: unresolved.Container): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
@@ -236,7 +203,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endGenericValue(position: Pos, descriptor: CollectionDescriptor): void {
+  endGenericValue(position: Pos, descriptor: unresolved.Container): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
@@ -246,7 +213,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  primitiveValue(position: Pos, descriptor: PrimitiveDescriptor): void {
+  primitiveValue(position: Pos, descriptor: unresolved.Primitive): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
         descriptor,
@@ -266,6 +233,7 @@ export interface ReporterStateConstructor<Buffer, Inner, Options> {
 
 // prettier-ignore
 export enum Pos {
+  Unknown          = 0b00000000,
   First            = 0b00000001,
   Last             = 0b00000010,
   Only             = Pos.First | Pos.Last,
@@ -276,6 +244,19 @@ export enum Pos {
   ExplicitRequired = 0b01000000,
   PositionRequired = 0b10000000,
   IsRequired       = Pos.ExplicitRequired | Pos.PositionRequired
+}
+
+export function formatPosition(position: Pos): Dict<boolean> {
+  return {
+    first: isFirst(position),
+    last: isLast(position),
+    inDictionary: inDictionary(position),
+    inList: inList(position),
+    inPointer: inPointer(position),
+    inIterator: inIterator(position),
+    explicitRequired: isExplicitRequiredPosition(position),
+    implicitRequired: isRequiredPosition(position)
+  };
 }
 
 export function isFirst(position: Pos): boolean {
@@ -311,7 +292,7 @@ export function inGeneric(position: Pos): boolean {
 }
 
 export function isRequiredPosition(position: Pos): boolean {
-  return (position & Pos.IsRequired) === Pos.IsRequired;
+  return !!(position & Pos.IsRequired);
 }
 
 export function isExplicitRequiredPosition(position: Pos): boolean {
@@ -326,7 +307,7 @@ export function requiredPosition(position: Pos, isRequiredType: boolean): Pos {
   }
 }
 
-export function genericPosition(type: CollectionDescriptor["type"]): Pos {
+export function genericPosition(type: unresolved.Container["type"]): Pos {
   switch (type) {
     case "List":
       return Pos.InList | Pos.PositionRequired;
@@ -343,11 +324,11 @@ export function genericPosition(type: CollectionDescriptor["type"]): Pos {
 export function DictionaryPosition({
   index,
   last,
-  descriptor
+  meta
 }: {
   index: number;
   last: number;
-  descriptor: TypeDescriptor;
+  meta: MembersMeta;
 }) {
   let pos = Pos.InDictionary;
 
@@ -359,7 +340,7 @@ export function DictionaryPosition({
     pos |= Pos.Last;
   }
 
-  if (isRequired(descriptor)) {
+  if (meta.required) {
     pos |= Pos.ExplicitRequired;
   }
 
@@ -428,37 +409,41 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   startDictionary?(
     position: Pos,
-    descriptor: DictionaryDescriptor
+    descriptor: unresolved.Dictionary
   ): true | void;
 
-  startRecord?(position: Pos, descriptor: RecordDescriptor): true | void;
+  startRecord?(position: Pos, descriptor: unresolved.Record): true | void;
 
-  addKey?(position: Pos, key: string, descriptor: TypeDescriptor): true | void;
+  addKey?(
+    position: Pos,
+    key: string,
+    descriptor: unresolved.Descriptor
+  ): true | void;
 
-  endValue?(position: Pos, descriptor: TypeDescriptor): true | void;
+  endValue?(position: Pos, descriptor: unresolved.Descriptor): true | void;
 
-  endDictionary?(position: Pos, descriptor: DictionaryDescriptor): true | void;
+  endDictionary?(position: Pos, descriptor: unresolved.Dictionary): true | void;
 
   endDictionaryBody?(
     position: Pos,
-    descriptor: DictionaryDescriptor
+    descriptor: unresolved.Dictionary
   ): true | void;
 
-  endRecord?(position: Pos, descriptor: RecordDescriptor): true | void;
+  endRecord?(position: Pos, descriptor: unresolved.Record): true | void;
 
   startGenericValue?(
     position: Pos,
-    descriptor: CollectionDescriptor
+    descriptor: unresolved.Container
   ): true | void;
 
   endGenericValue?(
     position: Pos,
-    descriptor: CollectionDescriptor
+    descriptor: unresolved.Container
   ): true | void;
 
-  primitiveValue?(position: Pos, descriptor: PrimitiveDescriptor): void;
-  namedValue?(position: Pos, descriptor: TypeDescriptor): void;
+  primitiveValue?(position: Pos, descriptor: unresolved.Primitive): void;
+  namedValue?(position: Pos, descriptor: unresolved.Descriptor): void;
 
-  startType?(position: Pos, descriptor: TypeDescriptor): void;
-  endType?(position: Pos, descriptor: TypeDescriptor): true | void;
+  startType?(position: Pos, descriptor: unresolved.Descriptor): void;
+  endType?(position: Pos, descriptor: unresolved.Descriptor): true | void;
 }

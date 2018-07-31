@@ -1,10 +1,4 @@
-import {
-  CollectionDescriptor,
-  DictionaryDescriptor,
-  PrimitiveDescriptor,
-  RecordDescriptor,
-  TypeDescriptor
-} from "../../descriptors";
+import { unresolved } from "../../descriptors";
 import { Pos, ReporterState } from "./reporter";
 
 export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
@@ -16,7 +10,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     /* noop */
   }
 
-  startDictionary(position: Pos, descriptor: DictionaryDescriptor): void {
+  startDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -28,7 +22,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endDictionary(position: Pos, descriptor: DictionaryDescriptor): void {
+  endDictionary(position: Pos, descriptor: unresolved.Dictionary): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
@@ -40,7 +34,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  startRecord(position: Pos, descriptor: RecordDescriptor): void {
+  startRecord(position: Pos, descriptor: unresolved.Record): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -52,7 +46,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endRecord(position: Pos, descriptor: RecordDescriptor): void {
+  endRecord(position: Pos, descriptor: unresolved.Record): void {
     this.pushStrings(
       this.reporters.closeRecord({
         position,
@@ -62,7 +56,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  addKey(position: Pos, key: string, descriptor: TypeDescriptor): void {
+  addKey(position: Pos, key: string, descriptor: unresolved.Descriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
@@ -73,7 +67,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endValue(position: Pos, descriptor: TypeDescriptor): void {
+  endValue(position: Pos, descriptor: unresolved.Descriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
@@ -83,7 +77,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endGenericValue(position: Pos, descriptor: CollectionDescriptor): void {
+  endGenericValue(position: Pos, descriptor: unresolved.Container): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
@@ -93,7 +87,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  startGenericValue(position: Pos, descriptor: CollectionDescriptor): void {
+  startGenericValue(position: Pos, descriptor: unresolved.Container): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
@@ -103,7 +97,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  primitiveValue(position: Pos, descriptor: PrimitiveDescriptor): void {
+  primitiveValue(position: Pos, descriptor: unresolved.Primitive): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
         descriptor,

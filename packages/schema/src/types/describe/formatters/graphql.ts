@@ -1,9 +1,8 @@
 import { Dict, Option } from "ts-std";
 import { Record } from "../../../record";
 import { titleize } from "../../../utils";
-import { isRequired } from "../../fundamental";
 import formatter from "../formatter";
-import { Accumulator, ReporterDelegate } from "../reporter";
+import { Accumulator, ReporterDelegate, isRequiredPosition } from "../reporter";
 
 class TypeBuffer {
   private buf: string;
@@ -80,14 +79,6 @@ class BufferStack implements Accumulator<string> {
 }
 
 const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
-  openRequired() {
-    /* noop */
-  },
-
-  closeRequired() {
-    /* noop */
-  },
-
   openAlias({ buffer, descriptor }) {
     buffer.push(descriptor.name);
   },
@@ -116,8 +107,8 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
     buffer.doneType();
   },
 
-  closeValue({ buffer, descriptor }): void {
-    buffer.doneValue(!!isRequired(descriptor));
+  closeValue({ buffer, position }): void {
+    buffer.doneValue(!!isRequiredPosition(position));
   },
 
   openGeneric({ buffer, descriptor }): void {

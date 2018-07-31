@@ -1,14 +1,12 @@
 import { Dict, Option, dict, unknown } from "ts-std";
-import {
-  AliasDescriptor,
-  CollectionDescriptor,
-  DictionaryDescriptor,
-  PrimitiveDescriptor,
-  RecordDescriptor,
-  RequiredDescriptor
-} from "../../../descriptors";
+import { unresolved } from "../../../descriptors";
 import { Record } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
+import {
+  Pos,
+  isExplicitRequiredPosition,
+  isRequiredPosition
+} from "../reporter";
 import {
   RecursiveDelegate,
   RecursiveDelegateTypes,
@@ -18,7 +16,7 @@ import {
 interface Primitive {
   type: string;
   args?: JSONValue;
-  required: Option<boolean>;
+  required: boolean;
 }
 
 interface Generic {
@@ -26,7 +24,7 @@ interface Generic {
   kind?: string;
   args?: JSONValue;
   of: Item;
-  required: Option<boolean>;
+  required: boolean;
 }
 
 interface GenericReference extends Generic {
@@ -34,7 +32,7 @@ interface GenericReference extends Generic {
   kind: string;
   args?: JSONValue;
   of: Item;
-  required: Option<boolean>;
+  required: boolean;
 }
 
 type GenericOptions = Pick<GenericReference, "kind" | "args">;
@@ -42,13 +40,13 @@ type GenericOptions = Pick<GenericReference, "kind" | "args">;
 interface Dictionary {
   type: "Dictionary";
   members: Dict<Item>;
-  required: Option<boolean>;
+  required: boolean;
 }
 
 interface Alias {
   alias: string;
   base?: true;
-  required: Option<boolean>;
+  required: boolean;
 }
 
 type Item = Generic | Primitive | Dictionary | Alias;
@@ -64,42 +62,45 @@ interface JSONTypes extends RecursiveDelegateTypes {
 class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   private visitor = RecursiveVisitor.build<JSONTypes>(this);
 
-  required(inner: Item, required: RequiredDescriptor): Item {
-    inner.required = required.args.required;
-    return inner;
-  }
+  primitive(desc: unresolved.Primitive, pos: Pos): Primitive {
+    let required = isRequiredPosition(pos);
+    let args = unresolved.buildArgs(desc, isRequiredPosition(pos));
 
-  primitive({ name, args }: PrimitiveDescriptor): Primitive {
     if (args !== undefined) {
-      return { type: name || "anonymous", args, required: null };
+      return { type: desc.name || "anonymous", args, required };
     } else {
-      return { type: name || "anonymous", required: null };
+      return { type: desc.name || "anonymous", required };
     }
   }
 
-  alias(alias: AliasDescriptor): Alias {
+  alias(alias: unresolved.Alias, pos: Pos): Alias {
     let output: Alias = {
       alias: alias.name,
-      required: null
+      required: isRequiredPosition(pos)
     };
 
     return output;
   }
 
-  generic(entity: Item, descriptor: CollectionDescriptor): Generic {
+  generic(
+    entity: Item,
+    descriptor: unresolved.Iterator | unresolved.List | unresolved.Pointer,
+    pos: Pos
+  ): Generic {
     let { type } = descriptor;
     let options: Option<{ kind?: string; args?: JSONValue }> = {};
 
     switch (type) {
       case "Iterator":
-        options = referenceOptions(descriptor);
+        options = genericOptions(descriptor, pos);
         break;
 
       case "List":
+        options = genericOptions(descriptor, pos);
         break;
 
       case "Pointer":
-        options = referenceOptions(descriptor);
+        options = genericOptions(descriptor, pos);
         break;
 
       default:
@@ -110,20 +111,20 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
       type,
       ...options,
       of: entity,
-      required: null
+      required: isRequiredPosition(pos)
     };
   }
 
-  dictionary(descriptor: DictionaryDescriptor): Dictionary {
+  dictionary(descriptor: unresolved.Dictionary, pos: Pos): Dictionary {
     return {
       type: "Dictionary",
       members: this.dictionaryOrRecord(descriptor),
-      required: null
+      required: isRequiredPosition(pos)
     };
   }
 
   record(
-    descriptor: RecordDescriptor
+    descriptor: unresolved.Record
   ): {
     fields: Dict<Item>;
     metadata: Option<JSONValue>;
@@ -135,23 +136,32 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   private dictionaryOrRecord(
-    descriptor: DictionaryDescriptor | RecordDescriptor
+    descriptor: unresolved.Dictionary | unresolved.Record
   ): Dict<Item> {
     let members = dict<Item>();
-    this.visitor.processDictionary(descriptor, (item, key) => {
+    this.visitor.processDictionary(descriptor, (item, key, pos) => {
+      if (isExplicitRequiredPosition(pos)) {
+        item.required = true;
+      } else if (isRequiredPosition(pos) === false) {
+        item.required = false;
+      }
+
       members[key] = item;
     });
     return members;
   }
 }
 
-function referenceOptions(
-  descriptor: CollectionDescriptor
+function genericOptions(
+  descriptor: unresolved.Iterator | unresolved.Pointer | unresolved.List,
+  pos: Pos
 ): Pick<GenericReference, "kind" | "args"> {
   let options = {} as GenericOptions;
 
   if (descriptor.type === "Iterator" || descriptor.type === "Pointer") {
     options.kind = descriptor.name;
+  } else if (descriptor.type === "List" && isRequiredPosition(pos) === false) {
+    options.args = { allowEmpty: true };
   }
 
   if (descriptor.metadata) {
@@ -159,6 +169,16 @@ function referenceOptions(
   }
 
   return options;
+}
+
+function isRequired(pos: Pos, position: "Dictionary"): Option<boolean> {
+  if (isExplicitRequiredPosition(pos)) {
+    return true;
+  } else if (isRequiredPosition(pos) === false) {
+    return false;
+  } else {
+    return null;
+  }
 }
 
 export function toJSON(record: Record): unknown {

@@ -1,49 +1,50 @@
 import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
-import { Dict, JSONObject, Option, dict, entries } from "ts-std";
-import { RecordDescriptor, TypeDescriptor, factory } from "./descriptors";
+import { Dict, JSONObject, Option, unknown } from "ts-std";
+import { unresolved } from "./descriptors";
 import {
   DictionaryImpl,
   Type,
   TypeBuilder,
-  buildMembers,
-  instantiate
+  buildMembers
 } from "./types/fundamental";
+import { baseType } from "./types/fundamental/refined";
+import { applyFeatures } from "./types/std/walk";
 
-class RecordImpl extends DictionaryImpl<RecordDescriptor> implements Record {
-  constructor(readonly descriptor: RecordDescriptor) {
-    super(descriptor);
-  }
-
+class RecordBuilder extends TypeBuilder<unresolved.Record> implements Record {
   get name(): string {
     return this.descriptor.name;
-  }
-
-  get fields(): Dict<Type> {
-    let obj = dict<Type>();
-
-    for (let [key, value] of entries(this.descriptor.members)) {
-      obj[key] = instantiate(value!);
-    }
-
-    return obj;
   }
 
   get metadata(): Option<JSONObject> {
     return this.descriptor.metadata;
   }
 
-  get base(): TypeDescriptor {
-    return RecordImpl.base(this.descriptor);
+  get draft(): Record {
+    let inner = baseType(this.descriptor);
+    return new RecordBuilder(inner);
   }
 
-  get draft(): Record {
-    return instantiate(this.base) as Record;
+  withFeatures(features: string[]): Record {
+    let record = applyFeatures(this.descriptor, features);
+    return new RecordBuilder(record);
   }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return validate(obj, build(this.validation()), null, env);
+    return validate(obj, build(this.build().validation()), null, env);
+  }
+
+  parse(value: unknown): unknown {
+    return this.build().parse(value);
+  }
+
+  serialize(value: unknown): unknown {
+    return this.build().serialize(value);
+  }
+
+  private build(): Type {
+    return unresolved.instantiate(this.descriptor, true);
   }
 }
 
@@ -58,20 +59,16 @@ export function Record(
 ): Record {
   let { members, membersMeta } = buildMembers(fields);
 
-  return new RecordImpl({
-    type: "Record",
-    factory: factory(RecordImpl),
-    description: "Record",
-    members,
-    membersMeta,
-    metadata,
-    args: null,
-    name
-  } as RecordDescriptor);
+  return new RecordBuilder(
+    unresolved.Record(members, membersMeta, metadata, DictionaryImpl, name)
+  );
 }
 
-export interface Record extends Type<RecordDescriptor> {
+export interface Record extends TypeBuilder<unresolved.Record> {
   readonly name: string;
   readonly draft: Record;
+  withFeatures(featureList: string[]): Record;
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;
+  parse(value: unknown): unknown;
+  serialize(value: unknown): unknown;
 }

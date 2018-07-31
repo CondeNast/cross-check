@@ -1,47 +1,11 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import {
-  DictionaryDescriptor,
-  MembersMeta,
-  RecordDescriptor,
-  TypeDescriptor,
-  UnknownTypeDescriptor,
-  factory
-} from "../../descriptors";
-import {
-  AbstractType,
-  TypeBuilder,
-  base,
-  buildMeta,
-  buildType,
-  instantiate,
-  required
-} from "./core";
+import { resolved, unresolved } from "../../descriptors";
+import { AbstractType, TypeBuilder } from "./core";
 
-export type AbstractDictionaryDescriptor =
-  | DictionaryDescriptor
-  | RecordDescriptor;
-
-export class DictionaryImpl<
-  Descriptor extends AbstractDictionaryDescriptor
-> extends AbstractType<Descriptor> {
-  static base(
-    descriptor: DictionaryDescriptor | RecordDescriptor
-  ): AbstractDictionaryDescriptor {
-    let draftDict = dict<TypeDescriptor>();
-
-    for (let [key, value] of entries(descriptor.members)) {
-      draftDict[key] = buildType(required(base(value!), false), {
-        position: "Dictionary"
-      });
-    }
-
-    return {
-      ...descriptor,
-      members: draftDict
-    };
-  }
-
+export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
+  D
+> {
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
       return null;
@@ -55,7 +19,7 @@ export class DictionaryImpl<
         `Serialization error: missing field \`${key}\` (must validate before serializing)`
       );
 
-      let result = instantiate(value!).serialize(js[key]);
+      let result = resolved.instantiate(value!).serialize(js[key]);
 
       if (result !== null) {
         out[key] = result;
@@ -75,7 +39,7 @@ export class DictionaryImpl<
         raw = null;
       }
 
-      out[key] = instantiate(value!).parse(raw);
+      out[key] = resolved.instantiate(value!).parse(raw);
     }
 
     return out;
@@ -85,7 +49,7 @@ export class DictionaryImpl<
     let obj = dict<ValidationBuilder<unknown>>();
 
     for (let [key, value] of entries(this.descriptor.members)) {
-      obj[key] = instantiate(value!).validation();
+      obj[key] = resolved.instantiate(value!).validation();
     }
 
     return validators.strictObject(obj);
@@ -95,15 +59,18 @@ export class DictionaryImpl<
 export function buildMembers(
   dictionary: Dict<TypeBuilder>
 ): {
-  members: Dict<TypeDescriptor>;
-  membersMeta: Dict<MembersMeta>;
+  members: Dict<unresolved.Descriptor>;
+  membersMeta: Dict<unresolved.MembersMeta>;
 } {
-  let membersDict = dict<UnknownTypeDescriptor>();
-  let membersMeta = dict<MembersMeta>();
+  let membersDict = dict<unresolved.Descriptor>();
+  let membersMeta = dict<unresolved.MembersMeta>();
 
   for (let [key, value] of entries(dictionary)) {
-    membersDict[key] = buildType(value!.descriptor, { position: "Dictionary" });
-    membersMeta[key] = buildMeta(value!, { position: "Dictionary" });
+    membersDict[key] = value!.descriptor;
+    membersMeta[key] = {
+      features: value!.builderMetadata.features || undefined,
+      required: value!.builderMetadata.required || false
+    };
   }
 
   return { members: membersDict, membersMeta };
@@ -112,13 +79,7 @@ export function buildMembers(
 export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
   let { members, membersMeta } = buildMembers(dictionary);
 
-  return new TypeBuilder({
-    type: "Dictionary",
-    factory: factory(DictionaryImpl),
-    description: "Dictionary",
-    members,
-    membersMeta,
-    args: null,
-    metadata: null
-  } as DictionaryDescriptor);
+  return new TypeBuilder(
+    unresolved.Dictionary(members, membersMeta, DictionaryImpl)
+  );
 }

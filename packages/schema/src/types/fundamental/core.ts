@@ -5,19 +5,8 @@ import {
   validators
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import {
-  AliasDescriptor,
-  ContainerDescriptor,
-  MembersMeta,
-  PrimitiveDescriptor,
-  RequiredDescriptor,
-  TypeDescriptor,
-  UnknownTypeDescriptor,
-  factory,
-  isDescriptor
-} from "../../descriptors";
-import { exhausted, maybe } from "../../utils";
-import { isRequired, updateLeafPrimitive } from "./required";
+import { resolved, unresolved } from "../../descriptors";
+import { maybe } from "../../utils";
 
 /**
  * The API for a Type in Crosscheck. It essentially provides the runtime code
@@ -29,7 +18,9 @@ import { isRequired, updateLeafPrimitive } from "./required";
  * - `parse()`, which takes a valid serialized value and parses it into
  *   the JS representation.
  */
-export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
+export interface Type<
+  Descriptor extends resolved.Descriptor = resolved.Descriptor
+> {
   readonly descriptor: Descriptor;
 
   validation(): ValidationBuilder<unknown>;
@@ -38,235 +29,66 @@ export interface Type<Descriptor extends TypeDescriptor = TypeDescriptor> {
 }
 
 // This class basically exists to make the constructor argument generic.
-export abstract class AbstractType<Descriptor extends TypeDescriptor>
-  implements Type<Descriptor> {
-  constructor(readonly descriptor: Descriptor) {}
+export abstract class AbstractType<D extends resolved.Descriptor>
+  implements Type<resolved.Descriptor> {
+  constructor(readonly descriptor: D) {}
 
   abstract validation(): ValidationBuilder<unknown>;
   abstract serialize(input: unknown): unknown;
   abstract parse(input: unknown): unknown;
 }
 
-/**
- * Takes a `TypeDescriptor` and produces a `Type`. This works by invoking
- * the `instantiate` factory function inside of the type descriptor with
- * the descriptor.
- *
- * @param descriptor a `TypeDescriptor`
- */
-export function instantiate<T extends TypeDescriptor>(descriptor: T): Type<T> {
-  let instantiateFactory = descriptor.factory.instantiate;
-  return instantiateFactory(descriptor);
-}
-
-/**
- * Transform a `TypeDescriptor`.
- *
- * @param desc a `TypeDescriptor`
- * @param callback a function that takes a `TypeBuilder` for the descriptor
- *   and returns a `TypeBuilder` that reflects the transformation
- */
-export function transform(
-  desc: TypeDescriptor,
-  callback: (type: TypeBuilder) => TypeBuilder
-): TypeDescriptor {
-  return callback(new TypeBuilder(desc)).descriptor;
-}
-
-/**
- * Takes a `TypeDescriptor` and returns its `base` type. This works by
- * invoking the `base` factory function inside of the type descriptor
- * with the descriptor.
- *
- * @param descriptor a `TypeDescriptor`
- */
-export function base(descriptor: TypeDescriptor): TypeDescriptor {
-  let baseFactory = descriptor.factory.base;
-  return baseFactory(descriptor);
-}
-
-/**
- * Takes a `TypeDescriptor` and produces a named alias for it.
- *
- * @param descriptor a `TypeDescriptor`
- * @param name the new name of the type
- */
-export function alias(
-  descriptor: TypeDescriptor,
-  name: string
-): AliasDescriptor {
-  return {
-    type: "Alias",
-    factory: {
-      instantiate(desc: AliasDescriptor) {
-        return instantiate(desc.inner);
-      },
-
-      base(desc: AliasDescriptor) {
-        return base(desc.inner);
-      }
-    },
-    metadata: null,
-    inner: descriptor,
-    args: undefined,
-    name,
-    description: `alias`
-  };
-}
-
-/**
- * Takes a `TypeDescriptor` and makes it either required or optional.
- *
- * @param desc a `TypeDescriptor`
- * @param isRequired is the descriptor required?
- */
-export function required(
-  desc: TypeDescriptor,
-  isRequiredType = true
-): RequiredDescriptor {
-  let normalized = isDescriptor(desc, "Required") ? desc.inner : desc;
-
-  return {
-    type: "Required",
-    factory: factory(RequiredType),
-    metadata: null,
-    inner: normalized,
-    args: { required: isRequiredType },
-    description: "required"
-  };
-}
-
-export interface BuildOptions {
-  position: "Dictionary" | "List" | "Iterator" | "Pointer";
-}
-
-function temporaryDictionaryHack(
-  descriptor: TypeDescriptor,
-  isRequiredType: boolean
-): TypeDescriptor {
-  function isText(name: string): boolean {
-    return name === "Text" || name === "SingleLine" || name === "SingleWord";
-  }
-
-  return updateLeafPrimitive(descriptor, desc => {
-    if (
-      isDescriptor(desc, "Primitive") &&
-      isText(desc.name) &&
-      isRequiredType === false
-    ) {
-      return {
-        ...desc,
-        args: {
-          allowEmpty: true
-        }
-      } as PrimitiveDescriptor<{ allowEmpty: boolean }>;
-    }
-
-    return desc;
-  });
-}
-
-export function buildType(
-  desc: UnknownTypeDescriptor,
-  options: BuildOptions
-): UnknownTypeDescriptor {
-  let explicitIsRequired = isRequired(desc);
-  let descriptor;
-
-  if (explicitIsRequired !== null) {
-    descriptor = temporaryDictionaryHack(desc, explicitIsRequired);
-  } else {
-    let requiredDefault: boolean;
-
-    switch (options.position) {
-      // Fields in a dictionary or record are optional by default, and .required() makes
-      // a type required.
-      case "Dictionary":
-        requiredDefault = false;
-        break;
-
-      // null is usually undesirable in Lists, so assume non-null by default
-      case "List":
-      // If the server provides a URL, you can assume it dereferences into *something*
-      case "Pointer":
-      // If the server provides a URL, it should, by default, dereference into the same
-      // thing as `List`, which doesn't include nulls.
-      case "Iterator":
-        requiredDefault = true;
-        break;
-
-      default:
-        return exhausted(options.position);
-    }
-
-    descriptor = temporaryDictionaryHack(desc, requiredDefault);
-    descriptor = transform(descriptor, type => type.required(requiredDefault));
-  }
-
-  return descriptor;
-}
-
-export function buildMeta(
-  builder: TypeBuilder,
-  options: BuildOptions
-): MembersMeta {
-  switch (options.position) {
-    case "Dictionary": {
-      return { features: getFeatures(builder) };
-    }
-
-    default: {
-      // TODO: Improve user-facing description
-      throw new Error(`You cannot use .features() in a ${options.position}`);
-    }
-  }
-}
-
 export interface BuilderMetadata {
   features: Option<string[]>;
+  required: Option<boolean>;
 }
 
 const DEFAULT_METADATA = {
-  features: null
+  features: null,
+  required: null
 };
 
-export class TypeBuilder<Descriptor extends TypeDescriptor = TypeDescriptor> {
+export class TypeBuilder<
+  D extends unresolved.Descriptor = unresolved.Descriptor
+> {
   constructor(
-    readonly descriptor: Descriptor,
+    readonly descriptor: D,
     /** @internal */
-    readonly metadata: BuilderMetadata = DEFAULT_METADATA
+    readonly builderMetadata: BuilderMetadata = DEFAULT_METADATA
   ) {}
 
-  toType(): Type {
-    return instantiate(this.descriptor);
-  }
-
   named(name: string): TypeBuilder {
-    return new TypeBuilder(alias(this.descriptor, name), this.metadata);
+    return new TypeBuilder(
+      unresolved.Alias(this.descriptor, name),
+      this.builderMetadata
+    );
   }
 
   required(isRequiredType = true): TypeBuilder {
-    return new TypeBuilder(
-      required(this.descriptor, isRequiredType),
-      this.metadata
-    );
+    return new TypeBuilder(this.descriptor, {
+      ...this.builderMetadata,
+      required: isRequiredType
+    });
   }
 
   features(features: string[]): TypeBuilder {
     // TODO: Concat with old features?
-    return new TypeBuilder(this.descriptor, { features });
+    return new TypeBuilder(this.descriptor, {
+      ...this.builderMetadata,
+      features
+    });
   }
 }
 
 export function getFeatures(builder: TypeBuilder): string[] | undefined {
-  return builder.metadata.features || undefined;
+  return builder.builderMetadata.features || undefined;
 }
 
 export abstract class AbstractContainerType<
-  Descriptor extends ContainerDescriptor
+  Descriptor extends resolved.ContainerDescriptor
 > extends AbstractType<Descriptor> {
   protected get type(): Type {
-    return instantiate(this.descriptor.inner);
+    return resolved.instantiate(this.descriptor.inner);
   }
 
   validation(): ValidationBuilder<unknown> {
@@ -282,30 +104,21 @@ export abstract class AbstractContainerType<
   }
 }
 
-export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
-  private get isWrapperRequired(): boolean {
-    return this.descriptor.args.required;
-  }
-
-  static base(desc: RequiredDescriptor): RequiredDescriptor {
-    return {
-      ...desc,
-      inner: base(desc.inner)
-    };
-  }
-
+export class OptionalityType extends AbstractContainerType<
+  resolved.Optionality
+> {
   validation(): ValidationBuilder<unknown> {
-    if (this.isWrapperRequired) {
-      return validators.isPresent().andThen(this.type.validation());
-    } else {
+    if (this.isOptional) {
       return maybe(this.type.validation());
+    } else {
+      return validators.isPresent().andThen(this.type.validation());
     }
   }
 
   serialize(input: unknown): unknown {
     if (input === null) {
       assert(
-        !this.isWrapperRequired,
+        this.isOptional,
         "Serialization error: unexpected null (must validate before serializing)"
       );
 
@@ -317,11 +130,15 @@ export class RequiredType extends AbstractContainerType<RequiredDescriptor> {
 
   parse(input: unknown): unknown {
     if (input === null) {
-      assert(!this.isWrapperRequired, "Parse error: unexpected null.");
+      assert(this.isOptional, "Parse error: unexpected null.");
       return null;
     } else {
       return super.parse(input);
     }
+  }
+
+  private get isOptional(): boolean {
+    return this.descriptor.args.isOptional;
   }
 }
 

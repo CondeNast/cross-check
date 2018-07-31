@@ -45,14 +45,17 @@ export function validatePublished(
   return record.validate(obj, ENV);
 }
 
-export function typeError(kind: string, path: Option<string>): ValidationError {
+export function typeError(
+  kind: string,
+  path: Option<string> = null
+): ValidationError {
   return {
     message: { details: kind, name: "type" },
     path: path ? path.split(".") : []
   };
 }
 
-export function missingError(path: string) {
+export function missingError(path: Option<string> = null) {
   return typeError("present", path);
 }
 
@@ -84,7 +87,7 @@ export function keysError({
 export function error(
   kind: string,
   problem: unknown,
-  path: Option<string>
+  path: Option<string> = null
 ): ValidationError {
   return {
     message: { details: problem, name: kind },

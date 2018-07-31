@@ -7,7 +7,7 @@ import {
   SimpleArticle
 } from "../support/records";
 
-QUnit.module("formatting - describe");
+QUnit.module("[schema] formatting - describe");
 
 QUnit.test("simple", assert => {
   assert.equal(

@@ -5,7 +5,9 @@ export {
   List,
   RequiredFields,
   describe,
-  RecursiveVisitor
+  RecursiveVisitor,
+  Primitive,
+  Refined
 } from "./types";
 export { TypeBuilder } from "./types/fundamental";
 export * from "./types/describe";

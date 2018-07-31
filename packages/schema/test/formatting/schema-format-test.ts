@@ -2,7 +2,7 @@ import { Record, schemaFormat, types } from "@cross-check/schema";
 import { ISODate, strip } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("formatting - schemaFormat");
+QUnit.module("[schema] formatting - schemaFormat");
 
 QUnit.test("simple", assert => {
   assert.equal(

@@ -1,7 +1,6 @@
-import { isRequired } from "../../fundamental";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
-import { ReporterDelegate } from "../reporter";
+import { ReporterDelegate, isRequiredPosition } from "../reporter";
 
 export interface TypescriptOptions {
   name: string;
@@ -13,13 +12,6 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
   },
   closeRecord(): string {
     return `}`;
-  },
-
-  openRequired() {
-    /* noop */
-  },
-  closeRequired() {
-    /* noop */
   },
 
   openAlias({ descriptor, buffer }): void {
@@ -35,8 +27,8 @@ const delegate: ReporterDelegate<Buffer, string, TypescriptOptions> = {
   closeDictionary({ buffer, nesting }): void {
     buffer.push(`${pad(nesting * 2)}}`);
   },
-  emitKey({ key, descriptor, nesting }): string {
-    let required = isRequired(descriptor);
+  emitKey({ key, position, nesting }): string {
+    let required = isRequiredPosition(position);
     return `${pad(nesting * 2)}${formattedKey(key, !!required)}: `;
   },
   closeValue(): string {

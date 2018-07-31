@@ -6,7 +6,7 @@ import {
   validatePublished
 } from "./support";
 
-QUnit.module("Dictionaries with required fields");
+QUnit.module("[schema] Dictionaries with required fields");
 
 QUnit.test("optional dictionaries with required fields (geo)", async assert => {
   const RECORDS: Record = Record("records", {

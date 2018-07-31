@@ -2,7 +2,7 @@ import { Record, listTypes, types } from "@cross-check/schema";
 import { ISODate } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("formatting - listTypes");
+QUnit.module("[schema] formatting - listTypes");
 
 QUnit.test("simple", assert => {
   assert.deepEqual(listTypes(SimpleArticle), ["SingleLine", "Text"]);

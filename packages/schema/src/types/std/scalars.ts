@@ -1,20 +1,14 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { PrimitiveDescriptor, TypeDescriptor } from "../../descriptors";
-import { JSONValue } from "../../utils";
-import { ANY, AbstractType } from "../fundamental";
-import { PrimitiveConstructor, TypeConstructor, primitive } from "../type";
+import { resolved, unresolved } from "../../descriptors";
+import { ANY, AbstractType, TypeBuilder } from "../fundamental";
 
-export abstract class Scalar<
-  Args extends JSONValue | undefined
-> extends AbstractType<PrimitiveDescriptor<Args>> {
-  constructor(descriptor: PrimitiveDescriptor<Args>) {
-    super(descriptor);
-  }
-
+export abstract class Scalar<Args> extends AbstractType<
+  resolved.Primitive<Args>
+> {
   abstract validation(): ValidationBuilder<unknown>;
 
-  protected get args(): this["descriptor"]["args"] {
+  protected get args(): Args {
     return this.descriptor.args;
   }
 
@@ -27,40 +21,6 @@ export abstract class Scalar<
   }
 }
 
-// export abstract class Opaque<
-//   Args extends JSONValue | undefined
-// > extends AbstractType<PrimitiveDescriptor<Args>> {
-//   static base(
-//     descriptor: PrimitiveDescriptor<JSONValue | undefined>
-//   ): TypeDescriptor {
-//     let basePrimitive = instantiate(descriptor).base;
-
-//     if (typeof basePrimitive === "function") {
-//       return basePrimitive(descriptor.args).descriptor;
-//     } else {
-//       return basePrimitive.descriptor;
-//     }
-//   }
-
-//   abstract base: PrimitiveConstructor<Args> | TypeBuilder;
-
-//   constructor(descriptor: PrimitiveDescriptor<Args>) {
-//     super(descriptor);
-//   }
-
-//   validation(): ValidationBuilder<unknown> {
-//     return instantiate(base(this.descriptor)).validation();
-//   }
-
-//   serialize(input: unknown): unknown {
-//     return instantiate(base(this.descriptor)).serialize(input);
-//   }
-
-//   parse(input: unknown): unknown {
-//     return instantiate(base(this.descriptor)).parse(input);
-//   }
-// }
-
 const notBlankString = validators.is(
   (value: string): value is string => value.length > 0,
   "present"
@@ -70,6 +30,20 @@ export class TextPrimitive extends Scalar<TextOptions | undefined> {
   static description = "string";
   static typescript = "string";
   static typeName = "Text";
+
+  static buildArgs(
+    args: TextOptions | undefined,
+    required: boolean
+  ): TextOptions | undefined {
+    if (required === false) {
+      return {
+        ...args,
+        allowEmpty: true
+      };
+    } else {
+      return args;
+    }
+  }
 
   validation(): ValidationBuilder<unknown> {
     let allowEmpty = this.args === undefined ? false : this.args.allowEmpty;
@@ -86,9 +60,9 @@ export interface TextOptions extends JSONObject {
   allowEmpty: boolean;
 }
 
-export const Text: PrimitiveConstructor<TextOptions | undefined> = primitive(
-  TextPrimitive
-);
+export function Text(options?: TextOptions): TypeBuilder<unresolved.Primitive> {
+  return Primitive(TextPrimitive, options);
+}
 
 class FloatPrimitive extends Scalar<undefined> {
   static description = "float";
@@ -100,7 +74,9 @@ class FloatPrimitive extends Scalar<undefined> {
   }
 }
 
-export const Float: PrimitiveConstructor<undefined> = primitive(FloatPrimitive);
+export function Float(): TypeBuilder {
+  return Primitive(FloatPrimitive);
+}
 
 class IntegerPrimitive extends Scalar<undefined> {
   static description = "integer";
@@ -119,20 +95,15 @@ class IntegerPrimitive extends Scalar<undefined> {
   }
 }
 
-export const Integer: PrimitiveConstructor<undefined> = primitive(
-  IntegerPrimitive
-);
+export function Integer(): TypeBuilder {
+  return Primitive(IntegerPrimitive);
+}
 
 class SingleLinePrimitive extends TextPrimitive {
+  static base = Text;
   static description = "single line string";
   static typescript = "string";
   static typeName = "SingleLine";
-
-  static base(
-    descriptor: PrimitiveDescriptor<TextOptions | undefined>
-  ): TypeDescriptor {
-    return Text(descriptor.args).descriptor;
-  }
 
   validation(): ValidationBuilder<unknown> {
     return super
@@ -146,20 +117,15 @@ class SingleLinePrimitive extends TextPrimitive {
   }
 }
 
-export const SingleLine: PrimitiveConstructor<
-  TextOptions | undefined
-> = primitive(SingleLinePrimitive);
+export function SingleLine(options?: TextOptions): TypeBuilder {
+  return Refined(SingleLinePrimitive, options);
+}
 
 class SingleWordPrimitive extends TextPrimitive {
+  static base = Text;
   static description = "single word string";
   static typescript = "string";
   static typeName = "SingleWord";
-
-  static base(
-    descriptor: PrimitiveDescriptor<TextOptions | undefined>
-  ): TypeDescriptor {
-    return Text(descriptor.args).descriptor;
-  }
 
   validation(): ValidationBuilder<unknown> {
     return super
@@ -173,9 +139,9 @@ class SingleWordPrimitive extends TextPrimitive {
   }
 }
 
-export const SingleWord: PrimitiveConstructor<
-  TextOptions | undefined
-> = primitive(SingleWordPrimitive);
+export function SingleWord(options?: TextOptions): TypeBuilder {
+  return Refined(SingleWordPrimitive, options);
+}
 
 class BooleanPrimitive extends Scalar<undefined> {
   static typeName = "Boolean";
@@ -188,7 +154,9 @@ class BooleanPrimitive extends Scalar<undefined> {
 }
 
 // tslint:disable-next-line:variable-name
-export const Boolean: TypeConstructor = primitive(BooleanPrimitive);
+export function Boolean(): TypeBuilder {
+  return Primitive(BooleanPrimitive);
+}
 
 class AnyPrimitive extends Scalar<undefined> {
   static description = "any";
@@ -200,4 +168,38 @@ class AnyPrimitive extends Scalar<undefined> {
   }
 }
 
-export const Any: TypeConstructor = primitive(AnyPrimitive);
+export function Any(): TypeBuilder {
+  return Primitive(AnyPrimitive);
+}
+
+export function Primitive<A extends unresolved.RawArgs>(
+  Class: unresolved.PrimitiveClass<A | undefined>,
+  options?: A
+): TypeBuilder<unresolved.Primitive>;
+export function Primitive<A extends unresolved.RawArgs>(
+  Class: unresolved.PrimitiveClass<A>,
+  options: A
+): TypeBuilder<unresolved.Primitive>;
+export function Primitive<A extends unresolved.RawArgs>(
+  Class: unresolved.PrimitiveClass<A>,
+  options: A
+): TypeBuilder<unresolved.Primitive> {
+  return new TypeBuilder(unresolved.Primitive(Class, options));
+}
+
+export function Refined<A extends unresolved.RawArgs>(
+  Class: unresolved.RefinedClass<A | undefined>,
+  options?: A
+): TypeBuilder;
+export function Refined<A extends unresolved.RawArgs>(
+  Class: unresolved.RefinedClass<A>,
+  options: A
+): TypeBuilder;
+export function Refined<A extends unresolved.RawArgs>(
+  Class: unresolved.RefinedClass<A>,
+  options: A
+): TypeBuilder {
+  let basePrimitive = (desc: unresolved.Refined<A>) =>
+    Class.base(desc.args).descriptor;
+  return new TypeBuilder(unresolved.Refined(Class, basePrimitive, options));
+}

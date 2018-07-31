@@ -7,7 +7,7 @@ import {
   SimpleArticle
 } from "../support/records";
 
-QUnit.module("formatting - graphql");
+QUnit.module("[schema] formatting - graphql");
 
 QUnit.test("simple", assert => {
   assert.equal(
