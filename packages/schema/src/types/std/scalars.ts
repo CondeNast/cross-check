@@ -1,7 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
 import { builder, resolved } from "../../descriptors";
-import { ANY, AbstractType, TypeBuilder } from "../fundamental";
+import { TypeBuilder } from "../../type";
+import { ANY, AbstractType, TypeBuilderImpl } from "../fundamental";
 
 export abstract class Scalar<Args> extends AbstractType<
   resolved.Primitive<Args>
@@ -172,34 +173,34 @@ export function Any(): TypeBuilder {
   return Primitive(AnyPrimitive);
 }
 
-export function Primitive<A extends builder.RawArgs>(
+export function Primitive<A extends builder.Args>(
   Class: builder.PrimitiveClass<A | undefined>,
   options?: A
 ): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.RawArgs>(
+export function Primitive<A extends builder.Args>(
   Class: builder.PrimitiveClass<A>,
   options: A
 ): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.RawArgs>(
+export function Primitive<A extends builder.Args>(
   Class: builder.PrimitiveClass<A>,
   options: A
 ): TypeBuilder<builder.Primitive> {
-  return new TypeBuilder(builder.Primitive(Class, options));
+  return new TypeBuilderImpl(builder.Primitive(Class, options));
 }
 
-export function Refined<A extends builder.RawArgs>(
+export function Refined<A extends builder.Args>(
   Class: builder.RefinedClass<A | undefined>,
   options?: A
 ): TypeBuilder;
-export function Refined<A extends builder.RawArgs>(
+export function Refined<A extends builder.Args>(
   Class: builder.RefinedClass<A>,
   options: A
 ): TypeBuilder;
-export function Refined<A extends builder.RawArgs>(
+export function Refined<A extends builder.Args>(
   Class: builder.RefinedClass<A>,
   options: A
 ): TypeBuilder {
   let basePrimitive = (desc: builder.Refined<A>) =>
     Class.base(desc.args).descriptor;
-  return new TypeBuilder(builder.Refined(Class, basePrimitive, options));
+  return new TypeBuilderImpl(builder.Refined(Class, basePrimitive, options));
 }

@@ -35,14 +35,14 @@ export function validateDraft(
   record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.draft.validate(obj, ENV);
+  return record.draft.build().validate(obj, ENV);
 }
 
 export function validatePublished(
   record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.validate(obj, ENV);
+  return record.build().validate(obj, ENV);
 }
 
 export function typeError(

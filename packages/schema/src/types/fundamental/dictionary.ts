@@ -1,7 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import { builder, resolved } from "../../descriptors";
-import { AbstractType, TypeBuilder } from "./core";
+import { TypeBuilder } from "../../type";
+import { AbstractType, OptionalityType, TypeBuilderImpl } from "./core";
 
 export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
   D
@@ -58,28 +59,26 @@ export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
 
 export function buildMembers(
   dictionary: Dict<TypeBuilder>
-): {
-  members: Dict<builder.Descriptor>;
-  membersMeta: Dict<builder.MembersMeta>;
-} {
-  let membersDict = dict<builder.Descriptor>();
-  let membersMeta = dict<builder.MembersMeta>();
+): Dict<builder.Member> {
+  let membersDict = dict<builder.Member>();
 
   for (let [key, value] of entries(dictionary)) {
-    membersDict[key] = value!.descriptor;
-    membersMeta[key] = {
-      features: value!.builderMetadata.features || undefined,
-      required: value!.builderMetadata.required || false
+    membersDict[key] = {
+      descriptor: value!.descriptor,
+      meta: {
+        features: value!.builderMetadata.features || undefined,
+        required: value!.builderMetadata.required || false
+      }
     };
   }
 
-  return { members: membersDict, membersMeta };
+  return membersDict;
 }
 
 export function Dictionary(dictionary: Dict<TypeBuilder>): TypeBuilder {
-  let { members, membersMeta } = buildMembers(dictionary);
+  let members = buildMembers(dictionary);
 
-  return new TypeBuilder(
-    builder.Dictionary(members, membersMeta, DictionaryImpl)
+  return new TypeBuilderImpl(
+    builder.Dictionary({ members, impl: DictionaryImpl, OptionalityType })
   );
 }

@@ -5,7 +5,15 @@ import {
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, Indexable, Option, dict, entries, unknown } from "ts-std";
+import {
+  Dict,
+  Indexable,
+  Option,
+  Present,
+  dict,
+  entries,
+  unknown
+} from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject } from "./is";
@@ -25,7 +33,7 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `fields()`.
  */
-export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
+export class FieldsValidator<T> implements ValidatorInstance<Present> {
   static validatorName = "fields";
 
   constructor(
@@ -33,7 +41,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Indexable<T>> {
     protected descriptors: Dict<ValidationDescriptor<T>>
   ) {}
 
-  run(value: Indexable<T>, context: Option<string>): Task<ValidationError[]> {
+  run(value: Present, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
@@ -104,11 +112,11 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
 
 export function fields<T>(
   builders: Dict<ValidationBuilder<T>>
-): ValidationBuilder<Indexable<T>> {
+): ValidationBuilder<Present> {
   return validates(
     "fields",
     factoryFor(FieldsValidator as ValidatorClass<
-      Indexable<T>,
+      Present,
       Dict<ValidationDescriptor<T>>
     >),
     normalizeFields(builders)

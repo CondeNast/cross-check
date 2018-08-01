@@ -6,27 +6,8 @@ import {
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
 import { builder, resolved } from "../../descriptors";
+import { BuilderMetadata, Type, TypeBuilder } from "../../type";
 import { maybe } from "../../utils";
-
-/**
- * The API for a Type in Crosscheck. It essentially provides the runtime code
- * for a descriptor:
- *
- * - `validation()`, which provides a validation rule for the descriptor
- * - `serialize()`, which takes an already-validated value and serializes it
- *   into the wire format.
- * - `parse()`, which takes a valid serialized value and parses it into
- *   the JS representation.
- */
-export interface Type<
-  Descriptor extends resolved.Descriptor = resolved.Descriptor
-> {
-  readonly descriptor: Descriptor;
-
-  validation(): ValidationBuilder<unknown>;
-  serialize(input: unknown): unknown;
-  parse(input: unknown): unknown;
-}
 
 // This class basically exists to make the constructor argument generic.
 export abstract class AbstractType<D extends resolved.Descriptor>
@@ -38,32 +19,31 @@ export abstract class AbstractType<D extends resolved.Descriptor>
   abstract parse(input: unknown): unknown;
 }
 
-export interface BuilderMetadata {
-  features: Option<string[]>;
-  required: Option<boolean>;
-}
-
 const DEFAULT_METADATA = {
   features: null,
   required: null
 };
 
-export class TypeBuilder<D extends builder.Descriptor = builder.Descriptor> {
+export class TypeBuilderImpl<D extends builder.Descriptor = builder.Descriptor>
+  implements TypeBuilder {
+  readonly builderMetadata: BuilderMetadata;
+
   constructor(
     readonly descriptor: D,
-    /** @internal */
-    readonly builderMetadata: BuilderMetadata = DEFAULT_METADATA
-  ) {}
+    builderMetadata: BuilderMetadata = DEFAULT_METADATA
+  ) {
+    this.builderMetadata = builderMetadata;
+  }
 
   named(name: string): TypeBuilder {
-    return new TypeBuilder(
+    return new TypeBuilderImpl(
       builder.Alias(this.descriptor, name),
       this.builderMetadata
     );
   }
 
   required(isRequiredType = true): TypeBuilder {
-    return new TypeBuilder(this.descriptor, {
+    return new TypeBuilderImpl(this.descriptor, {
       ...this.builderMetadata,
       required: isRequiredType
     });
@@ -71,7 +51,7 @@ export class TypeBuilder<D extends builder.Descriptor = builder.Descriptor> {
 
   features(features: string[]): TypeBuilder {
     // TODO: Concat with old features?
-    return new TypeBuilder(this.descriptor, {
+    return new TypeBuilderImpl(this.descriptor, {
       ...this.builderMetadata,
       features
     });

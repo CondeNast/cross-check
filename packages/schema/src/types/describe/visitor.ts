@@ -1,7 +1,7 @@
 import { unknown } from "ts-std";
 import { builder } from "../../descriptors";
 import { exhausted } from "../../utils";
-import { TypeBuilder } from "../fundamental";
+import { TypeBuilderImpl } from "../fundamental";
 import {
   Accumulator,
   DictionaryPosition,
@@ -15,10 +15,7 @@ export interface VisitorDelegate {
   generic(type: builder.Container, position: Pos): unknown;
   dictionary(type: builder.Dictionary, position: Pos): unknown;
   record(type: builder.Record, position: Pos): unknown;
-  primitive(
-    type: builder.Primitive | builder.Refined,
-    position: Pos
-  ): unknown;
+  primitive(type: builder.Primitive | builder.Refined, position: Pos): unknown;
 }
 
 export class Visitor {
@@ -45,7 +42,7 @@ export class Visitor {
     } else if (builder.is(descriptor, "Dictionary")) {
       return this.delegate.dictionary(descriptor, position);
     } else if (builder.is(descriptor, "Record")) {
-      let desc = new TypeBuilder(descriptor).named(descriptor.name)
+      let desc = new TypeBuilderImpl(descriptor).named(descriptor.name)
         .descriptor as builder.Alias;
 
       return this.delegate.alias(desc, position);
@@ -161,7 +158,6 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
     callback: (item: DelegateItem<T>, key: string, position: Pos) => void
   ): unknown {
     let input = descriptor.members;
-    let meta = descriptor.membersMeta;
     let keys = Object.keys(input);
     let last = keys.length - 1;
 
@@ -169,10 +165,10 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
       let dictPosition = DictionaryPosition({
         index: i,
         last,
-        meta: meta[key]!
+        meta: input[key]!.meta
       });
       callback(
-        this.visitor.visit(input[key]!, dictPosition),
+        this.visitor.visit(input[key]!.descriptor, dictPosition),
         key,
         dictPosition
       );
@@ -227,7 +223,6 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   dictionaryBody(descriptor: builder.Dictionary | builder.Record) {
     let members = descriptor.members;
-    let meta = descriptor.membersMeta;
     let keys = Object.keys(members);
     let last = keys.length - 1;
 
@@ -235,12 +230,12 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
       let position = DictionaryPosition({
         index: i,
         last,
-        meta: meta[key]!
+        meta: members[key]!.meta
       });
 
-      this.reporter.addKey(position, key, members[key]!);
-      this.visitor.visit(members[key]!, position);
-      this.reporter.endValue(position, members[key]!);
+      this.reporter.addKey(position, key, members[key]!.descriptor);
+      this.visitor.visit(members[key]!.descriptor, position);
+      this.reporter.endValue(position, members[key]!.descriptor);
     });
   }
 }

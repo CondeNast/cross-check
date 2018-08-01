@@ -1,4 +1,4 @@
-export { Record } from "./record";
+export { Record, RecordBuilder, RecordOptions, buildRecord } from "./record";
 export {
   Scalar,
   Dictionary,
@@ -7,12 +7,13 @@ export {
   describe,
   RecursiveVisitor,
   Primitive,
-  Refined
+  Refined,
+  applyFeatures
 } from "./types";
-export { TypeBuilder } from "./types/fundamental";
+export * from "./types/fundamental";
 export * from "./types/describe";
 import * as types from "./types";
-export * from "./types/type";
+export * from "./type";
 export { types };
 export * from "./descriptors";
 export { DEBUG_LOG } from "./debug";

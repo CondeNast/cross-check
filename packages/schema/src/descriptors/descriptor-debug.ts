@@ -1,5 +1,4 @@
 import { Dict, JSONObject, entries } from "ts-std";
-import { JSONValue } from "../utils";
 import * as builder from "./builder";
 
 export interface DescriptorJSON {
@@ -47,7 +46,7 @@ export function dictionaryToJSON(desc: builder.Dictionary): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!);
+    members[key] = descToJSON(value!.descriptor);
   }
 
   return {
@@ -64,7 +63,7 @@ export function recordToJSON(desc: builder.Record): DescriptorJSON {
   let members: Dict<DescriptorJSON> = {};
 
   for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!);
+    members[key] = descToJSON(value!.descriptor);
   }
 
   return {
@@ -165,17 +164,17 @@ function formatDescriptorJSON(
   return out;
 }
 
-function formatJSON(json: JSONValue): string {
-  if (json && typeof json === "object") {
+function formatJSON(args: builder.Args): string {
+  if (args && typeof args === "object") {
     let out = [];
 
-    for (let [key, value] of entries(json)) {
+    for (let [key, value] of entries(args)) {
       out.push(`${key}=${formatJSON(value)}`);
     }
 
     return `(${out.join(" ")})`;
   } else {
-    return JSON.stringify(json);
+    return JSON.stringify(args);
   }
 }
 

@@ -1,18 +1,21 @@
 import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
-import { Dict, JSONObject, Option, unknown } from "ts-std";
-import { builder } from "./descriptors";
+import { Dict, JSONObject, Option } from "ts-std";
+import { builder, resolved } from "./descriptors";
+import { TypeBuilder } from "./type";
 import {
   DictionaryImpl,
-  Type,
-  TypeBuilder,
+  OptionalityType,
+  TypeBuilderImpl,
   buildMembers
 } from "./types/fundamental";
 import { baseType } from "./types/fundamental/refined";
 import { applyFeatures } from "./types/std/walk";
 
-class RecordBuilder extends TypeBuilder<builder.Record> implements Record {
+export class RecordBuilder<R extends builder.Record = builder.Record>
+  extends TypeBuilderImpl<R>
+  implements Record {
   get name(): string {
     return this.descriptor.name;
   }
@@ -31,21 +34,19 @@ class RecordBuilder extends TypeBuilder<builder.Record> implements Record {
     return new RecordBuilder(record);
   }
 
+  build(): RecordImpl {
+    return buildRecord(this);
+  }
+}
+
+export class RecordImpl extends DictionaryImpl<resolved.Dictionary> {
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return validate(obj, build(this.build().validation()), null, env);
+    return validate(obj, build(this.validation()), null, env);
   }
+}
 
-  parse(value: unknown): unknown {
-    return this.build().parse(value);
-  }
-
-  serialize(value: unknown): unknown {
-    return this.build().serialize(value);
-  }
-
-  private build(): Type {
-    return builder.instantiate(this.descriptor, true);
-  }
+export function buildRecord(record: Record): RecordImpl {
+  return builder.instantiate(record.descriptor, true) as RecordImpl;
 }
 
 export interface RecordOptions {
@@ -57,18 +58,24 @@ export function Record(
   name: string,
   { fields, metadata = null }: RecordOptions
 ): Record {
-  let { members, membersMeta } = buildMembers(fields);
+  let members = buildMembers(fields);
 
   return new RecordBuilder(
-    builder.Record(members, membersMeta, metadata, DictionaryImpl, name)
+    builder.Record({
+      members,
+      metadata,
+      impl: RecordImpl,
+      name,
+      args: null,
+      OptionalityType
+    })
   );
 }
 
 export interface Record extends TypeBuilder<builder.Record> {
   readonly name: string;
+  readonly metadata: Option<JSONObject>;
   readonly draft: Record;
   withFeatures(featureList: string[]): Record;
-  validate(obj: Dict, env: Environment): Task<ValidationError[]>;
-  parse(value: unknown): unknown;
-  serialize(value: unknown): unknown;
+  build(): RecordImpl;
 }

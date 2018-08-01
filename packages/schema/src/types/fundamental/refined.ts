@@ -14,7 +14,10 @@ export function baseType(desc: builder.Descriptor): builder.Descriptor {
     return desc;
   } else if (is(desc, "Dictionary") || is(desc, "Record")) {
     return mapDict(desc, (member, meta) => {
-      return [baseType(member), { ...meta, required: false }];
+      return {
+        descriptor: baseType(member),
+        meta: { ...meta, required: false }
+      };
     });
   } else if (is(desc, "Alias")) {
     return baseType(desc.inner);

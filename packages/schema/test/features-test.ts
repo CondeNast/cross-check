@@ -271,7 +271,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       matrix.push(`value: ${JSON.stringify(value)}`);
     }
 
-    let result = await FeaturesRecord.validate(testValue, ENV);
+    let result = await FeaturesRecord.build().validate(testValue, ENV);
 
     assert.deepEqual(
       result,

@@ -16,7 +16,9 @@
     "build-tests": "ember build",
     "test": "lerna run test",
     "quicktest": "qunit dist/tests.js",
-    "bootstrap": "lerna run bootstrap"
+    "bootstrap": "lerna run bootstrap",
+    "unlink:all": "lerna exec -- yarn unlink",
+    "link:all": "lerna exec -- yarn link"
   },
   "devDependencies": {
     "@lerna/batch-packages": "^3.0.0-beta.0",

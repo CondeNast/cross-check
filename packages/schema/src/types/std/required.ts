@@ -1,5 +1,6 @@
 import { Dict, dict, entries } from "ts-std";
-import { Dictionary, TypeBuilder } from "../fundamental";
+import { TypeBuilder } from "../../type";
+import { Dictionary } from "../fundamental";
 
 export function RequiredFields(properties: Dict<TypeBuilder>): TypeBuilder {
   return Dictionary(required(properties));

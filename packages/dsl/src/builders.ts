@@ -19,7 +19,10 @@ import { ValidationCallback, factoryForCallback } from "./validators/callback";
  * It's either another ValidationBuilder or a callback, which allows a more inline
  * style of composing validation chains.
  */
-export type Buildable<T> = ValidationCallback<T> | ValidationBuilder<T>;
+export type Buildable<T> =
+  | ValidationCallback<T>
+  | ValidationBuilder<T>
+  | ValidationDescriptor<T>;
 
 /**
  * @api public
@@ -158,8 +161,10 @@ export function build<T>(
       options: buildable,
       contexts: []
     };
-  } else {
+  } else if (isBuilder(buildable)) {
     return buildable.build();
+  } else {
+    return buildable;
   }
 }
 
@@ -231,6 +236,23 @@ function isCallback<T>(
   buildable: Buildable<T>
 ): buildable is ValidationCallback<T> {
   return typeof buildable === "function";
+}
+
+function isBuilder<T>(
+  buildable: Buildable<T> & Partial<ValidationBuilder<T>>
+): buildable is ValidationBuilder<T> {
+  return typeof buildable.build === "function";
+}
+
+export function builderFor<T>(
+  desc: ValidationDescriptor<T>
+): ValidationBuilder<T> {
+  return new BaseValidationBuilder(
+    desc.name,
+    desc.validator,
+    desc.options,
+    desc.contexts
+  );
 }
 
 class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {

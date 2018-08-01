@@ -1,15 +1,17 @@
-import { Dict, JSONObject, unknown } from "ts-std";
-import { Type } from "../types/fundamental";
+import { Dict, unknown } from "ts-std";
+import { Type } from "../type";
 import { JSONValue } from "../utils";
 
 export interface Factory<D extends Descriptor> {
   new (desc: D): Type;
 }
 
+export type Args = {} | null | undefined;
+
 // tslint:disable-next-line:interface-name
-export interface IDescriptor<Args = {} | null | undefined> {
+export interface IDescriptor<A extends Args = Args> {
   readonly type: keyof Descriptors;
-  readonly args: Args;
+  readonly args: A;
 
   instantiate(desc: this): Type;
 }
@@ -92,20 +94,19 @@ export function Optionality(
   } as Optionality;
 }
 
-export interface ListArgs extends JSONObject {
+export interface ListArgs {
   readonly allowEmpty: boolean;
 }
 
-export interface List<Args extends ListArgs = ListArgs>
-  extends IDescriptor<Args> {
+export interface List<A extends ListArgs = ListArgs> extends IDescriptor<A> {
   readonly type: "List";
   readonly inner: Descriptor;
-  readonly args: Args;
+  readonly args: A;
 }
 
-export function List<Args extends ListArgs>(
+export function List<A extends ListArgs>(
   inner: Descriptor,
-  args: Args,
+  args: A,
   impl: Factory<List>
 ): List {
   return {
@@ -116,11 +117,10 @@ export function List<Args extends ListArgs>(
   };
 }
 
-export interface Pointer<Args extends JSONValue = JSONValue>
-  extends IDescriptor<Args> {
+export interface Pointer<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Pointer";
   readonly inner: Descriptor;
-  readonly args: Args;
+  readonly args: A;
 }
 
 export function Pointer(
@@ -136,16 +136,15 @@ export function Pointer(
   };
 }
 
-export interface Iterator<Args extends JSONValue = JSONValue>
-  extends IDescriptor<Args> {
+export interface Iterator<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Iterator";
   readonly inner: Descriptor;
-  readonly args: Args;
+  readonly args: A;
 }
 
-export function Iterator<Args extends JSONValue>(
+export function Iterator<A extends Args = Args>(
   inner: Descriptor,
-  args: Args,
+  args: A,
   impl: Factory<Iterator>
 ): Iterator {
   return {
@@ -156,8 +155,7 @@ export function Iterator<Args extends JSONValue>(
   };
 }
 
-export interface Dictionary<Args extends JSONValue = JSONValue>
-  extends IDescriptor<Args> {
+export interface Dictionary<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Dictionary";
   readonly members: Dict<Descriptor>;
 }
@@ -174,16 +172,15 @@ export function Dictionary(
   };
 }
 
-export interface Primitive<Args = {} | null | undefined>
-  extends IDescriptor<Args> {
+export interface Primitive<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Primitive";
-  readonly args: Args;
+  readonly args: A;
 }
 
-export function Primitive<Args>(
-  args: Args,
-  Class: { new (desc: Primitive<Args>): Type }
-): Primitive<Args> {
+export function Primitive<A extends Args>(
+  args: A,
+  Class: { new (desc: Primitive<A>): Type }
+): Primitive<A> {
   return {
     type: "Primitive",
     args,

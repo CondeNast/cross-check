@@ -1,22 +1,21 @@
 import { Dict, JSONObject, Option, dict, entries } from "ts-std";
-import { OptionalityType, Type, TypeBuilder } from "../types/fundamental";
+import { Type, TypeBuilder } from "../type";
 import { JSONValue } from "../utils";
-import { builder } from "./index";
 import * as resolved from "./resolved";
 
-export type RawArgs = {} | null | undefined;
-export type Args<A extends RawArgs> = A | ((args: A, required: boolean) => A);
+export type Args = {} | null | undefined;
+export type BuildArgs<A extends Args> = A | ((args: A, required: boolean) => A);
 
 export interface Factory<D extends Descriptor> {
   new (descriptor: D): resolved.Descriptor;
 }
 
 // tslint:disable-next-line:interface-name
-export interface IDescriptor<A extends RawArgs = RawArgs> {
+export interface IDescriptor<A extends Args = Args> {
   readonly type: keyof Descriptors;
   readonly metadata: Option<JSONValue>;
   readonly args: A;
-  readonly buildArgs?: Args<A>;
+  readonly buildArgs?: BuildArgs<A>;
   readonly description: string;
   readonly instantiate: (
     descriptor: this,
@@ -24,8 +23,8 @@ export interface IDescriptor<A extends RawArgs = RawArgs> {
   ) => resolved.Descriptor;
 }
 
-export function buildArgs<A extends RawArgs>(
-  desc: { args: A; buildArgs?: Args<A> },
+export function buildArgs<A extends Args>(
+  desc: { args: A; buildArgs?: BuildArgs<A> },
   required: boolean
 ): A {
   if (typeof desc.buildArgs === "function") {
@@ -148,71 +147,89 @@ export interface MembersMeta extends JSONObject {
 
 export type AnyDict = Record | Dictionary;
 
-export interface Record<A extends JSONValue = JSONValue>
-  extends IDescriptor<A> {
+export interface Record<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Record";
-  readonly members: Dict<Descriptor>;
+  readonly members: Dict<Member>;
   readonly metadata: Option<JSONObject>;
-  readonly membersMeta: Dict<MembersMeta>;
   readonly name: string;
 }
 
-export function Record(
-  members: Dict<Descriptor>,
-  membersMeta: Dict<MembersMeta>,
-  metadata: Option<JSONObject>,
-  impl: { new (desc: resolved.Dictionary): Type },
-  name: string
-): Record {
+export interface Member {
+  descriptor: Descriptor;
+  meta: MembersMeta;
+}
+
+export interface DictionaryOptions {
+  members: Dict<Member>;
+  name?: string;
+  impl: resolved.Factory<resolved.Dictionary>;
+  OptionalityType: resolved.Factory<resolved.Optionality>;
+}
+
+export interface RecordOptions<A extends Args> {
+  members: Dict<Member>;
+  metadata: Option<JSONObject>;
+  impl: resolved.Factory<resolved.Dictionary>;
+  name: string;
+  args: A;
+  OptionalityType: resolved.Factory<resolved.Optionality>;
+}
+
+export function Record<A extends Args>({
+  members,
+  metadata,
+  name,
+  impl,
+  args,
+  OptionalityType
+}: RecordOptions<A>): Record {
   return {
     type: "Record",
     members,
     metadata,
-    membersMeta,
     description: "record",
-    args: null,
+    args,
     name,
-    instantiate: resolveDictionary(impl)
+    instantiate: resolveDictionary(impl, OptionalityType)
   };
 }
 
 export interface Dictionary<A extends JSONValue = JSONValue>
   extends IDescriptor<A> {
   readonly type: "Dictionary";
-  readonly members: Dict<Descriptor>;
+  readonly members: Dict<Member>;
   readonly metadata: null;
   readonly name: Option<string>;
-  readonly membersMeta: Dict<MembersMeta>;
 }
 
-export function Dictionary(
-  members: Dict<Descriptor>,
-  membersMeta: Dict<MembersMeta>,
-  impl: { new (desc: resolved.Dictionary): Type },
-  name: Option<string> = null
-): Dictionary {
+export function Dictionary({
+  members,
+  impl,
+  name,
+  OptionalityType
+}: DictionaryOptions): Dictionary {
   return {
     type: "Dictionary",
     members,
     metadata: null,
-    membersMeta,
     description: "dictionary",
     args: null,
-    name,
-    instantiate: resolveDictionary(impl)
+    name: name || null,
+    instantiate: resolveDictionary(impl, OptionalityType)
   };
 }
 
-export function resolveDictionary<D extends Dictionary | Record>(impl: {
-  new (desc: resolved.Dictionary): Type;
-}): (desc: D) => resolved.Dictionary {
+export function resolveDictionary<D extends Dictionary | Record>(
+  impl: resolved.Factory<resolved.Dictionary>,
+  OptionalityType: resolved.Factory<resolved.Optionality>
+): (desc: D) => resolved.Dictionary {
   return (desc: D) => {
     let resolvedMembers = dict<resolved.Descriptor>();
 
     for (let [key, value] of entries(desc.members)) {
-      let { required } = desc.membersMeta[key]!;
+      let { required } = value!.meta;
 
-      let inner = resolve(value!, required !== false);
+      let inner = resolve(value!.descriptor, required !== false);
       inner = resolved.Optionality(inner, required === false, OptionalityType);
 
       resolvedMembers[key] = inner;
@@ -222,9 +239,9 @@ export function resolveDictionary<D extends Dictionary | Record>(impl: {
   };
 }
 
-export type Base<A extends RawArgs> = (desc: Refined<A>) => Primitive;
+export type Base<A extends Args> = (desc: Refined<A>) => Primitive;
 
-export interface Refined<A extends RawArgs = RawArgs> extends IDescriptor<A> {
+export interface Refined<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Refined";
   readonly name: string;
   readonly typescript: string;
@@ -233,18 +250,18 @@ export interface Refined<A extends RawArgs = RawArgs> extends IDescriptor<A> {
   readonly base: Base<A>;
 }
 
-export function Refined<A extends RawArgs>(
+export function Refined<A extends Args>(
   Class: PrimitiveClass<A | undefined>,
   base: Base<A | undefined>,
   args?: A
 ): Refined;
-export function Refined<A extends RawArgs>(
+export function Refined<A extends Args>(
   Class: PrimitiveClass<A>,
   base: Base<A>,
   args: A
 ): Refined;
 
-export function Refined<A extends RawArgs>(
+export function Refined<A extends Args>(
   Class: PrimitiveClass<A>,
   base: Base<A>,
   args: A
@@ -263,7 +280,7 @@ export function Refined<A extends RawArgs>(
   };
 }
 
-export interface Primitive<A extends RawArgs = RawArgs> extends IDescriptor<A> {
+export interface Primitive<A extends Args = Args> extends IDescriptor<A> {
   readonly type: "Primitive";
   readonly name: string;
   readonly typescript: string;
@@ -271,7 +288,7 @@ export interface Primitive<A extends RawArgs = RawArgs> extends IDescriptor<A> {
   readonly buildArgs: (args: A, required: boolean) => A;
 }
 
-export interface PrimitiveClass<A extends RawArgs> {
+export interface PrimitiveClass<A extends Args> {
   typescript: string;
   description: string;
   typeName: string;
@@ -279,20 +296,20 @@ export interface PrimitiveClass<A extends RawArgs> {
   buildArgs?(desc: A, required: boolean): A;
 }
 
-export interface RefinedClass<A extends RawArgs> extends PrimitiveClass<A> {
+export interface RefinedClass<A extends Args> extends PrimitiveClass<A> {
   base: (options?: A) => TypeBuilder<Primitive>;
 }
 
-export function Primitive<A extends RawArgs>(
+export function Primitive<A extends Args>(
   Class: PrimitiveClass<A | undefined>,
   args?: A
 ): Primitive;
-export function Primitive<A extends RawArgs>(
+export function Primitive<A extends Args>(
   Class: PrimitiveClass<A>,
   args: A
 ): Primitive;
 
-export function Primitive<A extends RawArgs>(
+export function Primitive<A extends Args>(
   Class: PrimitiveClass<A>,
   args: A
 ): Primitive<A> {
@@ -349,7 +366,7 @@ export function Generic<G>(
     metadata: null,
     args,
     description: "generic",
-    instantiate(desc: builder.Generic<G>): resolved.Descriptor {
+    instantiate(desc: Generic<G>): resolved.Descriptor {
       return apply(desc);
     }
   };

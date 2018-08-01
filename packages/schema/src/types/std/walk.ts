@@ -22,30 +22,11 @@ import { builder } from "../../descriptors";
  *   - Dictionaries are mapped types that transform Required<T> -> T and T -> Optional<T>
  */
 
-class Accumulator<D extends builder.Descriptor> {
-  constructor(
-    readonly neededFeatures: Option<string[]>,
-    readonly descriptor: D | null | undefined
-  ) {}
-
-  set(descriptor: D | undefined): Accumulator<D> {
-    return new Accumulator(this.neededFeatures, descriptor);
-  }
-
-  finish(): D | undefined {
-    if (this.descriptor === null) {
-      throw new Error("must call set() before finish()");
-    }
-
-    return this.descriptor;
-  }
-}
-
 type VisitMethod<D extends builder.Descriptor> = (
   this: FeaturesVisitor,
   desc: D,
-  accumulator: Accumulator<D>
-) => Accumulator<D>;
+  neededFeatures: Option<string[]>
+) => D | undefined;
 
 type Visitor = {
   [P in keyof builder.Descriptors]: VisitMethod<builder.Descriptors[P]>
@@ -56,72 +37,75 @@ class FeaturesVisitor {
 
   Alias(
     desc: builder.Alias,
-    accumulator: Accumulator<builder.Alias>
-  ): Accumulator<builder.Alias> {
-    let innerAccumulator = new Accumulator(
-      accumulator.neededFeatures,
-      desc.inner
-    );
-
-    let inner = this.visitValue(innerAccumulator, desc.inner);
+    neededFeatures: Option<string[]>
+  ): builder.Alias | undefined {
+    let inner = this.visitValue(desc.inner, neededFeatures);
 
     if (inner === undefined) {
-      return accumulator.set(undefined);
+      return undefined;
     } else {
-      return accumulator.set({
+      return {
         ...desc,
         inner
-      });
+      };
     }
   }
 
   List(
     desc: builder.List,
-    accumulator: Accumulator<builder.List>
-  ): Accumulator<builder.List> {
-    return this.visitContainer(accumulator, desc);
+    neededFeatures: Option<string[]>
+  ): builder.List | undefined {
+    return this.visitContainer(desc, neededFeatures);
   }
 
   Iterator(
     desc: builder.Iterator,
-    accumulator: Accumulator<builder.Iterator>
-  ): Accumulator<builder.Iterator> {
-    return this.visitContainer(accumulator, desc);
+    neededFeatures: Option<string[]>
+  ): builder.Iterator | undefined {
+    return this.visitContainer(desc, neededFeatures);
   }
 
   Pointer(
     desc: builder.Pointer,
-    accumulator: Accumulator<builder.Pointer>
-  ): Accumulator<builder.Pointer> {
-    return this.visitContainer(accumulator, desc);
+    neededFeatures: Option<string[]>
+  ): builder.Pointer | undefined {
+    return this.visitContainer(desc, neededFeatures);
   }
 
   Record(
     desc: builder.Record,
-    accumulator: Accumulator<builder.Record>
-  ): Accumulator<builder.Record> {
-    return this.visitDictionary(desc, accumulator);
+    neededFeatures: Option<string[]>
+  ): builder.Record | undefined {
+    return this.visitDictionary(desc, neededFeatures);
   }
 
   Dictionary(
     desc: builder.Dictionary,
-    accumulator: Accumulator<builder.Dictionary>
-  ): Accumulator<builder.Dictionary> {
-    return this.visitDictionary(desc, accumulator);
+    neededFeatures: Option<string[]>
+  ): builder.Dictionary | undefined {
+    return this.visitDictionary(desc, neededFeatures);
   }
 
   Primitive(
     desc: builder.Primitive,
-    accumulator: Accumulator<builder.Primitive>
-  ): Accumulator<builder.Primitive> {
-    return accumulate(accumulator, desc, this.featureList);
+    neededFeatures: Option<string[]>
+  ): builder.Primitive | undefined {
+    if (hasFeatures(this.featureList, neededFeatures)) {
+      return desc;
+    } else {
+      return undefined;
+    }
   }
 
   Refined(
     desc: builder.Refined,
-    accumulator: Accumulator<builder.Refined>
-  ): Accumulator<builder.Refined> {
-    return accumulate(accumulator, desc, this.featureList);
+    neededFeatures: Option<string[]>
+  ): builder.Refined | undefined {
+    if (hasFeatures(this.featureList, neededFeatures)) {
+      return desc;
+    } else {
+      return undefined;
+    }
   }
 
   Generic(_desc: builder.Generic, _accumulator: any): any {
@@ -132,30 +116,29 @@ class FeaturesVisitor {
     desc: D,
     featureList: string[]
   ): D | undefined {
-    let input = new Accumulator(featureList, desc);
-    return this.visitValue(input, desc);
+    return this.visitValue(desc, featureList);
   }
 
   private visitValue<D extends builder.Descriptor>(
-    start: Accumulator<D>,
-    desc: D
+    desc: D,
+    neededFeatures: Option<string[]>
   ): D | undefined {
-    let accumulator = this.target(desc.type).call(this, desc, start);
+    let result = this.target(desc.type).call(this, desc, neededFeatures);
 
-    if (hasFeatures(this.featureList, start.neededFeatures)) {
-      return accumulator.finish();
+    if (hasFeatures(this.featureList, neededFeatures)) {
+      return result;
     } else {
       return undefined;
     }
   }
 
   private visitContainer<D extends builder.Container>(
-    accumulator: Accumulator<D>,
-    desc: D
-  ): Accumulator<D> {
-    let inner = this.visitValue(accumulator, desc.inner);
+    desc: D,
+    neededFeatures: Option<string[]>
+  ): D | undefined {
+    let inner = this.visitValue(desc.inner, neededFeatures);
 
-    return accumulator.set(inner && Object.assign({}, desc, { inner }));
+    return inner && Object.assign({}, desc, { inner });
   }
 
   private target<K extends keyof builder.Descriptors>(
@@ -166,48 +149,32 @@ class FeaturesVisitor {
 
   private visitDictionary<D extends builder.Dictionary | builder.Record>(
     desc: D,
-    accumulator: Accumulator<D>
-  ): Accumulator<D> {
+    neededFeatures: Option<string[]>
+  ): D | undefined {
     let members = desc.members;
     let memberNames = Object.keys(members);
-    let mapped = dict<builder.Descriptor>();
+    let mapped = dict<builder.Member>();
 
     memberNames.forEach((name, _index) => {
-      let fieldValue = members[name]!;
-      let membersMeta = desc.membersMeta[name];
+      let member = members[name]!;
 
-      let innerAccumulator = new Accumulator(
-        membersMeta && membersMeta.features ? membersMeta.features : null,
-        fieldValue
-      );
+      let innerNeededFeatures =
+        member.meta && member.meta.features ? member.meta.features : null;
 
-      let inner = this.visitValue(innerAccumulator, members[name]!);
+      let inner = this.visitValue(member.descriptor, innerNeededFeatures);
 
-      if (
-        inner !== undefined &&
-        hasFeatures(this.featureList, innerAccumulator.neededFeatures)
-      ) {
-        mapped[name] = inner;
+      if (inner !== undefined) {
+        mapped[name] = { descriptor: inner, meta: member.meta };
       }
     });
 
-    return accumulator.set(
-      Object.assign({}, desc, {
+    if (hasFeatures(this.featureList, neededFeatures)) {
+      return Object.assign({}, desc, {
         members: mapped
-      })
-    );
-  }
-}
-
-function accumulate<D extends builder.Descriptor>(
-  accumulator: Accumulator<D>,
-  desc: D | undefined,
-  featureList: string[]
-): Accumulator<D> {
-  if (hasFeatures(featureList, accumulator.neededFeatures)) {
-    return accumulator.set(desc);
-  } else {
-    return accumulator.set(undefined);
+      });
+    } else {
+      return undefined;
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { dict, entries } from "ts-std";
 import { builder, resolved } from "../../descriptors";
-import { DictionaryImpl } from "./index";
+import { DictionaryImpl } from "./dictionary";
 
 export interface DictAttributes {
   required: boolean;
@@ -27,10 +27,9 @@ export function MapDict(
       let members = dict<resolved.Descriptor>();
 
       for (let [key, value] of entries(desc.args.T.members)) {
-        let meta = desc.args.T.membersMeta[key];
         members[key] = builder.resolve(
-          desc.args.C(value!, meta!.required),
-          meta!.required
+          desc.args.C(value!.descriptor, value!.meta.required),
+          value!.meta.required
         );
       }
 
@@ -48,23 +47,18 @@ export function mapDict<D extends builder.AnyDict>(
   callback: (
     member: builder.Descriptor,
     meta: builder.MembersMeta
-  ) => [builder.Descriptor, builder.MembersMeta]
+  ) => builder.Member
 ): D {
-  let mappedMembers = dict<builder.Descriptor>();
-  let mappedMetas = dict<builder.MembersMeta>();
+  let mappedMembers = dict<builder.Member>();
 
   for (let [key, member] of entries(T.members)) {
-    let meta = T.membersMeta[key];
-
-    let [mappedMember, mappedMeta] = callback(member!, meta!);
+    let mappedMember = callback(member!.descriptor, member!.meta);
 
     mappedMembers[key] = mappedMember;
-    mappedMetas[key] = mappedMeta;
   }
 
   return Object.assign({}, T, {
-    members: mappedMembers,
-    membersMeta: mappedMetas
+    members: mappedMembers
   });
 }
 
