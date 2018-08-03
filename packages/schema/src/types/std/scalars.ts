@@ -155,7 +155,7 @@ class BooleanPrimitive extends Scalar<undefined> {
 }
 
 // tslint:disable-next-line:variable-name
-export function Boolean(): TypeBuilder {
+export function Boolean(): TypeBuilder<builder.Primitive> {
   return Primitive(BooleanPrimitive);
 }
 
@@ -169,7 +169,7 @@ class AnyPrimitive extends Scalar<undefined> {
   }
 }
 
-export function Any(): TypeBuilder {
+export function Any(): TypeBuilder<builder.Primitive> {
   return Primitive(AnyPrimitive);
 }
 

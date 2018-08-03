@@ -38,8 +38,14 @@ class ArrayImpl extends AbstractType<resolved.List> {
 }
 
 export function List(
-  item: TypeBuilder,
+  item: TypeBuilder | builder.Descriptor,
   options: { allowEmpty: boolean } = { allowEmpty: false }
 ): TypeBuilder {
-  return new TypeBuilderImpl(builder.List(item.descriptor, ArrayImpl, options));
+  return new TypeBuilderImpl(
+    builder.List(
+      "descriptor" in item ? item.descriptor : item,
+      ArrayImpl,
+      options
+    )
+  );
 }

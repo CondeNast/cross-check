@@ -1,7 +1,7 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
 import { builder, resolved } from "../../descriptors";
-import { TypeBuilder } from "../../type";
+import { METADATA, TypeBuilder } from "../../type";
 import { AbstractType, OptionalityType, TypeBuilderImpl } from "./core";
 
 export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
@@ -66,8 +66,8 @@ export function buildMembers(
     membersDict[key] = {
       descriptor: value!.descriptor,
       meta: {
-        features: value!.builderMetadata.features || undefined,
-        required: value!.builderMetadata.required || false
+        features: value![METADATA].features || undefined,
+        required: value![METADATA].required || false
       }
     };
   }

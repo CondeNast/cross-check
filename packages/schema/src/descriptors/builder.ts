@@ -351,6 +351,7 @@ export interface RequiredOptions extends JSONObject {
 }
 
 export interface Generic<G = {} | void | undefined> extends IDescriptor<G> {
+  readonly type: "Generic";
   readonly name: string;
   readonly args: G;
 }

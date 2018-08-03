@@ -63,15 +63,17 @@ export interface BuilderMetadata {
   required: Option<boolean>;
 }
 
+export const METADATA = Symbol("METADATA");
+
 export interface TypeBuilder<
   D extends builder.Descriptor = builder.Descriptor
 > {
-  /** @internal */
-  readonly builderMetadata: BuilderMetadata;
-
+  readonly [METADATA]: BuilderMetadata;
   readonly descriptor: D;
 
   named(name: string): TypeBuilder;
+
   required(isRequiredType?: boolean): TypeBuilder;
+
   features(features: string[]): TypeBuilder;
 }
