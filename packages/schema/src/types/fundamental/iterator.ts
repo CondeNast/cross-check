@@ -3,10 +3,10 @@ import { builder, resolved } from "../../descriptors";
 import { Record } from "../../record";
 import { TypeBuilder } from "../../type";
 import { JSONValue } from "../../utils";
-import { TypeBuilderImpl, isDescriptor } from "./core";
+import { AliasBuilder, TypeBuilderImpl, isDescriptor } from "./core";
 import { ReferenceImpl } from "./reference";
 
-export class IteratorImpl extends ReferenceImpl<resolved.Iterator> {}
+export class IteratorImpl extends ReferenceImpl<resolved.Iterator> { }
 
 export function hasMany(
   item: Record | builder.Descriptor,
@@ -14,15 +14,32 @@ export function hasMany(
 ): TypeBuilder {
   let inner = isDescriptor(item)
     ? item
-    : builder.Alias(item.descriptor, item.name);
+    : AliasBuilder(item.descriptor, item.name);
 
   return new TypeBuilderImpl(
-    builder.Iterator({
+    Iterator({
       name: "hasMany",
       metadata: options,
       inner,
-      args: null,
-      impl: IteratorImpl
+      args: null
     })
   );
+}
+
+export function Iterator<A extends JSONValue>({
+  name,
+  metadata,
+  inner
+}: {
+    name: string;
+    metadata: Option<JSONObject>;
+    inner: builder.Descriptor;
+    args: A;
+  }): builder.Iterator {
+  return {
+    type: "Iterator",
+    name,
+    metadata,
+    inner
+  };
 }

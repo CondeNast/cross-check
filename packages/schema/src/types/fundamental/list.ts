@@ -42,10 +42,40 @@ export function List(
   options: { allowEmpty: boolean } = { allowEmpty: false }
 ): TypeBuilder {
   return new TypeBuilderImpl(
-    builder.List(
+    ListBuilderDescriptor(
       "descriptor" in item ? item.descriptor : item,
-      ArrayImpl,
       options
     )
   );
+}
+
+export function ListBuilderDescriptor(
+  inner: builder.Descriptor,
+  args: builder.ListArgs = { allowEmpty: false }
+): builder.List {
+  return {
+    type: "List",
+    inner,
+    args
+  };
+}
+
+export function ResolvedList(
+  list: builder.List,
+  required: boolean
+): resolved.List {
+  let args = list.buildArgs(list.args, true);
+
+  let inner = builder.resolve(list.inner, true);
+
+  if (required === false) {
+    args = { ...args, allowEmpty: true };
+  }
+
+  return {
+    type: "List",
+    inner,
+    args,
+    instantiate: desc => new ArrayImpl(desc)
+  };
 }

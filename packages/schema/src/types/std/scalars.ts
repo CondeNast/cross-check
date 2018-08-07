@@ -2,11 +2,11 @@ import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
 import { builder, resolved } from "../../descriptors";
 import { TypeBuilder } from "../../type";
-import { ANY, AbstractType, TypeBuilderImpl } from "../fundamental";
+import { ANY, AbstractType, Primitive, Refined } from "../fundamental";
 
 export abstract class Scalar<Args> extends AbstractType<
   resolved.Primitive<Args>
-> {
+  > {
   abstract validation(): ValidationBuilder<unknown>;
 
   protected get args(): Args {
@@ -171,36 +171,4 @@ class AnyPrimitive extends Scalar<undefined> {
 
 export function Any(): TypeBuilder<builder.Primitive> {
   return Primitive(AnyPrimitive);
-}
-
-export function Primitive<A extends builder.Args>(
-  Class: builder.PrimitiveClass<A | undefined>,
-  options?: A
-): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.Args>(
-  Class: builder.PrimitiveClass<A>,
-  options: A
-): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.Args>(
-  Class: builder.PrimitiveClass<A>,
-  options: A
-): TypeBuilder<builder.Primitive> {
-  return new TypeBuilderImpl(builder.Primitive(Class, options));
-}
-
-export function Refined<A extends builder.Args>(
-  Class: builder.RefinedClass<A | undefined>,
-  options?: A
-): TypeBuilder;
-export function Refined<A extends builder.Args>(
-  Class: builder.RefinedClass<A>,
-  options: A
-): TypeBuilder;
-export function Refined<A extends builder.Args>(
-  Class: builder.RefinedClass<A>,
-  options: A
-): TypeBuilder {
-  let basePrimitive = (desc: builder.Refined<A>) =>
-    Class.base(desc.args).descriptor;
-  return new TypeBuilderImpl(builder.Refined(Class, basePrimitive, options));
 }

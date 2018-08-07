@@ -6,6 +6,8 @@ export {
   RequiredFields,
   describe,
   RecursiveVisitor,
+  PrimitiveBuilder,
+  RefinedBuilder,
   Primitive,
   Refined,
   applyFeatures

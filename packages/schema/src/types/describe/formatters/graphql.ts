@@ -138,7 +138,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
     } else {
       throw new Error(
         `Primitive types must be registered in the scalar map. Found an anonymous primitive with description \`${
-          descriptor.description
+        descriptor.description
         }\`.`
       );
     }

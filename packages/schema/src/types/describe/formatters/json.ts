@@ -1,5 +1,5 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { builder } from "../../../descriptors";
+import { builder, resolved } from "../../../descriptors";
 import { Record } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
 import {
@@ -8,6 +8,8 @@ import {
   isRequiredPosition
 } from "../reporter";
 import {
+  AliasDescriptor,
+  PrimitiveDescriptor,
   RecursiveDelegate,
   RecursiveDelegateTypes,
   RecursiveVisitor
@@ -67,9 +69,9 @@ interface JSONTypes extends RecursiveDelegateTypes {
 class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   private visitor = RecursiveVisitor.build<JSONTypes>(this);
 
-  primitive(desc: builder.Primitive, pos: Pos): JSONPrimitive {
+  primitive(desc: PrimitiveDescriptor, pos: Pos): JSONPrimitive {
     let required = isRequiredPosition(pos);
-    let args = builder.buildArgs(desc, isRequiredPosition(pos));
+    let args = desc.args;
 
     if (args !== undefined) {
       return { type: desc.name || "anonymous", args, required };
@@ -78,7 +80,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     }
   }
 
-  alias(alias: builder.Alias, pos: Pos): JSONAlias {
+  alias(alias: AliasDescriptor, pos: Pos): JSONAlias {
     let output: JSONAlias = {
       alias: alias.name,
       required: isRequiredPosition(pos)
@@ -137,9 +139,9 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   record(
     descriptor: builder.Record
   ): {
-    fields: Dict<Item>;
-    metadata: Option<JSONValue>;
-  } {
+      fields: Dict<Item>;
+      metadata: Option<JSONValue>;
+    } {
     return {
       fields: this.dictionaryOrRecord(descriptor),
       metadata: descriptor.metadata
@@ -173,10 +175,6 @@ function genericOptions(
     options.kind = descriptor.name;
   } else if (descriptor.type === "List" && isRequiredPosition(pos) === false) {
     options.args = { allowEmpty: true };
-  }
-
-  if (descriptor.metadata) {
-    options.args = descriptor.metadata;
   }
 
   return options;

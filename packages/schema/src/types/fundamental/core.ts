@@ -12,7 +12,7 @@ import { maybe } from "../../utils";
 // This class basically exists to make the constructor argument generic.
 export abstract class AbstractType<D extends resolved.Descriptor>
   implements Type<resolved.Descriptor> {
-  constructor(readonly descriptor: D) {}
+  constructor(readonly descriptor: D) { }
 
   abstract validation(): ValidationBuilder<unknown>;
   abstract serialize(input: unknown): unknown;
@@ -25,7 +25,7 @@ export function getFeatures(typeBuilder: TypeBuilder): string[] | undefined {
 
 export abstract class AbstractContainerType<
   Descriptor extends resolved.ContainerDescriptor
-> extends AbstractType<Descriptor> {
+  > extends AbstractType<Descriptor> {
   protected get type(): Type {
     return resolved.instantiate(this.descriptor.inner);
   }
@@ -45,7 +45,7 @@ export abstract class AbstractContainerType<
 
 export class OptionalityType extends AbstractContainerType<
   resolved.Optionality
-> {
+  > {
   validation(): ValidationBuilder<unknown> {
     if (this.isOptional) {
       return maybe(this.type.validation());
@@ -81,6 +81,18 @@ export class OptionalityType extends AbstractContainerType<
   }
 }
 
+export function Optionality(
+  inner: resolved.Descriptor,
+  isOptional: boolean
+): resolved.Optionality {
+  return {
+    type: "Optionality",
+    args: { isOptional },
+    inner,
+    instantiate: (desc: resolved.Optionality) => new OptionalityType(desc)
+  };
+}
+
 class AnyValidator extends ValueValidator<unknown, void> {
   static validatorName = "any";
 
@@ -98,7 +110,7 @@ const DEFAULT_METADATA = {
 
 export class TypeBuilderImpl<
   D extends builder.Descriptor = builder.Descriptor
-> {
+  > {
   readonly [METADATA]: BuilderMetadata;
 
   constructor(
@@ -110,7 +122,7 @@ export class TypeBuilderImpl<
 
   named(name: string): TypeBuilder {
     return new TypeBuilderImpl(
-      builder.Alias(this.descriptor, name),
+      AliasBuilder(this.descriptor, name),
       this[METADATA]
     );
   }
@@ -135,4 +147,15 @@ export function isDescriptor(
   value: TypeBuilder | builder.Descriptor
 ): value is builder.Descriptor {
   return !(value instanceof TypeBuilderImpl);
+}
+
+export function AliasBuilder(
+  inner: builder.Descriptor,
+  name: string
+): builder.Alias {
+  return {
+    type: "Alias",
+    name,
+    inner
+  };
 }

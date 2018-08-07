@@ -1,5 +1,6 @@
 import { ErrorPath, ValidationError } from "@cross-check/core";
 import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { Dict, dict, entries } from "ts-std";
 
 export { JSON as JSONValue } from "ts-std";
 
@@ -17,6 +18,19 @@ export interface Multiple {
 
 function isMultiple(error: ValidationError): error is Multiple {
   return error.message.name === "multiple";
+}
+
+export function mapDict<T, U>(
+  input: Dict<T>,
+  callback: (value: T) => U
+): Dict<U> {
+  let out = dict<U>();
+
+  for (let [key, value] of entries(input)) {
+    out[key] = callback(value!);
+  }
+
+  return out;
 }
 
 export function maybe<T>(validator: ValidationBuilder<T>) {

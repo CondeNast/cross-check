@@ -1,5 +1,6 @@
-import { Dict, dict, entries } from "ts-std";
+import { Dict } from "ts-std";
 import { TypeBuilder } from "../../type";
+import { mapDict } from "../../utils";
 import { Dictionary } from "../fundamental";
 
 export function RequiredFields(properties: Dict<TypeBuilder>): TypeBuilder {
@@ -7,11 +8,5 @@ export function RequiredFields(properties: Dict<TypeBuilder>): TypeBuilder {
 }
 
 export function required(properties: Dict<TypeBuilder>): Dict<TypeBuilder> {
-  let out = dict<TypeBuilder>();
-
-  for (let [key, value] of entries(properties)) {
-    out[key] = value!.required();
-  }
-
-  return out;
+  return mapDict(properties, builder => builder.required());
 }

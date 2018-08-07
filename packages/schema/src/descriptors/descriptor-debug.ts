@@ -1,110 +1,118 @@
 import { Dict, JSONObject, entries } from "ts-std";
+import { mapDict } from "../utils";
 import * as builder from "./builder";
 
 export interface DescriptorJSON {
-  type: builder.IDescriptor["type"];
+  type: builder.DescriptorType;
   inner?: DescriptorJSON;
   inners?: Dict<DescriptorJSON>;
   attributes?: JSONObject;
 }
 
-export function listToJSON(desc: builder.List): DescriptorJSON {
-  return {
-    type: desc.type,
-    inner: descToJSON(desc.inner),
-    attributes: {
-      ...desc.args
-    }
-  };
-}
+export type Callback<P extends builder.DescriptorType> = (desc: builder.Descriptors[P]) => DescriptorJSON;
 
-export function pointerToJSON(desc: builder.Pointer): DescriptorJSON {
-  return {
-    type: desc.type,
-    inner: descToJSON(desc.inner),
-    attributes: {
-      name: desc.name,
-      args: formatJSON(desc.args),
-      metadata: formatJSON(desc.metadata)
-    }
-  };
-}
+export type ToJSONCallbacks = {
+  [P in builder.DescriptorType]: Callback<P>
+};
 
-export function iteratorToJSON(desc: builder.Iterator): DescriptorJSON {
-  return {
-    type: desc.type,
-    inner: descToJSON(desc.inner),
-    attributes: {
-      name: desc.name,
-      args: formatJSON(desc.args),
-      metadata: formatJSON(desc.metadata)
-    }
-  };
-}
+export const DescToJSON: ToJSONCallbacks = {
+  Alias(desc) {
+    return {
+      type: desc.type,
+      inner: descToJSON(desc.inner)
+    };
+  },
 
-export function dictionaryToJSON(desc: builder.Dictionary): DescriptorJSON {
-  let members: Dict<DescriptorJSON> = {};
+  Generic() {
+    throw new Error("Not implemented: Generic");
+  },
 
-  for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!.descriptor);
+  List(desc) {
+    return {
+      type: desc.type,
+      inner: descToJSON(desc.inner),
+      attributes: {
+        ...desc.args
+      }
+    };
+  },
+
+  Pointer(desc) {
+    return {
+      type: desc.type,
+      inner: descToJSON(desc.inner),
+      attributes: {
+        name: desc.name,
+        metadata: formatJSON(desc.metadata)
+      }
+    };
+  },
+
+  Iterator(desc) {
+    return {
+      type: desc.type,
+      inner: descToJSON(desc.inner),
+      attributes: {
+        name: desc.name,
+        metadata: formatJSON(desc.metadata)
+      }
+    };
+  },
+
+  Dictionary(desc) {
+    let members = mapDict(desc.members, member => descToJSON(member.descriptor));
+
+    return {
+      type: desc.type,
+      inners: members,
+      attributes: {
+        metadata: formatJSON(desc.metadata)
+      }
+    };
+  },
+
+  Record(desc) {
+    let members = mapDict(desc.members, member => descToJSON(member.descriptor));
+
+    return {
+      type: desc.type,
+      inners: members,
+      attributes: {
+        name: desc.name,
+        metadata: formatJSON(desc.metadata)
+      }
+    };
+  },
+
+  Primitive(desc) {
+    return {
+      type: desc.type,
+      attributes: {
+        name: desc.name,
+        typescript: desc.typescript,
+        description: desc.description,
+        args: desc.args || null
+      }
+    };
+  },
+
+  Refined(desc) {
+    return {
+      type: desc.type,
+      attributes: {
+        name: desc.name,
+        typescript: desc.typescript,
+        description: desc.description,
+        args: desc.args || null
+      }
+    };
   }
-
-  return {
-    type: desc.type,
-    inners: members,
-    attributes: {
-      args: formatJSON(desc.args),
-      metadata: formatJSON(desc.metadata)
-    }
-  };
 }
 
-export function recordToJSON(desc: builder.Record): DescriptorJSON {
-  let members: Dict<DescriptorJSON> = {};
+export function descToJSON<K extends builder.DescriptorType>(desc: builder.Descriptor): DescriptorJSON {
+  let callback = DescToJSON[desc.type] as Callback<K>;
 
-  for (let [key, value] of entries(desc.members)) {
-    members[key] = descToJSON(value!.descriptor);
-  }
-
-  return {
-    type: desc.type,
-    inners: members,
-    attributes: {
-      name: desc.name,
-      args: formatJSON(desc.args),
-      metadata: formatJSON(desc.metadata)
-    }
-  };
-}
-
-export function primitiveToJSON(desc: builder.Primitive): DescriptorJSON {
-  return {
-    type: desc.type,
-    attributes: {
-      name: desc.name,
-      typescript: desc.typescript,
-      description: desc.description,
-      args: desc.args || null
-    }
-  };
-}
-
-export function descToJSON(descriptor: builder.Descriptor): DescriptorJSON {
-  if (builder.is(descriptor, "List")) {
-    return listToJSON(descriptor);
-  } else if (builder.is(descriptor, "Pointer")) {
-    return pointerToJSON(descriptor);
-  } else if (builder.is(descriptor, "Iterator")) {
-    return iteratorToJSON(descriptor);
-  } else if (builder.is(descriptor, "Dictionary")) {
-    return dictionaryToJSON(descriptor);
-  } else if (builder.is(descriptor, "Record")) {
-    return recordToJSON(descriptor);
-  } else if (builder.is(descriptor, "Primitive")) {
-    return primitiveToJSON(descriptor);
-  } else {
-    throw new Error("unreachable");
-  }
+  return callback(desc);
 }
 
 function formatDescriptorJSON(
@@ -182,6 +190,6 @@ function pad(size: number): string {
   return " ".repeat(size * 2);
 }
 
-export function formatDescriptor(descriptor: builder.Descriptor): string {
-  return formatDescriptorJSON(descToJSON(descriptor), 0);
+export function formatDescriptor(desc: builder.Descriptor): string {
+  return formatDescriptorJSON(descToJSON(desc), 0);
 }

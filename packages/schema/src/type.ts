@@ -1,6 +1,8 @@
+import { Environment, ValidationError } from "@cross-check/core";
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Option, unknown } from "ts-std";
-import { builder, resolved } from "./descriptors";
+import { Task } from "no-show";
+import { Dict, unknown } from "ts-std";
+import { resolved } from "./descriptors";
 
 /**
  * Internals Vocabulary:
@@ -50,7 +52,7 @@ import { builder, resolved } from "./descriptors";
  */
 export interface Type<
   Descriptor extends resolved.Descriptor = resolved.Descriptor
-> {
+  > {
   readonly descriptor: Descriptor;
 
   validation(): ValidationBuilder<unknown>;
@@ -58,22 +60,6 @@ export interface Type<
   parse(input: unknown): unknown;
 }
 
-export interface BuilderMetadata {
-  features: Option<string[]>;
-  required: Option<boolean>;
-}
-
-export const METADATA = Symbol("METADATA");
-
-export interface TypeBuilder<
-  D extends builder.Descriptor = builder.Descriptor
-> {
-  readonly [METADATA]: BuilderMetadata;
-  readonly descriptor: D;
-
-  named(name: string): TypeBuilder;
-
-  required(isRequiredType?: boolean): TypeBuilder;
-
-  features(features: string[]): TypeBuilder;
+export interface RecordType extends Type<resolved.Dictionary> {
+  validate(obj: Dict, env: Environment): Task<ValidationError[]>;
 }

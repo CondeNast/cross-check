@@ -33,7 +33,7 @@ type Visitor = {
 };
 
 class FeaturesVisitor {
-  constructor(readonly featureList: string[]) {}
+  constructor(readonly featureList: string[]) { }
 
   Alias(
     desc: builder.Alias,
@@ -98,9 +98,9 @@ class FeaturesVisitor {
   }
 
   Refined(
-    desc: builder.Refined,
+    desc: builder.RefinedPrimitive,
     neededFeatures: Option<string[]>
-  ): builder.Refined | undefined {
+  ): builder.RefinedPrimitive | undefined {
     if (hasFeatures(this.featureList, neededFeatures)) {
       return desc;
     } else {

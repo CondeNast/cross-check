@@ -2,40 +2,37 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, Option } from "ts-std";
-import { builder, resolved } from "./descriptors";
-import { TypeBuilder } from "./type";
-import {
-  DictionaryImpl,
-  OptionalityType,
-  TypeBuilderImpl,
-  buildMembers
-} from "./types/fundamental";
-import { baseType } from "./types/fundamental/refined";
-import { applyFeatures } from "./types/std/walk";
+import { builder, dehydrated, resolved } from "./descriptors";
+import { REGISTRY } from "./descriptors/builder";
+import { DictionaryImpl } from "./types/fundamental";
 
-export class RecordBuilder<R extends builder.Record = builder.Record>
-  extends TypeBuilderImpl<R>
-  implements Record {
+export interface RecordState {
+  name: string;
+}
+
+export class RecordBuilder extends builder.TypeBuilder<RecordState> implements Record {
   get name(): string {
-    return this.descriptor.name;
+    return this.state.name;
   }
 
-  get metadata(): Option<JSONObject> {
-    return this.descriptor.metadata;
+  dehydrate(): dehydrated.Descriptor {
+    return {
+      type: "Named",
+      target: "Dictionary",
+      name: this.state.name
+    }
   }
 
   get draft(): Record {
-    let inner = baseType(this.descriptor);
-    return new RecordBuilder(inner);
+    throw new Error("Not implememented");
+    // let inner = baseType(this.descriptor);
+    // return new RecordBuilder(inner, this.meta);
   }
 
   withFeatures(features: string[]): Record {
-    let record = applyFeatures(this.descriptor, features);
-    return new RecordBuilder(record);
-  }
-
-  build(): RecordImpl {
-    return buildRecord(this);
+    throw new Error("Not implememented");
+    // let record = applyFeatures(this.descriptor, features);
+    // return new RecordBuilder(record);
   }
 }
 
@@ -45,12 +42,8 @@ export class RecordImpl extends DictionaryImpl<resolved.Dictionary> {
   }
 }
 
-export function buildRecord(record: Record): RecordImpl {
-  return builder.instantiate(record.descriptor, true) as RecordImpl;
-}
-
 export interface RecordOptions {
-  fields: Dict<TypeBuilder>;
+  fields: Dict<builder.TypeBuilder>;
   metadata?: JSONObject;
 }
 
@@ -58,24 +51,14 @@ export function Record(
   name: string,
   { fields, metadata = null }: RecordOptions
 ): Record {
-  let members = buildMembers(fields);
-
-  return new RecordBuilder(
-    builder.Record({
-      members,
-      metadata,
-      impl: RecordImpl,
-      name,
-      args: null,
-      OptionalityType
-    })
-  );
+  REGISTRY.record(name, fields, metadata);
+  return new RecordBuilder({
+    name
+  })
 }
 
-export interface Record extends TypeBuilder<builder.Record> {
+export interface Record extends builder.TypeBuilder<RecordState> {
   readonly name: string;
-  readonly metadata: Option<JSONObject>;
   readonly draft: Record;
   withFeatures(featureList: string[]): Record;
-  build(): RecordImpl;
 }
