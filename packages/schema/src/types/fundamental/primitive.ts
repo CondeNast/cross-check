@@ -1,45 +1,43 @@
-import { builder, resolved } from "../../descriptors";
-import { Type, TypeBuilder } from "../../type";
-import { TypeBuilderImpl } from "./core";
+import { registered, resolved } from "../../descriptors";
+import * as type from "../../type";
+import { JSONValue } from "../../utils";
 
-export function Primitive<A extends builder.Args>(
-  Class: PrimitiveClass<A | undefined>,
-  options?: A
-): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.Args>(
-  Class: PrimitiveClass<A>,
-  options: A
-): TypeBuilder<builder.Primitive>;
-export function Primitive<A extends builder.Args>(
-  Class: PrimitiveClass<A>,
-  options: A
-): TypeBuilder<builder.Primitive> {
-  return new TypeBuilderImpl(PrimitiveBuilder(Class, options));
+export function Primitive(
+  Class: SimplePrimitiveClass
+): registered.Primitive {
+  return new registered.Primitive(PrimitiveState(Class));
 }
 
-export interface PrimitiveClass<A extends builder.Args> {
+export function PrimitiveWithOptions<Args extends JSONValue | undefined>(
+  Class: BuildablePrimitiveClass<Args>,
+  options: Args
+): registered.Primitive {
+  return new registered.Primitive(PrimitiveState(Class, options));
+}
+
+export interface PrimitiveClass<Args extends JSONValue | undefined = JSONValue | undefined> {
   typescript: string;
   description: string;
   typeName: string;
-  new(desc: resolved.Primitive<A>): Type;
-  buildArgs?(desc: A, required: boolean): A;
+  new(desc: Args): type.Primitive;
 }
 
-export function PrimitiveBuilder<A extends builder.Args>(
-  Class: PrimitiveClass<A | undefined>,
-  args?: A
-): builder.Primitive;
-export function PrimitiveBuilder<A extends builder.Args>(
-  Class: PrimitiveClass<A>,
-  args: A
-): builder.Primitive;
+export interface SimplePrimitiveClass extends PrimitiveClass<undefined> {
+}
 
-export function PrimitiveBuilder<A extends builder.Args>(
-  Class: PrimitiveClass<A>,
-  args: A
-): builder.Primitive<A> {
+export interface BuildablePrimitiveClass<Args extends JSONValue | undefined> extends PrimitiveClass<Args> {
+  typescript: string;
+  description: string;
+  typeName: string;
+  new(descriptor: resolved.Primitive<Args>): type.Primitive;
+  buildArgs?(args: Args, required: boolean): Args;
+}
+
+export function PrimitiveState<Args extends JSONValue | undefined>(
+  Class: PrimitiveClass<Args>,
+  args?: Args
+): registered.PrimitiveState {
   return {
-    type: "Primitive",
     name: Class.typeName,
     typescript: Class.typescript,
     description: Class.description,

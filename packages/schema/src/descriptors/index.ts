@@ -1,6 +1,7 @@
-export * from "./descriptor-debug";
-import * as builder from "./builder";
 import * as dehydrated from "./dehydrated";
+import * as registered from "./registered";
 import * as resolved from "./resolved";
 
-export { resolved, builder, dehydrated };
+export * from "./descriptor-debug";
+export { REGISTRY, Registry } from "./registered";
+export { resolved, registered, dehydrated };

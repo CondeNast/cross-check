@@ -97,7 +97,6 @@ export interface List<A extends ListArgs = ListArgs> extends ResolvedDescriptorW
   readonly args: A;
 }
 export interface Pointer extends ResolvedDescriptor {
-
   readonly type: "Pointer";
   readonly inner: Descriptor;
 }

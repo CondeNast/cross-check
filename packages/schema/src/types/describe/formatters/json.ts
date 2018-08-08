@@ -1,19 +1,9 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { builder, resolved } from "../../../descriptors";
-import { Record } from "../../../record";
+import { REGISTRY, Registry } from "../../../descriptors/registered";
+import { RegisteredRecord } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
-import {
-  Pos,
-  isExplicitRequiredPosition,
-  isRequiredPosition
-} from "../reporter";
-import {
-  AliasDescriptor,
-  PrimitiveDescriptor,
-  RecursiveDelegate,
-  RecursiveDelegateTypes,
-  RecursiveVisitor
-} from "../visitor";
+import { Pos, isExplicitRequiredPosition, isRequiredPosition } from "../reporter";
+import * as visitor from "../visitor";
 
 export interface JSONPrimitive {
   type: string;
@@ -58,7 +48,7 @@ export interface JSONRecord {
 
 export type Item = JSONGeneric | JSONPrimitive | JSONDictionary | JSONAlias;
 
-interface JSONTypes extends RecursiveDelegateTypes {
+interface JSONTypes extends visitor.RecursiveDelegateTypes {
   primitive: JSONPrimitive;
   generic: JSONGeneric;
   dictionary: JSONDictionary;
@@ -66,10 +56,10 @@ interface JSONTypes extends RecursiveDelegateTypes {
   required: Item;
 }
 
-class JSONFormatter implements RecursiveDelegate<JSONTypes> {
-  private visitor = RecursiveVisitor.build<JSONTypes>(this);
+class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
+  private visitor = visitor.RecursiveVisitor.build<JSONTypes>(this);
 
-  primitive(desc: PrimitiveDescriptor, pos: Pos): JSONPrimitive {
+  primitive(desc: visitor.Primitive, pos: Pos): JSONPrimitive {
     let required = isRequiredPosition(pos);
     let args = desc.args;
 
@@ -80,7 +70,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     }
   }
 
-  alias(alias: AliasDescriptor, pos: Pos): JSONAlias {
+  alias(alias: visitor.Alias, pos: Pos): JSONAlias {
     let output: JSONAlias = {
       alias: alias.name,
       required: isRequiredPosition(pos)
@@ -91,7 +81,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
 
   generic(
     entity: Item,
-    descriptor: builder.Iterator | builder.List | builder.Pointer,
+    descriptor: visitor.Iterator | visitor.List | visitor.Pointer,
     pos: Pos
   ): JSONGeneric {
     let { type } = descriptor;
@@ -128,7 +118,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
     };
   }
 
-  dictionary(descriptor: builder.Dictionary, pos: Pos): JSONDictionary {
+  dictionary(descriptor: visitor.Dictionary, pos: Pos): JSONDictionary {
     return {
       type: "Dictionary",
       members: this.dictionaryOrRecord(descriptor),
@@ -137,7 +127,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   record(
-    descriptor: builder.Record
+    descriptor: visitor.Record
   ): {
       fields: Dict<Item>;
       metadata: Option<JSONValue>;
@@ -149,7 +139,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
   }
 
   private dictionaryOrRecord(
-    descriptor: builder.Dictionary | builder.Record
+    descriptor: visitor.Dictionary | visitor.Record
   ): Dict<Item> {
     let members = dict<Item>();
     this.visitor.processDictionary(descriptor, (item, key, pos) => {
@@ -166,7 +156,7 @@ class JSONFormatter implements RecursiveDelegate<JSONTypes> {
 }
 
 function genericOptions(
-  descriptor: builder.Iterator | builder.Pointer | builder.List,
+  descriptor: visitor.Iterator | visitor.Pointer | visitor.List,
   pos: Pos
 ): Pick<GenericReference, "kind" | "args"> {
   let options = {} as GenericOptions;
@@ -180,6 +170,6 @@ function genericOptions(
   return options;
 }
 
-export function toJSON(record: Record): JSONRecord {
-  return new JSONFormatter().record(record.descriptor);
+export function toJSON(record: RegisteredRecord, registry: Registry = REGISTRY): JSONRecord {
+  return new JSONFormatter().record(record.inner.visitor(registry));
 }

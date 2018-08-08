@@ -1,8 +1,8 @@
 import { Dict, Option } from "ts-std";
-import { Record } from "../../../record";
 import { titleize } from "../../../utils";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate, isRequiredPosition } from "../reporter";
+import * as visitor from "../visitor";
 
 class TypeBuffer {
   private buf: string;
@@ -151,6 +151,6 @@ export interface GraphqlOptions {
 }
 
 export const graphql: ((
-  record: Record,
+  record: visitor.Record,
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);

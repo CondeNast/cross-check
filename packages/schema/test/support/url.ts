@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Refined, Scalar, TypeBuilder, types } from "@cross-check/schema";
+import { Refined, Scalar, registered, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { format } from "./format";
 
@@ -45,7 +45,7 @@ export class Urlish {
     public protocol: string,
     public host: string,
     public pathname: string
-  ) {}
+  ) { }
 
   toString(): string {
     return `${this.protocol}://${this.host}/${this.pathname}`;
@@ -80,6 +80,6 @@ export function urlish(full: string) {
   return new Urlish(result[1], result[2], result[3]);
 }
 
-export function Url(...args: UrlKind[]): TypeBuilder {
+export function Url(...args: UrlKind[]): registered.Primitive {
   return Refined(UrlType, args);
 }

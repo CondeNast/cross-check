@@ -1,7 +1,6 @@
-import { Dict, JSONObject, Option } from "ts-std";
+import { Dict, JSONObject } from "ts-std";
 import { Type } from "../type";
 import { JSONValue, exhausted, mapDict } from "../utils";
-import * as builder from "./builder";
 import * as resolved from "./resolved";
 
 export type Args = JSONValue | undefined;
@@ -27,25 +26,20 @@ export interface Member {
 export interface Dictionary {
   readonly type: "Dictionary";
   readonly members: Dict<Member>;
-  readonly metadata: JSONObject | null;
 }
 
 //// Iterator ////
 export interface Iterator {
   readonly type: "Iterator";
-  readonly name: string;
+  readonly kind: string;
   readonly metadata: JSONObject | null;
   readonly inner: Named;
 }
 
 //// List ////
-export interface ListArgs extends JSONObject {
-  readonly allowEmpty: boolean;
-}
-
 export interface List {
   readonly type: "List";
-  readonly args: ListArgs;
+  readonly args: resolved.ListArgs;
   readonly inner: Descriptor;
 }
 

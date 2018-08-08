@@ -1,16 +1,16 @@
-import { builder } from "../../descriptors";
 import { Pos, ReporterState } from "./reporter";
+import * as visitor from "./visitor";
 
 export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
   Buffer,
   Inner,
   Options
-> {
+  > {
   startDictionaryBody(): void {
     /* noop */
   }
 
-  startDictionary(position: Pos, descriptor: builder.Dictionary): void {
+  startDictionary(position: Pos, descriptor: visitor.Dictionary): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -22,7 +22,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endDictionary(position: Pos, descriptor: builder.Dictionary): void {
+  endDictionary(position: Pos, descriptor: visitor.Dictionary): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
@@ -34,7 +34,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  startRecord(position: Pos, descriptor: builder.Record): void {
+  startRecord(position: Pos, descriptor: visitor.Record): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -46,7 +46,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endRecord(position: Pos, descriptor: builder.Record): void {
+  endRecord(position: Pos, descriptor: visitor.Record): void {
     this.pushStrings(
       this.reporters.closeRecord({
         position,
@@ -56,7 +56,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  addKey(position: Pos, key: string, descriptor: builder.Descriptor): void {
+  addKey(position: Pos, key: string, descriptor: visitor.Descriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
@@ -67,7 +67,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endValue(position: Pos, descriptor: builder.Descriptor): void {
+  endValue(position: Pos, descriptor: visitor.Descriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
@@ -77,7 +77,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  endGenericValue(position: Pos, descriptor: builder.Container): void {
+  endGenericValue(position: Pos, descriptor: visitor.Container): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
@@ -87,7 +87,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  startGenericValue(position: Pos, descriptor: builder.Container): void {
+  startGenericValue(position: Pos, descriptor: visitor.Container): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
@@ -97,7 +97,7 @@ export class RecordReporter<Buffer, Inner, Options> extends ReporterState<
     );
   }
 
-  primitiveValue(position: Pos, descriptor: builder.Primitive): void {
+  primitiveValue(position: Pos, descriptor: visitor.Primitive): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
         descriptor,

@@ -64,10 +64,10 @@ export function keysError({
   missing = [],
   path = null
 }: {
-  extra?: string[];
-  missing?: string[];
-  path?: Option<string>;
-}): ValidationError {
+    extra?: string[];
+    missing?: string[];
+    path?: Option<string>;
+  }): ValidationError {
   let errors = [];
 
   for (let m of missing) {

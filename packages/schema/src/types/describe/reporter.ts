@@ -1,7 +1,8 @@
 import { Dict } from "ts-std";
-import { builder } from "../../descriptors";
+import { registered } from "../../descriptors";
 import { exhausted } from "../../utils";
 import { Buffer as StringBuffer } from "./buffer";
+import * as visitor from "./visitor";
 
 export interface Reporters<Buffer, Inner, Options> {
   Value: ReporterStateConstructor<Buffer, Inner, Options>;
@@ -16,55 +17,55 @@ export interface State<Buffer> {
 
 export interface ReporterDelegate<Buffer, Inner, Options> {
   openAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: builder.Alias }
+    options: ReporterEvent<Buffer, Options> & { descriptor: visitor.Alias }
   ): Inner | void;
   closeAlias(
-    options: ReporterEvent<Buffer, Options> & { descriptor: builder.Alias }
+    options: ReporterEvent<Buffer, Options> & { descriptor: visitor.Alias }
   ): Inner | void;
   openRecord(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Record;
+      descriptor: visitor.Record;
     }
   ): Inner | void;
   closeRecord(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Record;
+      descriptor: visitor.Record;
     }
   ): Inner | void;
   emitKey(
     options: Event<Buffer, Options> & {
       key: string;
-      descriptor: builder.Descriptor;
+      descriptor: visitor.Descriptor;
     }
   ): Inner | void;
   closeValue(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Descriptor;
+      descriptor: visitor.Descriptor;
     }
   ): Inner | void;
   openDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Dictionary;
+      descriptor: visitor.Dictionary;
     }
   ): Inner | void;
   closeDictionary(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Dictionary;
+      descriptor: visitor.Dictionary;
     }
   ): Inner | void;
   openGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Container;
+      descriptor: visitor.Container;
     }
   ): Inner | void;
   closeGeneric(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Container;
+      descriptor: visitor.Container;
     }
   ): Inner | void;
   emitPrimitive(
     options: ReporterEvent<Buffer, Options> & {
-      descriptor: builder.Primitive;
+      descriptor: visitor.Primitive;
     }
   ): Inner | void;
 }
@@ -105,7 +106,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     }
   }
 
-  startAlias(position: Pos, descriptor: builder.Alias) {
+  startAlias(position: Pos, descriptor: visitor.Alias) {
     this.pushStrings(
       this.reporters.openAlias({
         position,
@@ -115,7 +116,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endAlias(position: Pos, descriptor: builder.Alias) {
+  endAlias(position: Pos, descriptor: visitor.Alias) {
     this.pushStrings(
       this.reporters.closeAlias({
         position,
@@ -125,7 +126,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startDictionary(position: Pos, descriptor: builder.Dictionary): void {
+  startDictionary(position: Pos, descriptor: visitor.Dictionary): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -137,7 +138,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endDictionary(position: Pos, descriptor: builder.Dictionary): void {
+  endDictionary(position: Pos, descriptor: visitor.Dictionary): void {
     this.state.nesting -= 1;
 
     this.pushStrings(
@@ -149,7 +150,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startRecord(position: Pos, descriptor: builder.Record): void {
+  startRecord(position: Pos, descriptor: visitor.Record): void {
     this.state.nesting += 1;
 
     this.pushStrings(
@@ -161,7 +162,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endRecord(position: Pos, descriptor: builder.Record): void {
+  endRecord(position: Pos, descriptor: visitor.Record): void {
     this.pushStrings(
       this.reporters.closeRecord({
         descriptor,
@@ -171,7 +172,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  addKey(position: Pos, key: string, descriptor: builder.Descriptor): void {
+  addKey(position: Pos, key: string, descriptor: visitor.Descriptor): void {
     this.pushStrings(
       this.reporters.emitKey({
         key,
@@ -182,7 +183,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endValue(position: Pos, descriptor: builder.Descriptor): void {
+  endValue(position: Pos, descriptor: visitor.Descriptor): void {
     this.pushStrings(
       this.reporters.closeValue({
         position,
@@ -192,7 +193,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  startGenericValue(position: Pos, descriptor: builder.Container): void {
+  startGenericValue(position: Pos, descriptor: visitor.Container): void {
     this.pushStrings(
       this.reporters.openGeneric({
         position,
@@ -202,7 +203,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  endGenericValue(position: Pos, descriptor: builder.Container): void {
+  endGenericValue(position: Pos, descriptor: visitor.Container): void {
     this.pushStrings(
       this.reporters.closeGeneric({
         position,
@@ -212,7 +213,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
     );
   }
 
-  primitiveValue(position: Pos, descriptor: builder.Primitive): void {
+  primitiveValue(position: Pos, descriptor: visitor.Primitive): void {
     this.pushStrings(
       this.reporters.emitPrimitive({
         descriptor,
@@ -224,7 +225,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
 }
 
 export interface ReporterStateConstructor<Buffer, Inner, Options> {
-  new (
+  new(
     state: { buffer: Buffer; nesting: number; options: Options },
     reporters: ReporterDelegate<Buffer, Inner, Options>
   ): ReporterState<Buffer, Inner, Options>;
@@ -232,17 +233,17 @@ export interface ReporterStateConstructor<Buffer, Inner, Options> {
 
 // prettier-ignore
 export enum Pos {
-  Unknown          = 0b00000000,
-  First            = 0b00000001,
-  Last             = 0b00000010,
-  Only             = Pos.First | Pos.Last,
-  InDictionary     = 0b00000100,
-  InList           = 0b00001000 | Pos.Only,
-  InPointer        = 0b00010000 | Pos.Only,
-  InIterator       = 0b00100000 | Pos.Only,
+  Unknown = 0b00000000,
+  First = 0b00000001,
+  Last = 0b00000010,
+  Only = Pos.First | Pos.Last,
+  InDictionary = 0b00000100,
+  InList = 0b00001000 | Pos.Only,
+  InPointer = 0b00010000 | Pos.Only,
+  InIterator = 0b00100000 | Pos.Only,
   ExplicitRequired = 0b01000000,
   PositionRequired = 0b10000000,
-  IsRequired       = Pos.ExplicitRequired | Pos.PositionRequired
+  IsRequired = Pos.ExplicitRequired | Pos.PositionRequired
 }
 
 export function formatPosition(position: Pos): Dict<boolean> {
@@ -306,7 +307,7 @@ export function requiredPosition(position: Pos, isRequiredType: boolean): Pos {
   }
 }
 
-export function genericPosition(type: builder.Container["type"]): Pos {
+export function genericPosition(type: visitor.Container["type"]): Pos {
   switch (type) {
     case "List":
       return Pos.InList | Pos.PositionRequired;
@@ -325,10 +326,10 @@ export function DictionaryPosition({
   last,
   meta
 }: {
-  index: number;
-  last: number;
-  meta: builder.MembersMeta;
-}) {
+    index: number;
+    last: number;
+    meta: registered.MembersMeta;
+  }) {
   let pos = Pos.InDictionary;
 
   if (index === 0) {
@@ -356,7 +357,7 @@ export abstract class ReporterState<Buffer, Inner, Options> {
   constructor(
     protected state: InnerState<Buffer, Options>,
     protected reporters: ReporterDelegate<Buffer, Inner, Options>
-  ) {}
+  ) { }
 
   pushStrings(value: Inner | void) {
     let { buffer } = this.state;
@@ -408,41 +409,41 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   startDictionary?(
     position: Pos,
-    descriptor: builder.Dictionary
+    descriptor: visitor.Dictionary
   ): true | void;
 
-  startRecord?(position: Pos, descriptor: builder.Record): true | void;
+  startRecord?(position: Pos, descriptor: visitor.Record): true | void;
 
   addKey?(
     position: Pos,
     key: string,
-    descriptor: builder.Descriptor
+    descriptor: visitor.Descriptor
   ): true | void;
 
-  endValue?(position: Pos, descriptor: builder.Descriptor): true | void;
+  endValue?(position: Pos, descriptor: visitor.Descriptor): true | void;
 
-  endDictionary?(position: Pos, descriptor: builder.Dictionary): true | void;
+  endDictionary?(position: Pos, descriptor: visitor.Dictionary): true | void;
 
   endDictionaryBody?(
     position: Pos,
-    descriptor: builder.Dictionary
+    descriptor: visitor.Dictionary
   ): true | void;
 
-  endRecord?(position: Pos, descriptor: builder.Record): true | void;
+  endRecord?(position: Pos, descriptor: visitor.Record): true | void;
 
   startGenericValue?(
     position: Pos,
-    descriptor: builder.Container
+    descriptor: visitor.Container
   ): true | void;
 
   endGenericValue?(
     position: Pos,
-    descriptor: builder.Container
+    descriptor: visitor.Container
   ): true | void;
 
-  primitiveValue?(position: Pos, descriptor: builder.Primitive): void;
-  namedValue?(position: Pos, descriptor: builder.Descriptor): void;
+  primitiveValue?(position: Pos, descriptor: visitor.Primitive): void;
+  namedValue?(position: Pos, descriptor: visitor.Descriptor): void;
 
-  startType?(position: Pos, descriptor: builder.Descriptor): void;
-  endType?(position: Pos, descriptor: builder.Descriptor): true | void;
+  startType?(position: Pos, descriptor: visitor.Descriptor): void;
+  endType?(position: Pos, descriptor: visitor.Descriptor): true | void;
 }

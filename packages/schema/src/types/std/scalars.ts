@@ -1,17 +1,14 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { builder, resolved } from "../../descriptors";
-import { TypeBuilder } from "../../type";
-import { ANY, AbstractType, Primitive, Refined } from "../fundamental";
+import { registered, resolved } from "../../descriptors";
+import { PrimitiveRegistration, REGISTRY, Registry } from "../../descriptors/registered";
+import { JSONValue } from "../../utils";
+import { ANY, AbstractType, Primitive, PrimitiveClass, PrimitiveWithOptions } from "../fundamental";
 
-export abstract class Scalar<Args> extends AbstractType<
-  resolved.Primitive<Args>
-  > {
+export abstract class Scalar<Args> {
+  constructor(protected readonly args: Args) { }
+
   abstract validation(): ValidationBuilder<unknown>;
-
-  protected get args(): Args {
-    return this.descriptor.args;
-  }
 
   serialize(input: unknown): unknown {
     return input;
@@ -61,8 +58,8 @@ export interface TextOptions extends JSONObject {
   allowEmpty: boolean;
 }
 
-export function Text(options?: TextOptions): TypeBuilder<builder.Primitive> {
-  return Primitive(TextPrimitive, options);
+export function Text(options?: TextOptions): registered.Primitive {
+  return PrimitiveWithOptions(TextPrimitive, options);
 }
 
 class FloatPrimitive extends Scalar<undefined> {
@@ -75,7 +72,7 @@ class FloatPrimitive extends Scalar<undefined> {
   }
 }
 
-export function Float(): TypeBuilder {
+export function Float(): registered.Primitive {
   return Primitive(FloatPrimitive);
 }
 
@@ -96,12 +93,12 @@ class IntegerPrimitive extends Scalar<undefined> {
   }
 }
 
-export function Integer(): TypeBuilder {
+export function Integer(): registered.Primitive {
   return Primitive(IntegerPrimitive);
 }
 
 class SingleLinePrimitive extends TextPrimitive {
-  static base = Text;
+  static base = TextPrimitive;
   static description = "single line string";
   static typescript = "string";
   static typeName = "SingleLine";
@@ -118,12 +115,12 @@ class SingleLinePrimitive extends TextPrimitive {
   }
 }
 
-export function SingleLine(options?: TextOptions): TypeBuilder {
+export function SingleLine(options?: TextOptions): registered.Primitive {
   return Refined(SingleLinePrimitive, options);
 }
 
 class SingleWordPrimitive extends TextPrimitive {
-  static base = Text;
+  static base = TextPrimitive;
   static description = "single word string";
   static typescript = "string";
   static typeName = "SingleWord";
@@ -140,7 +137,7 @@ class SingleWordPrimitive extends TextPrimitive {
   }
 }
 
-export function SingleWord(options?: TextOptions): TypeBuilder {
+export function SingleWord(options?: TextOptions): registered.Primitive {
   return Refined(SingleWordPrimitive, options);
 }
 
@@ -155,7 +152,7 @@ class BooleanPrimitive extends Scalar<undefined> {
 }
 
 // tslint:disable-next-line:variable-name
-export function Boolean(): TypeBuilder<builder.Primitive> {
+export function Boolean(): registered.Primitive {
   return Primitive(BooleanPrimitive);
 }
 
@@ -169,6 +166,29 @@ class AnyPrimitive extends Scalar<undefined> {
   }
 }
 
-export function Any(): TypeBuilder<builder.Primitive> {
+export function Any(): registered.Primitive {
   return Primitive(AnyPrimitive);
+}
+
+export function bootstrap(registry: Registry = REGISTRY): Registry {
+  registry.setPrimitive("Text", registration(TextPrimitive));
+  registry.setPrimitive("SingleLine", registration(SingleLinePrimitive), registration(SingleLinePrimitive.base));
+  registry.setPrimitive("SingleWord", registration(SingleWordPrimitive), registration(SingleWordPrimitive.base));
+  registry.setPrimitive("Float", registration(FloatPrimitive));
+  registry.setPrimitive("Integer", registration(IntegerPrimitive));
+  registry.setPrimitive("Boolean", registration(BooleanPrimitive));
+  registry.setPrimitive("Any", registration(AnyPrimitive));
+
+  return registry;
+}
+
+function registration<Args extends JSONValue | undefined>(Class: PrimitiveClass<Args>): PrimitiveRegistration {
+  return {
+    name: Class.typeName,
+    description: Class.description,
+    typescript: Class.typescript,
+    factory: (args: Args) => new Class(args)
+  } as PrimitiveRegistration;
+  // This loses the connection between the type and args
+  // TODO: Is there anything to do about it?
 }

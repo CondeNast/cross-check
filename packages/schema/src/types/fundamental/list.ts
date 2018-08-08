@@ -1,8 +1,8 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { builder, resolved } from "../../descriptors";
-import { Type, TypeBuilder } from "../../type";
-import { AbstractType, TypeBuilderImpl } from "./core";
+import { registered, resolved } from "../../descriptors";
+import { Type } from "../../type";
+import { AbstractType } from "./core";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
@@ -38,44 +38,11 @@ class ArrayImpl extends AbstractType<resolved.List> {
 }
 
 export function List(
-  item: TypeBuilder | builder.Descriptor,
+  contents: registered.RegisteredType,
   options: { allowEmpty: boolean } = { allowEmpty: false }
-): TypeBuilder {
-  return new TypeBuilderImpl(
-    ListBuilderDescriptor(
-      "descriptor" in item ? item.descriptor : item,
-      options
-    )
-  );
-}
-
-export function ListBuilderDescriptor(
-  inner: builder.Descriptor,
-  args: builder.ListArgs = { allowEmpty: false }
-): builder.List {
-  return {
-    type: "List",
-    inner,
-    args
-  };
-}
-
-export function ResolvedList(
-  list: builder.List,
-  required: boolean
-): resolved.List {
-  let args = list.buildArgs(list.args, true);
-
-  let inner = builder.resolve(list.inner, true);
-
-  if (required === false) {
-    args = { ...args, allowEmpty: true };
-  }
-
-  return {
-    type: "List",
-    inner,
-    args,
-    instantiate: desc => new ArrayImpl(desc)
-  };
+): registered.List {
+  return new registered.List({
+    args: options,
+    contents
+  });
 }

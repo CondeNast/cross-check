@@ -1,13 +1,8 @@
 import { Dict, unknown } from "ts-std";
-import { builder } from "../../../descriptors";
-import { Record } from "../../../record";
-import {
-  RecursiveDelegate,
-  RecursiveDelegateTypes,
-  RecursiveVisitor
-} from "../visitor";
+import { RegisteredRecord } from "../../../record";
+import * as visitor from "../visitor";
 
-export interface ListTypesTypes extends RecursiveDelegateTypes {
+export interface ListTypesTypes extends visitor.RecursiveDelegateTypes {
   primitive: Dict;
   generic: Dict;
   dictionary: Dict;
@@ -15,10 +10,10 @@ export interface ListTypesTypes extends RecursiveDelegateTypes {
   record: string[];
 }
 
-class ListTypes implements RecursiveDelegate<ListTypesTypes> {
-  private visitor = RecursiveVisitor.build<ListTypesTypes>(this);
+class ListTypes implements visitor.RecursiveDelegate<ListTypesTypes> {
+  private visitor = visitor.RecursiveVisitor.build<ListTypesTypes>(this);
 
-  alias({ name }: builder.Alias): Dict {
+  alias({ name }: visitor.Alias): Dict {
     return { [name]: true };
   }
 
@@ -26,25 +21,25 @@ class ListTypes implements RecursiveDelegate<ListTypesTypes> {
     return item;
   }
 
-  primitive({ name }: builder.Primitive): Dict {
+  primitive({ name }: visitor.Primitive): Dict {
     return { [name || "anonymous"]: true };
   }
 
-  generic(of: Dict, descriptor: builder.Container): Dict {
+  generic(of: Dict, descriptor: visitor.Container): Dict {
     let kind = descriptor.type;
     let name = `${kind[0].toUpperCase()}${kind.slice(1)}`;
     return { ...of, [name]: true };
   }
 
-  dictionary(descriptor: builder.Dictionary): Dict {
+  dictionary(descriptor: visitor.Dictionary): Dict {
     return { ...this.dict(descriptor), Dictionary: true };
   }
 
-  record(descriptor: builder.Record): string[] {
+  record(descriptor: visitor.Record): string[] {
     return Object.keys(this.dict(descriptor)).sort();
   }
 
-  private dict(descriptor: builder.Dictionary | builder.Record) {
+  private dict(descriptor: visitor.Dictionary | visitor.Record) {
     let members: Dict = {};
 
     this.visitor.processDictionary(descriptor, (item: Dict) => {
@@ -55,6 +50,6 @@ class ListTypes implements RecursiveDelegate<ListTypesTypes> {
   }
 }
 
-export function listTypes(record: Record): unknown {
+export function listTypes(record: RegisteredRecord): unknown {
   return new ListTypes().record(record.descriptor);
 }

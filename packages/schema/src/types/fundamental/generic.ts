@@ -1,80 +1,42 @@
-import { dict, entries } from "ts-std";
-import { builder, resolved } from "../../descriptors";
-import { mapDict } from "../../utils";
-import { ResolvedDictionary } from "./dictionary";
+import { Dict, dict, entries } from "ts-std";
+import { registered } from "../../descriptors";
 
 export interface DictAttributes {
   required: boolean;
 }
 
 export interface MapArgs {
-  T: builder.Dictionary | builder.Record;
-  C: (desc: builder.Descriptor, required: boolean) => builder.Descriptor;
-}
-
-// The name and the fact that it's generic is reflected into the formatters.
-export function MapDict(
-  name: string,
-  T: builder.Dictionary | builder.Record,
-  callback: (desc: builder.Descriptor, required: boolean) => builder.Descriptor
-): builder.Generic<MapArgs> {
-  return GenericBuilderDescriptor(
-    name,
-    {
-      T,
-      C: callback
-    },
-    (desc: builder.Generic<MapArgs>) => {
-      let members = mapDict(desc.args.T.members, member => {
-        return builder.resolve(
-          desc.args.C(member.descriptor, member.meta.required),
-          member.meta.required
-        );
-      });
-
-      return ResolvedDictionary(members);
-    }
-  );
-}
-
-export function GenericBuilderDescriptor<G>(
-  name: string,
-  args: G,
-  apply: (desc: builder.Generic<G>) => resolved.Descriptor
-): builder.Generic<G> {
-  return {
-    type: "Generic",
-    name,
-    args
-  };
+  T: registered.Dictionary | registered.Record;
+  C: (desc: registered.RegisteredType, required: boolean) => registered.RegisteredType;
 }
 
 // Transparently map a dictionary into another
-export function mapDictionary<D extends builder.Dictionary | builder.Record>(
+export function mapDictionary<D extends registered.Dictionary | registered.Record>(
   T: D,
   callback: (
-    member: builder.Descriptor,
-    meta: builder.MembersMeta
-  ) => builder.Member
+    member: registered.RegisteredType,
+    meta: registered.MembersMeta
+  ) => registered.MembersMeta
 ): D {
-  let mappedMembers = dict<builder.Member>();
+  let mappedMembers = dict<registered.MembersMeta>();
 
-  for (let [key, member] of entries(T.members)) {
-    let mappedMember = callback(member!.descriptor, member!.meta);
+  let members: Dict<registered.RegisteredType>;
+
+  if (T instanceof registered.Record) {
+    members = T.state.inner.state.members;
+  } else if (T instanceof registered.Dictionary) {
+    members = T.state.members;
+  } else {
+    throw new Error("unreachable");
+  }
+
+  for (let [key, member] of entries(members)) {
+    let mappedMember = callback(member!, registered.finalizeMeta(member!));
 
     mappedMembers[key] = mappedMember;
   }
 
   return Object.assign({}, T, {
     members: mappedMembers
-  });
-}
-
-export function mapContainer<C extends builder.Container>(
-  container: C,
-  callback: (T: builder.Descriptor) => builder.Descriptor
-): C {
-  return Object.assign({}, container, {
-    inner: callback(container.inner)
   });
 }

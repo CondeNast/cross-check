@@ -1,4 +1,3 @@
-import { builder } from "../../../descriptors";
 import { JSONValue } from "../../../utils";
 import { Buffer } from "../buffer";
 import formatter, { Formatter } from "../formatter";
@@ -9,6 +8,7 @@ import {
   isLast,
   isRequiredPosition
 } from "../reporter";
+import * as visitor from "../visitor";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
   openAlias({ descriptor }) {
@@ -97,7 +97,7 @@ const delegate: ReporterDelegate<Buffer, string, void> = {
   }
 };
 
-function formatType(descriptor: builder.Primitive, position: Pos): string {
+function formatType(descriptor: visitor.Primitive, position: Pos): string {
   let out = `${descriptor.name || "anonymous"}(${formatArgs(
     descriptor.name,
     descriptor.args,

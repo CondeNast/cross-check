@@ -8,4 +8,3 @@ export * from "./list";
 export * from "./pointer";
 export * from "./primitive";
 export * from "./reference";
-export * from "./refined";

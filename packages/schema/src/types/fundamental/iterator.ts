@@ -1,45 +1,17 @@
 import { JSONObject, Option } from "ts-std";
-import { builder, resolved } from "../../descriptors";
+import { registered, resolved } from "../../descriptors";
 import { Record } from "../../record";
-import { TypeBuilder } from "../../type";
-import { JSONValue } from "../../utils";
-import { AliasBuilder, TypeBuilderImpl, isDescriptor } from "./core";
 import { ReferenceImpl } from "./reference";
 
 export class IteratorImpl extends ReferenceImpl<resolved.Iterator> { }
 
 export function hasMany(
-  item: Record | builder.Descriptor,
+  item: Record,
   options: Option<JSONObject> = null
-): TypeBuilder {
-  let inner = isDescriptor(item)
-    ? item
-    : AliasBuilder(item.descriptor, item.name);
-
-  return new TypeBuilderImpl(
-    Iterator({
-      name: "hasMany",
-      metadata: options,
-      inner,
-      args: null
-    })
-  );
-}
-
-export function Iterator<A extends JSONValue>({
-  name,
-  metadata,
-  inner
-}: {
-    name: string;
-    metadata: Option<JSONObject>;
-    inner: builder.Descriptor;
-    args: A;
-  }): builder.Iterator {
-  return {
-    type: "Iterator",
-    name,
-    metadata,
-    inner
-  };
+): registered.Iterator {
+  return new registered.Iterator({
+    kind: "hasMany",
+    metadata: options,
+    contents: item.type
+  });
 }

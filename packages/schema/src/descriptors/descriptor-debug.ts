@@ -1,18 +1,18 @@
 import { Dict, JSONObject, entries } from "ts-std";
 import { mapDict } from "../utils";
-import * as builder from "./builder";
+import * as registered from "./registered";
 
 export interface DescriptorJSON {
-  type: builder.DescriptorType;
+  type: registered.DescriptorType;
   inner?: DescriptorJSON;
   inners?: Dict<DescriptorJSON>;
   attributes?: JSONObject;
 }
 
-export type Callback<P extends builder.DescriptorType> = (desc: builder.Descriptors[P]) => DescriptorJSON;
+export type Callback<P extends registered.DescriptorType> = (desc: registered.Descriptors[P]) => DescriptorJSON;
 
 export type ToJSONCallbacks = {
-  [P in builder.DescriptorType]: Callback<P>
+  [P in registered.DescriptorType]: Callback<P>
 };
 
 export const DescToJSON: ToJSONCallbacks = {
@@ -109,7 +109,7 @@ export const DescToJSON: ToJSONCallbacks = {
   }
 }
 
-export function descToJSON<K extends builder.DescriptorType>(desc: builder.Descriptor): DescriptorJSON {
+export function descToJSON<K extends registered.DescriptorType>(desc: registered.Descriptor): DescriptorJSON {
   let callback = DescToJSON[desc.type] as Callback<K>;
 
   return callback(desc);
@@ -172,7 +172,7 @@ function formatDescriptorJSON(
   return out;
 }
 
-function formatJSON(args: builder.Args): string {
+function formatJSON(args: registered.Args): string {
   if (args && typeof args === "object") {
     let out = [];
 
@@ -190,6 +190,6 @@ function pad(size: number): string {
   return " ".repeat(size * 2);
 }
 
-export function formatDescriptor(desc: builder.Descriptor): string {
+export function formatDescriptor(desc: registered.Descriptor): string {
   return formatDescriptorJSON(descToJSON(desc), 0);
 }

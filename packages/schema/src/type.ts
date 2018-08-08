@@ -60,6 +60,14 @@ export interface Type<
   parse(input: unknown): unknown;
 }
 
+export type PrimitiveFactory<Args = unknown> = (args: Args) => Primitive
+
+export interface Primitive {
+  validation(): ValidationBuilder<unknown>;
+  serialize(input: unknown): unknown;
+  parse(input: unknown): unknown;
+}
+
 export interface RecordType extends Type<resolved.Dictionary> {
   validate(obj: Dict, env: Environment): Task<ValidationError[]>;
 }
