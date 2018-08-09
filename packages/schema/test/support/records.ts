@@ -57,7 +57,7 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(MediumArticle.descriptor));
 }
 
-export const Related = Record("Related", {
+export const Related: Record = Record("Related", {
   fields: {
     first: types.SingleLine(),
     last: types.Text(),
@@ -77,7 +77,7 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(Related.descriptor));
 }
 
-export const Features = Record("ArticleWithFlags", {
+export const Features: Record = Record("ArticleWithFlags", {
   fields: {
     hed: types.SingleLine(),
     dek: types.SingleLine(),
@@ -102,7 +102,7 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(Features.descriptor));
 }
 
-export const Nesting = Record("Nesting", {
+export const Nesting: Record = Record("Nesting", {
   fields: {
     people: types
       .List(

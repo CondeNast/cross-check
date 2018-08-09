@@ -1,30 +1,32 @@
 import { Dict, JSONObject, entries } from "ts-std";
-import { mapDict } from "../utils";
+import { REGISTRY, Registry } from "../registry";
+import * as visitor from "../types/describe/visitor";
+import { JSONValue, mapDict } from "../utils";
 import * as registered from "./registered";
 
 export interface DescriptorJSON {
-  type: registered.DescriptorType;
+  type: keyof visitor.Descriptors;
   inner?: DescriptorJSON;
   inners?: Dict<DescriptorJSON>;
   attributes?: JSONObject;
 }
 
-export type Callback<P extends registered.DescriptorType> = (desc: registered.Descriptors[P]) => DescriptorJSON;
+export type Callback<P extends keyof visitor.Descriptors> = (
+  desc: visitor.Descriptors[P]
+) => DescriptorJSON;
 
 export type ToJSONCallbacks = {
-  [P in registered.DescriptorType]: Callback<P>
+  [P in keyof visitor.Descriptors]: (
+    desc: visitor.Descriptors[P]
+  ) => DescriptorJSON
 };
 
 export const DescToJSON: ToJSONCallbacks = {
   Alias(desc) {
     return {
       type: desc.type,
-      inner: descToJSON(desc.inner)
+      name: desc.name
     };
-  },
-
-  Generic() {
-    throw new Error("Not implemented: Generic");
   },
 
   List(desc) {
@@ -42,8 +44,7 @@ export const DescToJSON: ToJSONCallbacks = {
       type: desc.type,
       inner: descToJSON(desc.inner),
       attributes: {
-        name: desc.name,
-        metadata: formatJSON(desc.metadata)
+        name: desc.name
       }
     };
   },
@@ -53,26 +54,27 @@ export const DescToJSON: ToJSONCallbacks = {
       type: desc.type,
       inner: descToJSON(desc.inner),
       attributes: {
-        name: desc.name,
+        name: desc.inner.name,
         metadata: formatJSON(desc.metadata)
       }
     };
   },
 
   Dictionary(desc) {
-    let members = mapDict(desc.members, member => descToJSON(member.descriptor));
+    let members = mapDict(desc.members, member =>
+      descToJSON(member.descriptor)
+    );
 
     return {
       type: desc.type,
-      inners: members,
-      attributes: {
-        metadata: formatJSON(desc.metadata)
-      }
+      inners: members
     };
   },
 
   Record(desc) {
-    let members = mapDict(desc.members, member => descToJSON(member.descriptor));
+    let members = mapDict(desc.members, member =>
+      descToJSON(member.descriptor)
+    );
 
     return {
       type: desc.type,
@@ -94,22 +96,12 @@ export const DescToJSON: ToJSONCallbacks = {
         args: desc.args || null
       }
     };
-  },
-
-  Refined(desc) {
-    return {
-      type: desc.type,
-      attributes: {
-        name: desc.name,
-        typescript: desc.typescript,
-        description: desc.description,
-        args: desc.args || null
-      }
-    };
   }
-}
+};
 
-export function descToJSON<K extends registered.DescriptorType>(desc: registered.Descriptor): DescriptorJSON {
+export function descToJSON<K extends keyof visitor.Descriptors>(
+  desc: visitor.Descriptors[K]
+): DescriptorJSON {
   let callback = DescToJSON[desc.type] as Callback<K>;
 
   return callback(desc);
@@ -172,7 +164,7 @@ function formatDescriptorJSON(
   return out;
 }
 
-function formatJSON(args: registered.Args): string {
+function formatJSON(args: JSONValue | undefined): string {
   if (args && typeof args === "object") {
     let out = [];
 
@@ -190,6 +182,9 @@ function pad(size: number): string {
   return " ".repeat(size * 2);
 }
 
-export function formatDescriptor(desc: registered.Descriptor): string {
-  return formatDescriptorJSON(descToJSON(desc), 0);
+export function formatDescriptor(
+  type: registered.RegisteredType,
+  registry: Registry = REGISTRY
+): string {
+  return formatDescriptorJSON(descToJSON(type.visitor(registry)), 0);
 }

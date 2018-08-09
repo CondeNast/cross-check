@@ -1,6 +1,5 @@
-import { Record, listTypes, types } from "@cross-check/schema";
-import { ISODate } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/records";
+import { listTypes } from "@cross-check/schema";
+import { MediumArticle, SimpleArticle } from "../support/records";
 
 QUnit.module("[schema] formatting - listTypes");
 
@@ -18,38 +17,5 @@ QUnit.test("detailed", assert => {
     "SingleWord",
     "Text",
     "Url"
-  ]);
-});
-
-QUnit.test("records", assert => {
-  const RECORDS = Record("records", {
-    fields: {
-      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
-      author: types
-        .RequiredFields({
-          first: types.SingleLine(),
-          last: types.SingleLine()
-        })
-        .required(),
-      date: ISODate()
-    }
-  });
-
-  assert.deepEqual(listTypes(RECORDS), [
-    "Dictionary",
-    "Float",
-    "ISODate",
-    "SingleLine"
-  ]);
-});
-
-QUnit.test("relationships", assert => {
-  assert.deepEqual(listTypes(Related), [
-    "Iterator",
-    "MediumArticle",
-    "Pointer",
-    "SimpleArticle",
-    "SingleLine",
-    "Text"
   ]);
 });

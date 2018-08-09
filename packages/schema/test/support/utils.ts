@@ -35,14 +35,14 @@ export function validateDraft(
   record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.draft.build().validate(obj, ENV);
+  return record.draft.validate(obj, ENV);
 }
 
 export function validatePublished(
   record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.build().validate(obj, ENV);
+  return record.validate(obj, ENV);
 }
 
 export function typeError(
@@ -64,10 +64,10 @@ export function keysError({
   missing = [],
   path = null
 }: {
-    extra?: string[];
-    missing?: string[];
-    path?: Option<string>;
-  }): ValidationError {
+  extra?: string[];
+  missing?: string[];
+  path?: Option<string>;
+}): ValidationError {
   let errors = [];
 
   for (let m of missing) {

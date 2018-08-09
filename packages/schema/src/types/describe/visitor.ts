@@ -1,8 +1,14 @@
 import { Dict, JSONObject, unknown } from "ts-std";
-import { resolved } from "../../descriptors";
-import { MembersMeta, REGISTRY, Registry, RegistryName } from "../../descriptors/registered";
+import { registered, resolved } from "../../descriptors";
+import { REGISTRY, Registry, RegistryName } from "../../registry";
 import { JSONValue } from "../../utils";
-import { Accumulator, DictionaryPosition, Pos, Reporter, genericPosition } from "./reporter";
+import {
+  Accumulator,
+  DictionaryPosition,
+  Pos,
+  Reporter,
+  genericPosition
+} from "./reporter";
 import * as visitor from "./visitor";
 
 export interface VisitorDelegate {
@@ -13,15 +19,20 @@ export interface VisitorDelegate {
   primitive(type: Primitive, position: Pos): unknown;
 }
 
-type Mapping<T> =
-  T extends Alias ? VisitorDelegate["alias"] :
-  [T] extends [Pointer | Iterator | List] ? VisitorDelegate["generic"] :
-  T extends Dictionary ? VisitorDelegate["dictionary"] :
-  T extends Record ? VisitorDelegate["record"] :
-  T extends Primitive ? VisitorDelegate["primitive"] :
-  never;
+type Mapping<T> = T extends Alias
+  ? VisitorDelegate["alias"]
+  : [T] extends [Pointer | Iterator | List]
+    ? VisitorDelegate["generic"]
+    : T extends Dictionary
+      ? VisitorDelegate["dictionary"]
+      : T extends Record
+        ? VisitorDelegate["record"]
+        : T extends Primitive ? VisitorDelegate["primitive"] : never;
 
-function target(descriptor: Descriptor, delegate: VisitorDelegate): Mapping<typeof descriptor> {
+function target(
+  descriptor: Descriptor,
+  delegate: VisitorDelegate
+): Mapping<typeof descriptor> {
   switch (descriptor.type) {
     case "Alias": {
       return delegate.alias;
@@ -52,12 +63,12 @@ export interface VisitorDescriptors {
 }
 
 export class Visitor {
-  constructor(private delegate: VisitorDelegate, _registry: Registry) { }
+  constructor(private delegate: VisitorDelegate, _registry: Registry) {}
 
   visit(descriptor: Descriptor, pos: Pos): unknown {
     let t = target(descriptor, this.delegate) as Mapping<typeof descriptor>;
     // @ts-ignore
-    return t(descriptor, pos);
+    return t.call(this.delegate, descriptor, pos);
   }
 }
 
@@ -94,6 +105,7 @@ export interface Alias {
 export interface Pointer {
   type: "Pointer";
   inner: Alias;
+  metadata: JSONObject | null;
 
   // Compatibility with the previous descriptor model
   name: string;
@@ -102,6 +114,7 @@ export interface Pointer {
 export interface Iterator {
   type: "Iterator";
   inner: Alias;
+  metadata: JSONObject | null;
 
   // Compatibility with the previous descriptor model
   name: string;
@@ -117,7 +130,7 @@ export type ContainerDescriptor = Pointer | Iterator | List;
 
 export interface Member {
   descriptor: Descriptor;
-  meta: MembersMeta;
+  meta: registered.MembersMeta;
 }
 
 export interface Dictionary {
@@ -133,7 +146,18 @@ export interface Record {
 }
 
 export type Container = Pointer | Iterator | List;
-export type Descriptor = Primitive | Alias | Pointer | Iterator | List | Dictionary | Record;
+
+export interface Descriptors {
+  Primitive: Primitive;
+  Alias: Alias;
+  Pointer: Pointer;
+  Iterator: Iterator;
+  List: List;
+  Dictionary: Dictionary;
+  Record: Record;
+}
+
+export type Descriptor = Descriptors[keyof Descriptors];
 
 /**
  * The `RecursiveDelegate` interface receives recursive events for the tree
@@ -163,7 +187,7 @@ export type Descriptor = Primitive | Alias | Pointer | Iterator | List | Diction
  */
 export interface RecursiveDelegate<
   T extends RecursiveDelegateTypes = RecursiveDelegateTypes
-  > {
+> {
   alias(descriptor: Alias, pos: Pos): T["alias"];
   primitive(descriptor: Primitive, pos: Pos): T["primitive"];
   generic(
@@ -189,7 +213,10 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 
   private visitor!: Visitor;
 
-  private constructor(private recursiveDelegate: RecursiveDelegate<T>, _registry: Registry) { }
+  private constructor(
+    private recursiveDelegate: RecursiveDelegate<T>,
+    _registry: Registry
+  ) {}
 
   alias(descriptor: Alias, pos: Pos): unknown {
     return this.recursiveDelegate.alias(descriptor, pos);
@@ -254,7 +281,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private visitor!: Visitor;
 
-  private constructor(private reporter: Reporter<Buffer, Inner, Options>) { }
+  private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
   alias(descriptor: visitor.Alias, position: Pos): unknown {
     this.reporter.startAlias(position, descriptor);

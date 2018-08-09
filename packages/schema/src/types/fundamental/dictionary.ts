@@ -1,58 +1,47 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, assert, dict, entries, unknown } from "ts-std";
-import { registered, resolved } from "../../descriptors";
-import { AbstractType } from "./core";
+import { Dict, Option, assert, unknown } from "ts-std";
+import { registered } from "../../descriptors";
+import { Type } from "../../type";
+import { mapDict } from "../../utils";
 
-export class DictionaryImpl<D extends resolved.Dictionary> extends AbstractType<
-  D
-  > {
+export class DictionaryImpl implements Type {
+  constructor(private members: Dict<Type>) {}
+
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
       return null;
     }
 
-    let out: Dict = {};
-
-    for (let [key, value] of entries(this.descriptor.members)) {
+    return mapDict(this.members, (member, key) => {
       assert(
         key in js,
         `Serialization error: missing field \`${key}\` (must validate before serializing)`
       );
 
-      let result = resolved.instantiate(value!).serialize(js[key]);
+      let result = member.serialize(js[key]);
 
       if (result !== null) {
-        out[key] = result;
+        return result;
       }
-    }
-
-    return out;
+    });
   }
 
   parse(wire: Dict): Option<Dict> {
-    let out: Dict = {};
-
-    for (let [key, value] of entries(this.descriptor.members)) {
+    return mapDict(this.members, (member, key) => {
       let raw = wire[key];
 
       if (raw === undefined) {
         raw = null;
       }
 
-      out[key] = resolved.instantiate(value!).parse(raw);
-    }
-
-    return out;
+      return member.parse(raw);
+    });
   }
 
   validation(): ValidationBuilder<unknown> {
-    let obj = dict<ValidationBuilder<unknown>>();
-
-    for (let [key, value] of entries(this.descriptor.members)) {
-      obj[key] = resolved.instantiate(value!).validation();
-    }
-
-    return validators.strictObject(obj);
+    return validators.strictObject(
+      mapDict(this.members, member => member.validation())
+    );
   }
 }
 
@@ -61,6 +50,8 @@ export interface DictionaryOptions {
   name?: string;
 }
 
-export function Dictionary(members: Dict<registered.RegisteredType>): registered.Dictionary {
+export function Dictionary(
+  members: Dict<registered.RegisteredType>
+): registered.Dictionary {
   return new registered.Dictionary({ members });
 }

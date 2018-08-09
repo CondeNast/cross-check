@@ -1,5 +1,5 @@
 import { ValidationError } from "@cross-check/core";
-import { Record, TypeBuilder, types } from "@cross-check/schema";
+import { Record, registered, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import {
   ENV,
@@ -56,7 +56,7 @@ QUnit.test(
 );
 
 export interface TestCase {
-  type: TypeBuilder;
+  type: registered.RegisteredType;
   success: {};
   cases: Array<{
     value: {} | null | undefined;
@@ -271,7 +271,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       matrix.push(`value: ${JSON.stringify(value)}`);
     }
 
-    let result = await FeaturesRecord.build().validate(testValue, ENV);
+    let result = await FeaturesRecord.validate(testValue, ENV);
 
     assert.deepEqual(
       result,

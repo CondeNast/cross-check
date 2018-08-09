@@ -1,12 +1,5 @@
 export { Record, RecordOptions } from "./record";
-export {
-  Scalar,
-  Dictionary,
-  List,
-  describe,
-  PrimitiveState,
-  Primitive
-} from "./types";
+export { Dictionary, List, Scalar, describe, scalar } from "./types";
 export * from "./types/fundamental";
 export * from "./types/describe";
 import * as types from "./types";

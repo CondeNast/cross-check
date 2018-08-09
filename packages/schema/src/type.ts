@@ -1,8 +1,5 @@
-import { Environment, ValidationError } from "@cross-check/core";
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Task } from "no-show";
-import { Dict, unknown } from "ts-std";
-import { resolved } from "./descriptors";
+import { unknown } from "ts-std";
 
 /**
  * Internals Vocabulary:
@@ -50,24 +47,10 @@ import { resolved } from "./descriptors";
  * - `parse()`, which takes a valid serialized value and parses it into
  *   the JS representation.
  */
-export interface Type<
-  Descriptor extends resolved.Descriptor = resolved.Descriptor
-  > {
-  readonly descriptor: Descriptor;
-
+export interface Type {
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown;
   parse(input: unknown): unknown;
 }
 
-export type PrimitiveFactory<Args = unknown> = (args: Args) => Primitive
-
-export interface Primitive {
-  validation(): ValidationBuilder<unknown>;
-  serialize(input: unknown): unknown;
-  parse(input: unknown): unknown;
-}
-
-export interface RecordType extends Type<resolved.Dictionary> {
-  validate(obj: Dict, env: Environment): Task<ValidationError[]>;
-}
+export type PrimitiveFactory<Args = unknown> = (args: Args) => Type;

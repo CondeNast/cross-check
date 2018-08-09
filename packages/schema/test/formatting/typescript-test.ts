@@ -1,5 +1,5 @@
-import { Record, types, typescript } from "@cross-check/schema";
-import { ISODate, strip } from "../support";
+import { typescript } from "@cross-check/schema";
+import { strip } from "../support";
 import { MediumArticle, SimpleArticle } from "../support/records";
 
 QUnit.module("[schema] formatting - typescript");
@@ -83,57 +83,6 @@ QUnit.test("detailed", assert => {
           first?: string;
           last?: string;
         }>;
-      }
-    `
-  );
-});
-
-QUnit.test("records", assert => {
-  const RECORDS = Record("records", {
-    fields: {
-      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
-      author: types
-        .RequiredFields({
-          first: types.SingleLine(),
-          last: types.SingleLine()
-        })
-        .required(),
-      date: ISODate()
-    }
-  });
-
-  assert.equal(
-    typescript(RECORDS, { name: "Records" }),
-
-    strip`
-      export interface Records {
-        geo?: {
-          lat: number;
-          long: number;
-        };
-        author: {
-          first: string;
-          last: string;
-        };
-        date?: Date;
-      }
-    `
-  );
-
-  assert.equal(
-    typescript(RECORDS.draft, { name: "RecordsDraft" }),
-
-    strip`
-      export interface RecordsDraft {
-        geo?: {
-          lat?: number;
-          long?: number;
-        };
-        author?: {
-          first?: string;
-          last?: string;
-        };
-        date?: Date;
       }
     `
   );

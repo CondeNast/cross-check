@@ -1,8 +1,8 @@
 import { Dict, Option } from "ts-std";
+import { RegisteredRecord } from "../../../record";
 import { titleize } from "../../../utils";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate, isRequiredPosition } from "../reporter";
-import * as visitor from "../visitor";
 
 class TypeBuffer {
   private buf: string;
@@ -138,7 +138,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
     } else {
       throw new Error(
         `Primitive types must be registered in the scalar map. Found an anonymous primitive with description \`${
-        descriptor.description
+          descriptor.description
         }\`.`
       );
     }
@@ -151,6 +151,6 @@ export interface GraphqlOptions {
 }
 
 export const graphql: ((
-  record: visitor.Record,
+  record: RegisteredRecord,
   options: GraphqlOptions
 ) => string) = formatter(delegate, BufferStack);

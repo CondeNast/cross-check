@@ -1,8 +1,12 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { REGISTRY, Registry } from "../../../descriptors/registered";
 import { RegisteredRecord } from "../../../record";
+import { REGISTRY, Registry } from "../../../registry";
 import { JSONValue, exhausted } from "../../../utils";
-import { Pos, isExplicitRequiredPosition, isRequiredPosition } from "../reporter";
+import {
+  Pos,
+  isExplicitRequiredPosition,
+  isRequiredPosition
+} from "../reporter";
 import * as visitor from "../visitor";
 
 export interface JSONPrimitive {
@@ -129,9 +133,9 @@ class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
   record(
     descriptor: visitor.Record
   ): {
-      fields: Dict<Item>;
-      metadata: Option<JSONValue>;
-    } {
+    fields: Dict<Item>;
+    metadata: Option<JSONValue>;
+  } {
     return {
       fields: this.dictionaryOrRecord(descriptor),
       metadata: descriptor.metadata
@@ -170,6 +174,9 @@ function genericOptions(
   return options;
 }
 
-export function toJSON(record: RegisteredRecord, registry: Registry = REGISTRY): JSONRecord {
+export function toJSON(
+  record: RegisteredRecord,
+  registry: Registry = REGISTRY
+): JSONRecord {
   return new JSONFormatter().record(record.inner.visitor(registry));
 }

@@ -1,5 +1,5 @@
-import { Record, describe, types } from "@cross-check/schema";
-import { ISODate, strip } from "../support";
+import { describe } from "@cross-check/schema";
+import { strip } from "../support";
 import {
   MediumArticle,
   Nesting,
@@ -88,57 +88,6 @@ QUnit.test("detailed", assert => {
           first?: <string>,
           last?: <string>
         }
-      }
-    `
-  );
-});
-
-QUnit.test("required dictionaries", assert => {
-  const RECORDS: Record = Record("records", {
-    fields: {
-      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
-      author: types
-        .RequiredFields({
-          first: types.SingleLine(),
-          last: types.SingleLine()
-        })
-        .required(),
-      date: ISODate()
-    }
-  });
-
-  assert.equal(
-    describe(RECORDS),
-
-    strip`
-      {
-        geo?: {
-          lat: <float>,
-          long: <float>
-        },
-        author: {
-          first: <single line string>,
-          last: <single line string>
-        },
-        date?: <ISO Date>
-      }
-    `
-  );
-
-  assert.equal(
-    describe(RECORDS.draft),
-
-    strip`
-      {
-        geo?: {
-          lat?: <float>,
-          long?: <float>
-        },
-        author?: {
-          first?: <string>,
-          last?: <string>
-        },
-        date?: <ISO Date>
       }
     `
   );

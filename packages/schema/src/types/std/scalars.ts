@@ -1,12 +1,12 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { registered, resolved } from "../../descriptors";
-import { PrimitiveRegistration, REGISTRY, Registry } from "../../descriptors/registered";
-import { JSONValue } from "../../utils";
-import { ANY, AbstractType, Primitive, PrimitiveClass, PrimitiveWithOptions } from "../fundamental";
+import { registered } from "../../descriptors";
+import { REGISTRY } from "../../registry";
+import * as type from "../../type";
+import { ANY, PrimitiveClass } from "../fundamental";
 
-export abstract class Scalar<Args> {
-  constructor(protected readonly args: Args) { }
+export abstract class Scalar<Args> implements type.Type {
+  constructor(protected readonly args: Args) {}
 
   abstract validation(): ValidationBuilder<unknown>;
 
@@ -24,12 +24,27 @@ const notBlankString = validators.is(
   "present"
 );
 
-export class TextPrimitive extends Scalar<TextOptions | undefined> {
-  static description = "string";
-  static typescript = "string";
-  static typeName = "Text";
+export function text(
+  args: TextOptions | undefined
+): ValidationBuilder<unknown> {
+  let allowEmpty = args === undefined ? false : args.allowEmpty;
 
-  static buildArgs(
+  if (allowEmpty) {
+    return validators.isString();
+  } else {
+    return validators.isString().andThen(notBlankString());
+  }
+}
+
+export const Text = scalar("Text", {
+  description: "string",
+  typescript: "string",
+
+  validation(args: TextOptions | undefined) {
+    return text(args);
+  },
+
+  buildArgs(
     args: TextOptions | undefined,
     required: boolean
   ): TextOptions | undefined {
@@ -42,153 +57,180 @@ export class TextPrimitive extends Scalar<TextOptions | undefined> {
       return args;
     }
   }
-
-  validation(): ValidationBuilder<unknown> {
-    let allowEmpty = this.args === undefined ? false : this.args.allowEmpty;
-
-    if (allowEmpty) {
-      return validators.isString();
-    } else {
-      return validators.isString().andThen(notBlankString());
-    }
-  }
-}
+});
 
 export interface TextOptions extends JSONObject {
   allowEmpty: boolean;
 }
 
-export function Text(options?: TextOptions): registered.Primitive {
-  return PrimitiveWithOptions(TextPrimitive, options);
-}
+export const Float = scalar("Float", {
+  description: "float",
+  typescript: "number",
 
-class FloatPrimitive extends Scalar<undefined> {
-  static description = "float";
-  static typescript = "number";
-  static typeName = "Float";
-
-  validation(): ValidationBuilder<unknown> {
+  validation() {
     return validators.isNumber();
   }
-}
+});
 
-export function Float(): registered.Primitive {
-  return Primitive(FloatPrimitive);
-}
+export const Integer = scalar("Integer", {
+  description: "integer",
+  typescript: "number",
 
-class IntegerPrimitive extends Scalar<undefined> {
-  static description = "integer";
-  static typescript = "number";
-  static typeName = "Integer";
+  validation: validators
+    .isNumber()
+    .andThen(
+      validators.is(
+        (value: number): value is number => Number.isInteger(value),
+        "number:integer"
+      )()
+    )
+});
 
-  validation(): ValidationBuilder<unknown> {
-    return validators
-      .isNumber()
-      .andThen(
-        validators.is(
-          (value: number): value is number => Number.isInteger(value),
-          "number:integer"
-        )()
-      );
+export const SingleLine = scalar("SingleLine", {
+  description: "single line string",
+  typescript: "string",
+  base: "Text",
+
+  validation(args?: TextOptions) {
+    return text(args).andThen(
+      validators.is(
+        (value: string): value is string => !/\n/.test(value),
+        "string:single-line"
+      )()
+    );
   }
-}
+});
 
-export function Integer(): registered.Primitive {
-  return Primitive(IntegerPrimitive);
-}
+export const SingleWord = scalar("SingleWord", {
+  description: "single word string",
+  typescript: "string",
+  base: "Text",
 
-class SingleLinePrimitive extends TextPrimitive {
-  static base = TextPrimitive;
-  static description = "single line string";
-  static typescript = "string";
-  static typeName = "SingleLine";
-
-  validation(): ValidationBuilder<unknown> {
-    return super
-      .validation()
-      .andThen(
-        validators.is(
-          (value: string): value is string => !/\n/.test(value),
-          "string:single-line"
-        )()
-      );
+  validation(args: TextOptions | undefined) {
+    return text(args).andThen(
+      validators.is(
+        (value: string): value is string => !/\s/.test(value),
+        "string:single-word"
+      )()
+    );
   }
-}
-
-export function SingleLine(options?: TextOptions): registered.Primitive {
-  return Refined(SingleLinePrimitive, options);
-}
-
-class SingleWordPrimitive extends TextPrimitive {
-  static base = TextPrimitive;
-  static description = "single word string";
-  static typescript = "string";
-  static typeName = "SingleWord";
-
-  validation(): ValidationBuilder<unknown> {
-    return super
-      .validation()
-      .andThen(
-        validators.is(
-          (value: string): value is string => !/\s/.test(value),
-          "string:single-word"
-        )()
-      );
-  }
-}
-
-export function SingleWord(options?: TextOptions): registered.Primitive {
-  return Refined(SingleWordPrimitive, options);
-}
-
-class BooleanPrimitive extends Scalar<undefined> {
-  static typeName = "Boolean";
-  static typescript = "boolean";
-  static description = "boolean";
-
-  validation(): ValidationBuilder<unknown> {
-    return validators.isBoolean();
-  }
-}
+});
 
 // tslint:disable-next-line:variable-name
-export function Boolean(): registered.Primitive {
-  return Primitive(BooleanPrimitive);
-}
+export const Boolean = scalar("Boolean", {
+  description: "boolean",
+  typescript: "boolean",
 
-class AnyPrimitive extends Scalar<undefined> {
-  static description = "any";
-  static typescript = "any";
-  static typeName = "Any";
+  validation() {
+    return validators.isBoolean();
+  }
+});
 
-  validation(): ValidationBuilder<unknown> {
+export const Any = scalar("Any", {
+  description: "any",
+  typescript: "any",
+
+  validation() {
     return ANY;
   }
+});
+
+export interface RegisterOptions {
+  description: string;
+  typescript: string;
+  base?: string;
 }
 
-export function Any(): registered.Primitive {
-  return Primitive(AnyPrimitive);
+export interface RegisterOptionsWithArgs<Args> extends RegisterOptions {
+  validation(args: Args): ValidationBuilder<unknown>;
+  buildArgs?(args: any, required: boolean): any;
+  serialize?(input: any): any;
+  parse?(input: any): any;
 }
 
-export function bootstrap(registry: Registry = REGISTRY): Registry {
-  registry.setPrimitive("Text", registration(TextPrimitive));
-  registry.setPrimitive("SingleLine", registration(SingleLinePrimitive), registration(SingleLinePrimitive.base));
-  registry.setPrimitive("SingleWord", registration(SingleWordPrimitive), registration(SingleWordPrimitive.base));
-  registry.setPrimitive("Float", registration(FloatPrimitive));
-  registry.setPrimitive("Integer", registration(IntegerPrimitive));
-  registry.setPrimitive("Boolean", registration(BooleanPrimitive));
-  registry.setPrimitive("Any", registration(AnyPrimitive));
-
-  return registry;
+export interface RegisterOptionsWithoutArgs extends RegisterOptions {
+  validation: ValidationBuilder<unknown>;
 }
 
-function registration<Args extends JSONValue | undefined>(Class: PrimitiveClass<Args>): PrimitiveRegistration {
-  return {
-    name: Class.typeName,
-    description: Class.description,
-    typescript: Class.typescript,
-    factory: (args: Args) => new Class(args)
-  } as PrimitiveRegistration;
-  // This loses the connection between the type and args
-  // TODO: Is there anything to do about it?
+interface AllRegisterOptions<Args> extends RegisterOptions {
+  validation:
+    | ValidationBuilder<unknown>
+    | ((args: Args) => ValidationBuilder<unknown>);
+  buildArgs?(args: any, required: boolean): any;
+  serialize?(input: any): any;
+  parse?(input: any): any;
+}
+
+export type DecoratedPrimitive<T> = T;
+
+export type RegisterDecorator<T extends PrimitiveClass> = (
+  Class: T
+) => DecoratedPrimitive<T>;
+
+// TODO: clean up anys
+export function scalar<Args>(
+  name: string,
+  options: RegisterOptionsWithArgs<Args>
+): (args?: Args) => registered.Primitive;
+export function scalar<Args>(
+  name: string,
+  options: RegisterOptionsWithoutArgs
+): () => registered.Primitive;
+export function scalar<Args>(
+  name: string,
+  options: RegisterOptionsWithArgs<Args> | RegisterOptionsWithoutArgs
+): (args?: any) => registered.Primitive;
+export function scalar<Args>(
+  name: string,
+  options: AllRegisterOptions<Args>
+): any {
+  class Primitive extends Scalar<any> {
+    validation() {
+      if (typeof options.validation === "function") {
+        return options.validation(this.args);
+      } else {
+        return options.validation!;
+      }
+    }
+
+    serialize(input: any): any {
+      if (options.serialize) {
+        return options.serialize(input);
+      } else {
+        return input;
+      }
+    }
+
+    parse(input: any): any {
+      if (options.parse) {
+        return options.parse(input);
+      } else {
+        return input;
+      }
+    }
+  }
+
+  function Factory(args: any): type.Type {
+    return new Primitive(args);
+  }
+
+  let { description, typescript, base } = options;
+
+  REGISTRY.setPrimitive(name, {
+    name,
+    description,
+    typescript,
+    base: base === undefined ? undefined : { name: base, args: undefined },
+    factory: Factory
+  });
+
+  return (args: any) => {
+    let primitive = REGISTRY.getPrimitive(name);
+
+    return new registered.Primitive({
+      name: primitive.name,
+      args,
+      base: primitive.base
+    });
+  };
 }

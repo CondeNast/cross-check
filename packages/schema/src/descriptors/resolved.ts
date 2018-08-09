@@ -3,7 +3,7 @@ import { Type } from "../type";
 
 export type Factory<D extends Descriptor> = (desc: D) => Type;
 export interface ClassFactory<D extends Descriptor> {
-  new(descriptor: D): Type;
+  new (descriptor: D): Type;
 }
 
 export function factory<D extends Descriptor>(
@@ -18,7 +18,8 @@ export interface ResolvedDescriptor {
   readonly type: keyof Descriptors;
 }
 
-export interface ResolvedDescriptorWithArgs<A extends Args = Args> extends ResolvedDescriptor {
+export interface ResolvedDescriptorWithArgs<A extends Args = Args>
+  extends ResolvedDescriptor {
   readonly args: A;
 }
 
@@ -81,7 +82,8 @@ export interface OptionalityArgs {
   isOptional: boolean;
 }
 
-export interface Optionality extends ResolvedDescriptorWithArgs<OptionalityArgs> {
+export interface Optionality
+  extends ResolvedDescriptorWithArgs<OptionalityArgs> {
   readonly type: "Optionality";
   readonly args: OptionalityArgs;
   readonly inner: Descriptor;
@@ -91,11 +93,13 @@ export interface ListArgs {
   readonly allowEmpty: boolean;
 }
 
-export interface List<A extends ListArgs = ListArgs> extends ResolvedDescriptorWithArgs<A> {
+export interface List<A extends ListArgs = ListArgs>
+  extends ResolvedDescriptorWithArgs<A> {
   readonly type: "List";
   readonly inner: Descriptor;
   readonly args: A;
 }
+
 export interface Pointer extends ResolvedDescriptor {
   readonly type: "Pointer";
   readonly inner: Descriptor;
@@ -111,8 +115,10 @@ export interface Dictionary extends ResolvedDescriptor {
   readonly members: Dict<Descriptor>;
 }
 
-export interface Primitive<A extends Args = Args> extends ResolvedDescriptorWithArgs<A> {
+export interface Primitive<A extends Args = Args>
+  extends ResolvedDescriptorWithArgs<A> {
   readonly type: "Primitive";
+  readonly name: string;
   readonly args: A;
 }
 
@@ -128,11 +134,6 @@ export interface Descriptors {
 export type DescriptorType = keyof Descriptors;
 export type Descriptor = Descriptors[DescriptorType];
 export type ContainerDescriptor = List | Pointer | Iterator | Optionality;
-
-export function instantiate(descriptor: Descriptor): Type {
-  // @ts-ignore
-  return descriptor.instantiate(descriptor);
-}
 
 // Is a concrete type (not a wrapper type like Required or Alias)
 // and has an `inner` type

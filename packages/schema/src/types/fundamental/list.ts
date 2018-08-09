@@ -2,17 +2,14 @@ import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
 import { registered, resolved } from "../../descriptors";
 import { Type } from "../../type";
-import { AbstractType } from "./core";
 
 const isPresentArray = validators.is(
   (value: unknown[]): value is unknown[] => value.length > 0,
   "present-array"
 );
 
-class ArrayImpl extends AbstractType<resolved.List> {
-  protected get inner(): Type {
-    return resolved.instantiate(this.descriptor.inner);
-  }
+export class ListImpl implements Type {
+  constructor(private inner: Type, private args: resolved.ListArgs) {}
 
   serialize(js: any[]): any {
     let itemType = this.inner;
@@ -29,7 +26,7 @@ class ArrayImpl extends AbstractType<resolved.List> {
   validation(): ValidationBuilder<unknown> {
     let validator = validators.array(this.inner.validation());
 
-    if (!this.descriptor.args.allowEmpty) {
+    if (!this.args.allowEmpty) {
       validator = validator.andThen(isPresentArray());
     }
 

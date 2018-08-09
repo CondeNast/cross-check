@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Refined, Scalar, registered, types } from "@cross-check/schema";
+import { registered, scalar } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { format } from "./format";
 
@@ -45,33 +45,10 @@ export class Urlish {
     public protocol: string,
     public host: string,
     public pathname: string
-  ) { }
+  ) {}
 
   toString(): string {
     return `${this.protocol}://${this.host}/${this.pathname}`;
-  }
-}
-
-class UrlType extends Scalar<UrlKind[]> {
-  static typescript = "URL";
-  static description = "url";
-  static typeName = "Url";
-  static base = () => types.Text();
-
-  get options(): UrlKind[] {
-    return this.descriptor.args as UrlKind[];
-  }
-
-  validation(): ValidationBuilder<unknown> {
-    return validators.isString().andThen(url(...this.options));
-  }
-
-  serialize(input: Urlish): string {
-    return input.toString();
-  }
-
-  parse(input: string): Urlish {
-    return urlish(input);
   }
 }
 
@@ -80,6 +57,24 @@ export function urlish(full: string) {
   return new Urlish(result[1], result[2], result[3]);
 }
 
-export function Url(...args: UrlKind[]): registered.Primitive {
-  return Refined(UrlType, args);
+const URL = scalar("Url", {
+  typescript: "URL",
+  description: "url",
+  base: "Text",
+
+  validation(args: UrlKind[]) {
+    return validators.isString().andThen(url(...args));
+  },
+
+  serialize(input: Urlish): string {
+    return input.toString();
+  },
+
+  parse(input: string): Urlish {
+    return urlish(input);
+  }
+});
+
+export function Url(...kinds: UrlKind[]): registered.Primitive {
+  return URL(kinds);
 }

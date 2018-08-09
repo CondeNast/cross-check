@@ -1,5 +1,5 @@
-import { Record, schemaFormat, types } from "@cross-check/schema";
-import { ISODate, strip } from "../support";
+import { schemaFormat } from "@cross-check/schema";
+import { strip } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("[schema] formatting - schemaFormat");
@@ -49,39 +49,6 @@ QUnit.test("detailed - published", assert => {
       }).metadata({
         collectionName: "medium-articles",
         modelName: "medium-article"
-      })
-    `
-  );
-});
-
-QUnit.test("required dictionaries", assert => {
-  const RECORDS = Record("RequiredDictionary", {
-    fields: {
-      geo: types.RequiredFields({ lat: types.Float(), long: types.Float() }),
-      author: types
-        .RequiredFields({
-          first: types.SingleLine(),
-          last: types.SingleLine()
-        })
-        .required(),
-      date: ISODate()
-    }
-  });
-
-  assert.equal(
-    schemaFormat(RECORDS),
-
-    strip`
-      Record("RequiredDictionary", {
-        geo: Dictionary({
-          lat: Float().required(),
-          long: Float().required()
-        }),
-        author: Dictionary({
-          first: SingleLine().required(),
-          last: SingleLine().required()
-        }).required(),
-        date: ISODate()
       })
     `
   );

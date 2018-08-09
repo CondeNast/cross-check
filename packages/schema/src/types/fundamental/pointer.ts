@@ -3,7 +3,9 @@ import { registered, resolved } from "../../descriptors";
 import { Record } from "../../record";
 import { ReferenceImpl } from "./reference";
 
-export class PointerImpl extends ReferenceImpl<resolved.Pointer> { }
+export class PointerImpl extends ReferenceImpl {
+  readonly descriptor!: resolved.Pointer;
+}
 
 export function hasOne(
   item: Record,

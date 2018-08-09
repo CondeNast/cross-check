@@ -10,42 +10,43 @@ import { Type } from "../../type";
 import { maybe } from "../../utils";
 
 // This class basically exists to make the constructor argument generic.
-export abstract class AbstractType<D extends resolved.Descriptor>
-  implements Type<resolved.Descriptor> {
-  constructor(readonly descriptor: D) { }
+export abstract class AbstractType implements Type {
+  constructor(readonly descriptor: resolved.Descriptor) {}
 
   abstract validation(): ValidationBuilder<unknown>;
   abstract serialize(input: unknown): unknown;
   abstract parse(input: unknown): unknown;
 }
 
-export function getFeatures(typeBuilder: registered.RegisteredType): string[] | undefined {
+export function getFeatures(
+  typeBuilder: registered.RegisteredType
+): string[] | undefined {
   return typeBuilder.meta.features || undefined;
 }
 
-export abstract class AbstractContainerType<
-  Descriptor extends resolved.ContainerDescriptor
-  > extends AbstractType<Descriptor> {
-  protected get type(): Type {
-    return resolved.instantiate(this.descriptor.inner);
-  }
+// export abstract class AbstractContainerType extends AbstractType {
+//   readonly descriptor!: resolved.ContainerDescriptor;
 
-  validation(): ValidationBuilder<unknown> {
-    return this.type.validation();
-  }
+//   protected get type(): Type {
+//     return resolved.instantiate(this.descriptor.inner);
+//   }
 
-  serialize(input: unknown): unknown {
-    return this.type.serialize(input);
-  }
+//   validation(): ValidationBuilder<unknown> {
+//     return this.type.validation();
+//   }
 
-  parse(input: unknown): unknown {
-    return this.type.parse(input);
-  }
-}
+//   serialize(input: unknown): unknown {
+//     return this.type.serialize(input);
+//   }
 
-export class OptionalityType extends AbstractContainerType<
-  resolved.Optionality
-  > {
+//   parse(input: unknown): unknown {
+//     return this.type.parse(input);
+//   }
+// }
+
+export class OptionalityType implements Type {
+  constructor(private type: Type, private args: resolved.OptionalityArgs) {}
+
   validation(): ValidationBuilder<unknown> {
     if (this.isOptional) {
       return maybe(this.type.validation());
@@ -63,7 +64,7 @@ export class OptionalityType extends AbstractContainerType<
 
       return input;
     } else {
-      return super.serialize(input);
+      return this.type.serialize(input);
     }
   }
 
@@ -72,12 +73,12 @@ export class OptionalityType extends AbstractContainerType<
       assert(this.isOptional, "Parse error: unexpected null.");
       return null;
     } else {
-      return super.parse(input);
+      return this.type.parse(input);
     }
   }
 
   private get isOptional(): boolean {
-    return this.descriptor.args.isOptional;
+    return this.args.isOptional;
   }
 }
 

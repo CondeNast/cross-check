@@ -1,6 +1,5 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Primitive, Scalar, registered } from "@cross-check/schema";
-import { unknown } from "ts-std";
+import { validators } from "@cross-check/dsl";
+import { registered, scalar } from "@cross-check/schema";
 
 function isValidDate(input: string): boolean {
   let parsed = Date.parse(input);
@@ -8,28 +7,21 @@ function isValidDate(input: string): boolean {
   return input === new Date(parsed).toISOString();
 }
 
-class DateType extends Scalar<undefined> {
-  static description = "ISO Date";
-  static typescript = "Date";
-  static typeName = "ISODate";
+export const ISODate: () => registered.Primitive = scalar("ISODate", {
+  description: "ISO Date",
+  typescript: "Date",
 
-  validation(): ValidationBuilder<unknown> {
-    return validators.isString().andThen(
-      validators.is((v: string): v is string => {
-        return isValidDate(v);
-      }, "iso-date")()
-    );
-  }
+  validation: validators.isString().andThen(
+    validators.is((v: string): v is string => {
+      return isValidDate(v);
+    }, "iso-date")()
+  ),
 
   serialize(input: Date): string {
     return input.toISOString();
-  }
+  },
 
   parse(input: string): Date {
     return new Date(Date.parse(input));
   }
-}
-
-export function ISODate(): registered.Primitive {
-  return Primitive(DateType);
-}
+});

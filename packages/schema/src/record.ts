@@ -1,40 +1,61 @@
-import { Dict, JSONObject } from "ts-std";
+import { Environment, ValidationError, validate } from "@cross-check/core";
+import build from "@cross-check/dsl";
+import { Task } from "no-show";
+import { Dict, JSONObject, Option } from "ts-std";
 import { registered } from "./descriptors";
-import { REGISTRY, Registry } from "./descriptors/registered";
+import { REGISTRY, Registry } from "./registry";
 import * as visitor from "./types/describe/visitor";
+import { DictionaryImpl } from "./types/fundamental";
 
 export interface RecordState {
   name: string;
 }
 
 export class RegisteredRecord {
-  constructor(readonly inner: registered.Record, _registry: Registry) { }
+  constructor(readonly inner: registered.Record, readonly registry: Registry) {}
 
   get name(): string {
     return this.inner.state.name;
   }
 
   get descriptor(): visitor.Record {
-    return this.inner.visitor(REGISTRY);
+    return this.inner.visitor(this.registry);
   }
 
   get type(): registered.Named {
     return new registered.Named({
       target: "Dictionary",
       name: this.inner.state.name
-    })
+    });
   }
 
   get draft(): RegisteredRecord {
-    throw new Error("Not implememented");
-    // let inner = baseType(this.descriptor);
-    // return new RecordBuilder(inner, this.meta);
+    return new RegisteredRecord(
+      this.inner.runtime({ draft: true }),
+      this.registry
+    );
   }
 
   withFeatures(_features: string[]): RegisteredRecord {
     throw new Error("Not implememented");
     // let record = applyFeatures(this.descriptor, features);
     // return new RecordBuilder(record);
+  }
+
+  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
+    return validate(obj, build(this.instantiated.validation()), null, env);
+  }
+
+  parse(value: Dict): Option<Dict> {
+    return this.instantiated.parse(value);
+  }
+
+  serialize(value: Dict): Option<Dict> {
+    return this.instantiated.serialize(value);
+  }
+
+  private get instantiated(): DictionaryImpl {
+    return this.inner.instantiate(this.registry);
   }
 }
 
@@ -52,9 +73,8 @@ export function Record(
     members: fields
   });
 
-  let recordBuilder = new registered.Record({ name, inner: dictionary })
-  REGISTRY.setRecord(name, recordBuilder, metadata);
-  return new RegisteredRecord(recordBuilder, registry);
+  registry.setRecord(name, dictionary, metadata);
+  return new RegisteredRecord(registry.getRecord(name), registry);
 }
 
 export type Record = RegisteredRecord;

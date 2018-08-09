@@ -3,7 +3,9 @@ import { registered, resolved } from "../../descriptors";
 import { Record } from "../../record";
 import { ReferenceImpl } from "./reference";
 
-export class IteratorImpl extends ReferenceImpl<resolved.Iterator> { }
+export class IteratorImpl extends ReferenceImpl {
+  readonly descriptor!: resolved.Iterator;
+}
 
 export function hasMany(
   item: Record,

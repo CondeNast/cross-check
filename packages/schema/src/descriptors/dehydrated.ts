@@ -1,12 +1,14 @@
 import { Dict, JSONObject } from "ts-std";
+import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
 import { JSONValue, exhausted, mapDict } from "../utils";
+import * as registered from "./registered";
 import * as resolved from "./resolved";
 
 export type Args = JSONValue | undefined;
 
 export interface Factory<D extends Descriptor> {
-  new(descriptor: D): resolved.Descriptor;
+  new (descriptor: D): resolved.Descriptor;
 }
 
 /***** Concrete Descriptors *****/
@@ -46,9 +48,16 @@ export interface List {
 //// Named ////
 export interface Named {
   readonly type: "Named";
-  readonly target: resolved.DescriptorType;
+  readonly target: RegistryName;
   readonly name: string;
   readonly args?: JSONValue;
+}
+
+//// Optionality ////
+export interface Optionality {
+  readonly type: "Optionality";
+  readonly inner: Descriptor;
+  readonly required: boolean;
 }
 
 //// Pointer ////
@@ -57,6 +66,19 @@ export interface Pointer {
   readonly kind: string;
   readonly metadata: JSONObject | null;
   readonly inner: Named;
+}
+
+//// Primitive ////
+export interface Primitive {
+  readonly type: "Primitive";
+  readonly name: string;
+  readonly args: JSONValue | undefined;
+}
+
+//// Record ////
+export interface Record {
+  readonly type: "Record";
+  readonly name: string;
 }
 
 /***** Hydrator *****/
@@ -71,41 +93,80 @@ export interface HydrateParameters {
   draft: boolean;
 }
 
-export function hydrate(descriptor: Descriptor, resolver: ResolveDelegate, parameters: HydrateParameters): resolved.Descriptor {
+export function hydrate(
+  descriptor: Named,
+  registry: Registry,
+  parameters: HydrateParameters
+): registered.Named;
+export function hydrate(
+  descriptor: Descriptor,
+  registry: Registry,
+  parameters: HydrateParameters
+): registered.RegisteredType;
+export function hydrate(
+  descriptor: Descriptor,
+  registry: Registry,
+  parameters: HydrateParameters
+): registered.RegisteredType {
   switch (descriptor.type) {
     case "Named": {
-      return resolver.descriptor(descriptor);
+      return new registered.Named({
+        target: descriptor.target,
+        name: descriptor.name,
+        args: descriptor.args
+      });
     }
 
     case "Dictionary": {
-      return {
-        type: "Dictionary",
+      return new registered.Dictionary({
         members: mapDict(descriptor.members, member =>
-          hydrate(member.descriptor, resolver, parameters)
+          hydrate(member.descriptor, registry, parameters)
         )
-      };
+      });
     }
 
     case "Iterator": {
-      return {
-        type: "Iterator",
-        inner: hydrate(descriptor.inner, resolver, parameters)
-      }
+      return new registered.Iterator({
+        kind: descriptor.kind,
+        metadata: descriptor.metadata,
+        contents: hydrate(descriptor.inner, registry, parameters)
+      });
     }
 
     case "List": {
-      return {
-        type: "List",
-        inner: hydrate(descriptor.inner, resolver, parameters),
-        args: descriptor.args
+      return new registered.List({
+        args: descriptor.args,
+        contents: hydrate(descriptor.inner, registry, parameters)
+      });
+    }
+
+    case "Optionality": {
+      let inner = hydrate(descriptor.inner, registry, parameters);
+
+      if (descriptor.required === true) {
+        inner = inner.required();
       }
+
+      return inner;
     }
 
     case "Pointer": {
-      return {
-        type: "Pointer",
-        inner: hydrate(descriptor.inner, resolver, parameters)
-      }
+      return new registered.Pointer({
+        kind: descriptor.kind,
+        metadata: descriptor.metadata,
+        contents: hydrate(descriptor.inner, registry, parameters)
+      });
+    }
+
+    case "Primitive": {
+      return new registered.Primitive({
+        name: descriptor.name,
+        args: descriptor.args
+      });
+    }
+
+    case "Record": {
+      return registry.getRecord(descriptor.name);
     }
 
     default:
@@ -119,7 +180,10 @@ export interface Descriptors {
   Iterator: Iterator;
   List: List;
   Named: Named;
+  Optionality: Optionality;
   Pointer: Pointer;
+  Primitive: Primitive;
+  Record: Record;
 }
 
 export type DescriptorType = keyof Descriptors;
