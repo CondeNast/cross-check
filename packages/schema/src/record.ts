@@ -1,66 +1,69 @@
-import { Environment, ValidationError, validate } from "@cross-check/core";
-import build from "@cross-check/dsl";
+import { Environment, ValidationError } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, JSONObject, Option } from "ts-std";
-import { registered } from "./descriptors";
+import { Dict, JSONObject, unknown } from "ts-std";
+import { dehydrated, registered } from "./descriptors";
+import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
+import { finalizeMeta } from "./descriptors/registered";
 import { REGISTRY, Registry } from "./registry";
 import * as visitor from "./types/describe/visitor";
-import { DictionaryImpl } from "./types/fundamental";
+import { mapDict } from "./utils";
 
 export interface RecordState {
   name: string;
 }
 
-export class RegisteredRecord {
-  constructor(readonly inner: registered.Record, readonly registry: Registry) {}
+/**
+ * Note: This class, at the moment, serves as both a Record Builder (duh)
+ * as well as a runtime representation of the hydrated Record. This is
+ * largely for historical reasons -- in earlier versions of Crosscheck,
+ * builders and types were conflated. It should be possible to remove the
+ * conflation through a breaking change, if such a breaking change is
+ * possible and appropriate.
+ */
+export class RecordBuilder {
+  constructor(
+    readonly serialized: dehydrated.Record,
+    readonly registry: Registry
+  ) {}
 
-  get name(): string {
-    return this.inner.state.name;
+  dehydrate(): dehydrated.Record {
+    return {
+      type: "Record",
+      name: this.serialized.name
+    };
   }
 
   get descriptor(): visitor.Record {
-    return this.inner.visitor(this.registry);
+    return visitorDescriptor(this.serialized, this.registry);
   }
 
-  get type(): registered.Named {
-    return new registered.Named({
-      target: "Dictionary",
-      name: this.inner.state.name
-    });
-  }
-
-  get draft(): RegisteredRecord {
-    return new RegisteredRecord(
-      this.inner.runtime({ draft: true }),
-      this.registry
-    );
-  }
-
-  withFeatures(_features: string[]): RegisteredRecord {
-    throw new Error("Not implememented");
-    // let record = applyFeatures(this.descriptor, features);
-    // return new RecordBuilder(record);
+  get draft(): registered.Record {
+    return this.with({ draft: true });
   }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return validate(obj, build(this.instantiated.validation()), null, env);
+    return this.with().validate(obj, env);
   }
 
-  parse(value: Dict): Option<Dict> {
-    return this.instantiated.parse(value);
+  parse(obj: Dict): unknown {
+    return this.with().parse(obj);
   }
 
-  serialize(value: Dict): Option<Dict> {
-    return this.instantiated.serialize(value);
+  serialize(obj: Dict): unknown {
+    return this.with().serialize(obj);
   }
 
-  private get instantiated(): DictionaryImpl {
-    return this.inner.instantiate(this.registry);
+  withFeatures(features: string[]): registered.Record {
+    return this.with({ features });
+  }
+
+  with(params: dehydrated.HydrateParameters = {}): registered.Record {
+    return hydrate(this.serialized, this.registry, params);
   }
 }
 
 export interface RecordOptions {
-  fields: Dict<registered.RegisteredType>;
+  fields: Dict<registered.TypeBuilder>;
   metadata?: JSONObject;
   registry?: Registry;
 }
@@ -68,13 +71,19 @@ export interface RecordOptions {
 export function Record(
   name: string,
   { fields, metadata = null, registry = REGISTRY }: RecordOptions
-): RegisteredRecord {
-  let dictionary = new registered.Dictionary({
-    members: fields
-  });
+): RecordBuilder {
+  let dictionary: dehydrated.Dictionary = {
+    type: "Dictionary",
+    members: mapDict(fields, member => {
+      return {
+        descriptor: member.dehydrate(),
+        meta: finalizeMeta(member)
+      };
+    })
+  };
 
   registry.setRecord(name, dictionary, metadata);
-  return new RegisteredRecord(registry.getRecord(name), registry);
+  return new RecordBuilder({ type: "Record", name }, registry);
 }
 
-export type Record = RegisteredRecord;
+export type Record = RecordBuilder;

@@ -75,6 +75,6 @@ const URL = scalar("Url", {
   }
 });
 
-export function Url(...kinds: UrlKind[]): registered.Primitive {
+export function Url(...kinds: UrlKind[]): registered.PrimitiveBuilder {
   return URL(kinds);
 }

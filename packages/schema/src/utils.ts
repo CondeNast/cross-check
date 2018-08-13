@@ -22,7 +22,7 @@ function isMultiple(error: ValidationError): error is Multiple {
 
 export function mapDict<D extends Dict<T>, T, U>(
   input: Dict<T> & D,
-  callback: (value: T, key: keyof D) => U
+  callback: (value: T, key: keyof D) => U | undefined
 ): Dict<U> {
   let out = dict<U>();
 

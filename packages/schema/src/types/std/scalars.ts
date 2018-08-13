@@ -1,4 +1,4 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
+import build, { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
 import { registered } from "../../descriptors";
 import { REGISTRY } from "../../registry";
@@ -36,6 +36,20 @@ export function text(
   }
 }
 
+export function buildTextArgs(
+  args: TextOptions | undefined,
+  required: boolean
+): TextOptions | undefined {
+  if (required === false) {
+    return {
+      ...args,
+      allowEmpty: true
+    };
+  } else {
+    return args;
+  }
+}
+
 export const Text = scalar("Text", {
   description: "string",
   typescript: "string",
@@ -44,19 +58,7 @@ export const Text = scalar("Text", {
     return text(args);
   },
 
-  buildArgs(
-    args: TextOptions | undefined,
-    required: boolean
-  ): TextOptions | undefined {
-    if (required === false) {
-      return {
-        ...args,
-        allowEmpty: true
-      };
-    } else {
-      return args;
-    }
-  }
+  buildArgs: buildTextArgs
 });
 
 export interface TextOptions extends JSONObject {
@@ -98,7 +100,9 @@ export const SingleLine = scalar("SingleLine", {
         "string:single-line"
       )()
     );
-  }
+  },
+
+  buildArgs: buildTextArgs
 });
 
 export const SingleWord = scalar("SingleWord", {
@@ -113,7 +117,9 @@ export const SingleWord = scalar("SingleWord", {
         "string:single-word"
       )()
     );
-  }
+  },
+
+  buildArgs: buildTextArgs
 });
 
 // tslint:disable-next-line:variable-name
@@ -161,25 +167,19 @@ interface AllRegisterOptions<Args> extends RegisterOptions {
   parse?(input: any): any;
 }
 
-export type DecoratedPrimitive<T> = T;
-
-export type RegisterDecorator<T extends PrimitiveClass> = (
-  Class: T
-) => DecoratedPrimitive<T>;
-
 // TODO: clean up anys
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithArgs<Args>
-): (args?: Args) => registered.Primitive;
+): (args?: Args) => registered.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithoutArgs
-): () => registered.Primitive;
+): () => registered.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithArgs<Args> | RegisterOptionsWithoutArgs
-): (args?: any) => registered.Primitive;
+): (args?: any) => registered.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: AllRegisterOptions<Args>
@@ -221,13 +221,14 @@ export function scalar<Args>(
     description,
     typescript,
     base: base === undefined ? undefined : { name: base, args: undefined },
-    factory: Factory
+    factory: Factory,
+    buildArgs: options.buildArgs
   });
 
   return (args: any) => {
     let primitive = REGISTRY.getPrimitive(name);
 
-    return new registered.Primitive({
+    return new registered.PrimitiveBuilder({
       name: primitive.name,
       args,
       base: primitive.base

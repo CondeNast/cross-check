@@ -7,7 +7,7 @@ function isValidDate(input: string): boolean {
   return input === new Date(parsed).toISOString();
 }
 
-export const ISODate: () => registered.Primitive = scalar("ISODate", {
+export const ISODate: () => registered.PrimitiveBuilder = scalar("ISODate", {
   description: "ISO Date",
   typescript: "Date",
 

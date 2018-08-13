@@ -1,7 +1,6 @@
 export * from "./conditional";
 export * from "./core";
 export * from "./dictionary";
-export * from "./generic";
 export * from "./iterator";
 export * from "./mapped";
 export * from "./list";

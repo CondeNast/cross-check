@@ -1,6 +1,5 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { RegisteredRecord } from "../../../record";
-import { REGISTRY, Registry } from "../../../registry";
+import { RecordBuilder } from "../../../record";
 import { JSONValue, exhausted } from "../../../utils";
 import {
   Pos,
@@ -174,9 +173,6 @@ function genericOptions(
   return options;
 }
 
-export function toJSON(
-  record: RegisteredRecord,
-  registry: Registry = REGISTRY
-): JSONRecord {
-  return new JSONFormatter().record(record.inner.visitor(registry));
+export function toJSON(record: RecordBuilder): JSONRecord {
+  return new JSONFormatter().record(record.descriptor);
 }
