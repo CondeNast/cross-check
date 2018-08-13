@@ -1,5 +1,5 @@
 import { ValidationError } from "@cross-check/core";
-import { Record, RecordBuilder, registered } from "@cross-check/schema";
+import { Record, RecordBuilder, RecordImpl } from "@cross-check/schema";
 import { Task } from "no-show";
 import { Dict, Option, unknown } from "ts-std";
 
@@ -32,7 +32,7 @@ export function strip(
 }
 
 export function validate(
-  record: registered.Record,
+  record: RecordImpl,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
   return record.validate(obj, ENV);
