@@ -1,9 +1,9 @@
-import build, { ValidationBuilder, validators } from "@cross-check/dsl";
+import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
 import { registered } from "../../descriptors";
 import { REGISTRY } from "../../registry";
 import * as type from "../../type";
-import { ANY, PrimitiveClass } from "../fundamental";
+import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args> implements type.Type {
   constructor(protected readonly args: Args) {}

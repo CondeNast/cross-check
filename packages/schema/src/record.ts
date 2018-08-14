@@ -1,4 +1,5 @@
-import { Environment, ValidationError } from "@cross-check/core";
+import { Environment, ValidationError, validate } from "@cross-check/core";
+import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, unknown } from "ts-std";
 import { dehydrated, registered } from "./descriptors";
@@ -6,6 +7,7 @@ import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
 import { finalizeMeta } from "./descriptors/registered";
 import { REGISTRY, Registry } from "./registry";
 import * as visitor from "./types/describe/visitor";
+import { DictionaryImpl } from "./types/fundamental";
 import { mapDict } from "./utils";
 
 export interface RecordState {
@@ -37,7 +39,7 @@ export class RecordBuilder {
     return visitorDescriptor(this.serialized, this.registry);
   }
 
-  get draft(): registered.Record {
+  get draft(): RecordImpl {
     return this.with({ draft: true });
   }
 
@@ -53,12 +55,32 @@ export class RecordBuilder {
     return this.with().serialize(obj);
   }
 
-  withFeatures(features: string[]): registered.Record {
+  withFeatures(features: string[]): RecordImpl {
     return this.with({ features });
   }
 
-  with(params: dehydrated.HydrateParameters = {}): registered.Record {
-    return hydrate(this.serialized, this.registry, params);
+  with(params: dehydrated.HydrateParameters = {}): RecordImpl {
+    let dictionary = hydrate(this.serialized, this.registry, params);
+
+    return new RecordImpl(dictionary);
+  }
+}
+
+export class RecordImpl {
+  constructor(private dictionary: DictionaryImpl) {}
+
+  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
+    let validation = this.dictionary.validation();
+
+    return validate(obj, build(validation), null, env);
+  }
+
+  parse(value: Dict): unknown {
+    return this.dictionary.parse(value);
+  }
+
+  serialize(value: Dict): unknown {
+    return this.dictionary.serialize(value);
   }
 }
 

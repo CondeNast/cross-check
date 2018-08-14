@@ -1,9 +1,15 @@
 import { Dict, JSONObject } from "ts-std";
 import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
-import { visitor } from "../types";
+import {
+  DictionaryImpl,
+  IteratorImpl,
+  ListImpl,
+  OptionalityImpl,
+  PointerImpl,
+  visitor
+} from "../types";
 import { JSONValue, exhausted, mapDict } from "../utils";
-import * as registered from "./registered";
 import * as resolved from "./resolved";
 
 export type Args = JSONValue | undefined;
@@ -89,48 +95,37 @@ export interface HydrateParameters {
 }
 
 export function hydrate(
-  descriptor: Named,
+  descriptor: Dictionary | Record,
   registry: Registry,
   parameters: HydrateParameters,
   required?: boolean
-): registered.Named;
-export function hydrate(
-  descriptor: Dictionary,
-  registry: Registry,
-  parameters: HydrateParameters,
-  required?: boolean
-): registered.Dictionary;
-export function hydrate(
-  descriptor: Record,
-  registry: Registry,
-  parameters: HydrateParameters,
-  required?: boolean
-): registered.Record;
+): DictionaryImpl;
 export function hydrate(
   descriptor: Descriptor,
   registry: Registry,
   parameters: HydrateParameters,
   required?: boolean
-): registered.RegisteredType;
+): Type;
 export function hydrate(
   descriptor: Descriptor,
   registry: Registry,
   parameters: HydrateParameters,
   isRequired?: boolean
-): registered.RegisteredType {
-  function buildType() {
+): Type {
+  function buildType(): Type {
     switch (descriptor.type) {
       case "Named": {
-        return new registered.Named({
-          target: descriptor.target,
-          name: descriptor.name,
-          args: descriptor.args
+        let desc = registry.get({
+          type: descriptor.target,
+          name: descriptor.name
         });
+
+        return hydrate(desc, registry, parameters, isRequired);
       }
 
       case "Dictionary": {
-        return new registered.Dictionary({
-          members: mapDict(descriptor.members, member => {
+        return new DictionaryImpl(
+          mapDict(descriptor.members, member => {
             let isMemberRequired =
               parameters.draft === true ? false : member.meta.required;
 
@@ -145,15 +140,12 @@ export function hydrate(
               return undefined;
             }
           })
-        });
+        );
       }
 
       case "Iterator": {
-        return new registered.Iterator({
-          kind: descriptor.kind,
-          metadata: descriptor.metadata,
-          record: hydrate(descriptor.inner, registry, parameters)
-        });
+        let inner = registry.getRecord(descriptor.inner.name, parameters);
+        return new IteratorImpl(inner.dictionary);
       }
 
       case "List": {
@@ -163,37 +155,39 @@ export function hydrate(
           args = { allowEmpty: true };
         }
 
-        return new registered.List({
-          args,
-          contents: hydrate(descriptor.inner, registry, parameters)
-        });
+        let contents = hydrate(descriptor.inner, registry, parameters);
+
+        return new ListImpl(contents, args);
       }
 
       case "Pointer": {
-        return new registered.Pointer({
-          kind: descriptor.kind,
-          metadata: descriptor.metadata,
-          record: hydrate(descriptor.inner, registry, parameters)
-        });
+        let inner = registry.getRecord(descriptor.inner.name, parameters);
+        return new PointerImpl(inner.dictionary);
       }
 
       case "Primitive": {
+        let desc;
+
         if (parameters.draft && descriptor.base) {
-          return new registered.Primitive({
-            ...descriptor.base,
-            required: false
-          });
+          desc = descriptor.base;
         } else {
-          return new registered.Primitive({
-            name: descriptor.name,
-            args: descriptor.args,
-            required: isRequired === true
-          });
+          desc = descriptor;
         }
+
+        let { factory, buildArgs } = registry.getPrimitive(desc.name);
+        let args;
+
+        if (buildArgs) {
+          args = buildArgs(desc.args, isRequired === true);
+        } else {
+          args = desc.args;
+        }
+
+        return factory(args);
       }
 
       case "Record": {
-        return registry.getRecord(descriptor.name, parameters);
+        return registry.getRecord(descriptor.name, parameters).dictionary;
       }
 
       default:
@@ -208,14 +202,8 @@ export function hydrate(
   }
 }
 
-function required(
-  type: registered.RegisteredType,
-  isRequired: boolean
-): registered.Optionality {
-  return new registered.Optionality({
-    inner: type,
-    optional: !isRequired
-  });
+function required(type: Type, isRequired: boolean): Type {
+  return new OptionalityImpl(type, { isOptional: !isRequired });
 }
 
 function hasFeatures(

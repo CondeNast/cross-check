@@ -1,6 +1,7 @@
 import { Dict, JSONObject, Option, dict, expect, unknown } from "ts-std";
-import { dehydrated, registered } from "./descriptors";
+import { dehydrated } from "./descriptors";
 import * as type from "./type";
+import { DictionaryImpl } from "./types/fundamental";
 import { JSONValue, mapDict } from "./utils";
 
 export interface PrimitiveRegistration {
@@ -49,6 +50,14 @@ class Primitive {
   }
 }
 
+class Aliased<T extends dehydrated.Descriptor> implements Copy {
+  constructor(readonly descriptor: T) {}
+
+  copy(): this {
+    return new Aliased(Object.assign({}, this.descriptor) as T) as this;
+  }
+}
+
 export interface Copy {
   copy(): this;
 }
@@ -82,26 +91,26 @@ function TYPES(): RegisteredTypeMap {
   };
 }
 
-export type RegistryName = "List" | "Pointer" | "Iterator" | "Dictionary";
-
 type RegisteredTypeMap = {
   readonly [P in keyof RegistryValues]: Type<RegistryValues[P] & Copy>
 };
 
 interface RegistryValues {
   Record: Record;
-  List: registered.List;
-  Pointer: registered.Pointer;
-  Iterator: registered.Iterator;
-  Dictionary: registered.Dictionary;
+  List: Aliased<dehydrated.List>;
+  Pointer: Aliased<dehydrated.Pointer>;
+  Iterator: Aliased<dehydrated.Iterator>;
+  Dictionary: Aliased<dehydrated.Dictionary>;
   PrimitiveFactory: Primitive;
 }
 
+export type RegistryName = "List" | "Pointer" | "Iterator" | "Dictionary";
+
 export type RegistryValue =
-  | registered.List
-  | registered.Pointer
-  | registered.Iterator
-  | registered.Dictionary;
+  | dehydrated.List
+  | dehydrated.Pointer
+  | dehydrated.Iterator
+  | dehydrated.Dictionary;
 
 export interface TypeID<K extends RegistryName> {
   type: K;
@@ -125,16 +134,16 @@ export class Registry {
   getRecord(
     name: string,
     params: dehydrated.HydrateParameters
-  ): registered.Record {
-    let { dictionary, metadata } = this.getRawRecord(name);
+  ): { name: string; dictionary: DictionaryImpl; metadata: JSONObject | null } {
+    let { dictionary: raw, metadata } = this.getRawRecord(name);
 
-    let inner = dehydrated.hydrate(dictionary, this, params);
+    let dictionary = dehydrated.hydrate(raw, this, params);
 
-    return new registered.Record({
+    return {
       name,
-      inner,
+      dictionary,
       metadata
-    });
+    };
   }
 
   getRawRecord(
@@ -173,17 +182,20 @@ export class Registry {
     }
   }
 
-  set<K extends RegistryName>(id: TypeID<K>, value: RegistryValue): void {
-    let types: Type<RegistryValues[K]> = this.types[id.type];
-    types.set(id.name, value);
+  set<K extends RegistryName, V extends RegistryValue>(
+    id: TypeID<K>,
+    value: V
+  ): void {
+    let types: Type<Aliased<RegistryValue>> = this.types[id.type];
+    types.set(id.name, new Aliased(value));
   }
 
-  get<K extends RegistryName>(id: TypeID<K>): registered.RegisteredType {
+  get<K extends RegistryName>(id: TypeID<K>): RegistryValue {
     let types = this.types[id.type];
     return expect(
       types.get(id.name),
       `Expected ${id.type}:${id.name} to be registered, but it was not`
-    );
+    ).descriptor;
   }
 }
 
