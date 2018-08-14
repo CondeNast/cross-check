@@ -1,5 +1,5 @@
 import { Dict, JSONObject, unknown } from "ts-std";
-import { registered, resolved } from "../../descriptors";
+import { builders, resolved } from "../../descriptors";
 import { REGISTRY, Registry, RegistryName } from "../../registry";
 import { JSONValue } from "../../utils";
 import {
@@ -94,18 +94,21 @@ export interface Primitive {
   // metadata
   description: string;
   typescript: string;
+  required: boolean;
 }
 
 export interface Alias {
   type: "Alias";
-  target: RegistryName;
+  target: RegistryName | "Record";
   name: string;
+  required: boolean;
 }
 
 export interface Pointer {
   type: "Pointer";
   inner: Alias;
   metadata: JSONObject | null;
+  required: boolean;
 
   // Compatibility with the previous descriptor model
   name: string;
@@ -115,6 +118,7 @@ export interface Iterator {
   type: "Iterator";
   inner: Alias;
   metadata: JSONObject | null;
+  required: boolean;
 
   // Compatibility with the previous descriptor model
   name: string;
@@ -124,18 +128,20 @@ export interface List {
   type: "List";
   inner: Descriptor;
   args: resolved.ListArgs;
+  required: boolean;
 }
 
 export type ContainerDescriptor = Pointer | Iterator | List;
 
 export interface Member {
   descriptor: Descriptor;
-  meta: registered.MembersMeta;
+  meta?: builders.MembersMeta;
 }
 
 export interface Dictionary {
   type: "Dictionary";
   members: Dict<Member>;
+  required: boolean;
 }
 
 export interface Record {
@@ -143,6 +149,7 @@ export interface Record {
   name: string;
   members: Dict<Member>;
   metadata: JSONObject | null;
+  required: boolean;
 }
 
 export type Container = Pointer | Iterator | List;
@@ -227,7 +234,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   }
 
   generic(descriptor: ContainerDescriptor, pos: Pos): unknown {
-    let genericPos = genericPosition(descriptor.type);
+    let genericPos = genericPosition(descriptor.type, descriptor.inner);
 
     return this.recursiveDelegate.generic(
       this.visitor.visit(descriptor.inner, genericPos),
@@ -256,7 +263,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
       let dictPosition = DictionaryPosition({
         index: i,
         last,
-        meta: input[key]!.meta
+        descriptor: input[key]!.descriptor
       });
       callback(
         this.visitor.visit(input[key]!.descriptor, dictPosition),
@@ -290,7 +297,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   generic(descriptor: visitor.Container, position: Pos): unknown {
     this.reporter.startGenericValue(position, descriptor);
-    let pos = genericPosition(descriptor.type);
+    let pos = genericPosition(descriptor.type, descriptor.inner);
     this.visitor.visit(descriptor.inner, pos);
     this.reporter.endGenericValue(position, descriptor);
   }
@@ -322,7 +329,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
       let position = DictionaryPosition({
         index: i,
         last,
-        meta: members[key]!.meta
+        descriptor: members[key]!.descriptor
       });
 
       this.reporter.addKey(position, key, members[key]!.descriptor);

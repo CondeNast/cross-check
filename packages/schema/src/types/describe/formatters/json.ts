@@ -1,5 +1,7 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { RecordBuilder } from "../../../record";
+import { visitorDescriptor } from "../../../descriptors/dehydrated";
+import { RecordBuilder, RecordImpl } from "../../../record";
+import { REGISTRY, Registry } from "../../../registry";
 import { JSONValue, exhausted } from "../../../utils";
 import {
   Pos,
@@ -173,6 +175,10 @@ function genericOptions(
   return options;
 }
 
-export function toJSON(record: RecordBuilder): JSONRecord {
-  return new JSONFormatter().record(record.descriptor);
+export function toJSON(
+  record: RecordBuilder | RecordImpl,
+  registry: Registry = REGISTRY
+): JSONRecord {
+  let desc = visitorDescriptor(record.dehydrate(), registry);
+  return new JSONFormatter().record(desc);
 }

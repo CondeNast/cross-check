@@ -5,21 +5,19 @@ import {
   validators
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import { resolved } from "../../descriptors";
+import { dehydrated, resolved } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";
 
-// This class basically exists to make the constructor argument generic.
-export abstract class AbstractType implements Type {
-  constructor(readonly descriptor: resolved.Descriptor) {}
-
-  abstract validation(): ValidationBuilder<unknown>;
-  abstract serialize(input: unknown): unknown;
-  abstract parse(input: unknown): unknown;
-}
-
 export class OptionalityImpl implements Type {
   constructor(private type: Type, private args: resolved.OptionalityArgs) {}
+
+  dehydrate(): dehydrated.Descriptor {
+    return {
+      ...this.type.dehydrate(),
+      required: !this.args.isOptional
+    };
+  }
 
   validation(): ValidationBuilder<unknown> {
     if (this.isOptional) {

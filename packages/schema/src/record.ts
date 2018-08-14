@@ -2,9 +2,9 @@ import { Environment, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, unknown } from "ts-std";
-import { dehydrated, registered } from "./descriptors";
+import { builders, dehydrated } from "./descriptors";
+import { finalizeMeta } from "./descriptors/builders";
 import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
-import { finalizeMeta } from "./descriptors/registered";
 import { REGISTRY, Registry } from "./registry";
 import * as visitor from "./types/describe/visitor";
 import { DictionaryImpl } from "./types/fundamental";
@@ -31,7 +31,8 @@ export class RecordBuilder {
   dehydrate(): dehydrated.Record {
     return {
       type: "Record",
-      name: this.serialized.name
+      name: this.serialized.name,
+      required: true
     };
   }
 
@@ -62,12 +63,16 @@ export class RecordBuilder {
   with(params: dehydrated.HydrateParameters = {}): RecordImpl {
     let dictionary = hydrate(this.serialized, this.registry, params);
 
-    return new RecordImpl(dictionary);
+    return new RecordImpl(dictionary, this.serialized.name);
   }
 }
 
 export class RecordImpl {
-  constructor(private dictionary: DictionaryImpl) {}
+  constructor(private dictionary: DictionaryImpl, readonly name: string) {}
+
+  dehydrate(): dehydrated.Dictionary {
+    return this.dictionary.dehydrate();
+  }
 
   validate(obj: Dict, env: Environment): Task<ValidationError[]> {
     let validation = this.dictionary.validation();
@@ -85,7 +90,7 @@ export class RecordImpl {
 }
 
 export interface RecordOptions {
-  fields: Dict<registered.TypeBuilder>;
+  fields: Dict<builders.TypeBuilder>;
   metadata?: JSONObject;
   registry?: Registry;
 }
@@ -98,14 +103,15 @@ export function Record(
     type: "Dictionary",
     members: mapDict(fields, member => {
       return {
-        descriptor: member.dehydrate(),
+        descriptor: member.dehydrate(false),
         meta: finalizeMeta(member)
       };
-    })
+    }),
+    required: true
   };
 
   registry.setRecord(name, dictionary, metadata);
-  return new RecordBuilder({ type: "Record", name }, registry);
+  return new RecordBuilder({ type: "Record", name, required: true }, registry);
 }
 
 export type Record = RecordBuilder;

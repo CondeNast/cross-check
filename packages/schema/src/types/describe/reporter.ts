@@ -1,5 +1,4 @@
 import { Dict } from "ts-std";
-import { registered } from "../../descriptors";
 import { exhausted } from "../../utils";
 import { Buffer as StringBuffer } from "./buffer";
 import * as visitor from "./visitor";
@@ -225,7 +224,7 @@ export class Reporter<Buffer extends Accumulator<Inner>, Inner, Options> {
 }
 
 export interface ReporterStateConstructor<Buffer, Inner, Options> {
-  new(
+  new (
     state: { buffer: Buffer; nesting: number; options: Options },
     reporters: ReporterDelegate<Buffer, Inner, Options>
   ): ReporterState<Buffer, Inner, Options>;
@@ -307,14 +306,19 @@ export function requiredPosition(position: Pos, isRequiredType: boolean): Pos {
   }
 }
 
-export function genericPosition(type: visitor.Container["type"]): Pos {
+export function genericPosition(
+  type: visitor.Container["type"],
+  desc: visitor.Descriptor
+): Pos {
+  let req = desc.required ? Pos.PositionRequired : 0;
+
   switch (type) {
     case "List":
-      return Pos.InList | Pos.PositionRequired;
+      return Pos.InList | req;
     case "Pointer":
-      return Pos.InPointer | Pos.PositionRequired;
+      return Pos.InPointer | req;
     case "Iterator":
-      return Pos.InIterator | Pos.PositionRequired;
+      return Pos.InIterator | req;
 
     default:
       return exhausted(type);
@@ -324,12 +328,12 @@ export function genericPosition(type: visitor.Container["type"]): Pos {
 export function DictionaryPosition({
   index,
   last,
-  meta
+  descriptor
 }: {
-    index: number;
-    last: number;
-    meta: registered.MembersMeta;
-  }) {
+  index: number;
+  last: number;
+  descriptor: visitor.Descriptor;
+}) {
   let pos = Pos.InDictionary;
 
   if (index === 0) {
@@ -340,7 +344,7 @@ export function DictionaryPosition({
     pos |= Pos.Last;
   }
 
-  if (meta.required) {
+  if (descriptor.required) {
     pos |= Pos.ExplicitRequired;
   }
 
@@ -357,7 +361,7 @@ export abstract class ReporterState<Buffer, Inner, Options> {
   constructor(
     protected state: InnerState<Buffer, Options>,
     protected reporters: ReporterDelegate<Buffer, Inner, Options>
-  ) { }
+  ) {}
 
   pushStrings(value: Inner | void) {
     let { buffer } = this.state;
@@ -407,10 +411,7 @@ export abstract class ReporterState<Buffer, Inner, Options> {
     /* noop */
   }
 
-  startDictionary?(
-    position: Pos,
-    descriptor: visitor.Dictionary
-  ): true | void;
+  startDictionary?(position: Pos, descriptor: visitor.Dictionary): true | void;
 
   startRecord?(position: Pos, descriptor: visitor.Record): true | void;
 
@@ -431,15 +432,9 @@ export abstract class ReporterState<Buffer, Inner, Options> {
 
   endRecord?(position: Pos, descriptor: visitor.Record): true | void;
 
-  startGenericValue?(
-    position: Pos,
-    descriptor: visitor.Container
-  ): true | void;
+  startGenericValue?(position: Pos, descriptor: visitor.Container): true | void;
 
-  endGenericValue?(
-    position: Pos,
-    descriptor: visitor.Container
-  ): true | void;
+  endGenericValue?(position: Pos, descriptor: visitor.Container): true | void;
 
   primitiveValue?(position: Pos, descriptor: visitor.Primitive): void;
   namedValue?(position: Pos, descriptor: visitor.Descriptor): void;

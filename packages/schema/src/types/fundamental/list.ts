@@ -1,6 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { registered, resolved } from "../../descriptors";
+import { builders, dehydrated, resolved } from "../../descriptors";
 import { Type } from "../../type";
 
 const isPresentArray = validators.is(
@@ -10,6 +10,15 @@ const isPresentArray = validators.is(
 
 export class ListImpl implements Type {
   constructor(private inner: Type, private args: resolved.ListArgs) {}
+
+  dehydrate(): dehydrated.List {
+    return {
+      type: "List",
+      args: this.args,
+      inner: this.inner.dehydrate(),
+      required: true
+    };
+  }
 
   serialize(js: any[]): any {
     let itemType = this.inner;
@@ -35,11 +44,11 @@ export class ListImpl implements Type {
 }
 
 export function List(
-  contents: registered.TypeBuilder,
+  contents: builders.TypeBuilder,
   options?: { allowEmpty: boolean }
-): registered.ListBuilder {
-  return new registered.ListBuilder({
+): builders.ListBuilder {
+  return new builders.ListBuilder({
     args: options,
-    contents
+    contents: contents.required()
   });
 }

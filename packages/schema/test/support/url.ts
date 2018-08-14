@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { registered, scalar } from "@cross-check/schema";
+import { builders, scalar } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { format } from "./format";
 
@@ -75,6 +75,6 @@ const URL = scalar("Url", {
   }
 });
 
-export function Url(...kinds: UrlKind[]): registered.PrimitiveBuilder {
+export function Url(...kinds: UrlKind[]): builders.PrimitiveBuilder {
   return URL(kinds);
 }

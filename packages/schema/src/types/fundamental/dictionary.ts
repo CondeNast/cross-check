@@ -1,11 +1,21 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { Dict, Option, assert, unknown } from "ts-std";
-import { registered } from "../../descriptors";
+import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";
 
 export class DictionaryImpl implements Type {
   constructor(private members: Dict<Type>) {}
+
+  dehydrate(): dehydrated.Dictionary {
+    return {
+      type: "Dictionary",
+      members: mapDict(this.members, member => {
+        return { descriptor: member.dehydrate() };
+      }),
+      required: true
+    };
+  }
 
   serialize(js: Dict): Option<Dict> {
     if (js === null) {
@@ -46,12 +56,12 @@ export class DictionaryImpl implements Type {
 }
 
 export interface DictionaryOptions {
-  members: Dict<registered.MembersMeta>;
+  members: Dict<builders.MembersMeta>;
   name?: string;
 }
 
 export function Dictionary(
-  members: Dict<registered.TypeBuilder>
-): registered.DictionaryBuilder {
-  return new registered.DictionaryBuilder({ members });
+  members: Dict<builders.TypeBuilder>
+): builders.DictionaryBuilder {
+  return new builders.DictionaryBuilder({ members });
 }

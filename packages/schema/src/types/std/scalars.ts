@@ -1,14 +1,25 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { JSONObject, unknown } from "ts-std";
-import { registered } from "../../descriptors";
+import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
 import * as type from "../../type";
+import { JSONValue } from "../../utils";
 import { ANY } from "../fundamental";
 
-export abstract class Scalar<Args> implements type.Type {
-  constructor(protected readonly args: Args) {}
+export abstract class Scalar<Args extends JSONValue | undefined>
+  implements type.Type {
+  constructor(protected readonly args: Args, readonly name: string) {}
 
   abstract validation(): ValidationBuilder<unknown>;
+
+  dehydrate(): dehydrated.Descriptor {
+    return {
+      type: "Primitive",
+      name: this.name,
+      args: this.args,
+      required: true
+    };
+  }
 
   serialize(input: unknown): unknown {
     return input;
@@ -171,15 +182,15 @@ interface AllRegisterOptions<Args> extends RegisterOptions {
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithArgs<Args>
-): (args?: Args) => registered.PrimitiveBuilder;
+): (args?: Args) => builders.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithoutArgs
-): () => registered.PrimitiveBuilder;
+): () => builders.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: RegisterOptionsWithArgs<Args> | RegisterOptionsWithoutArgs
-): (args?: any) => registered.PrimitiveBuilder;
+): (args?: any) => builders.PrimitiveBuilder;
 export function scalar<Args>(
   name: string,
   options: AllRegisterOptions<Args>
@@ -211,7 +222,7 @@ export function scalar<Args>(
   }
 
   function Factory(args: any): type.Type {
-    return new Primitive(args);
+    return new Primitive(args, name);
   }
 
   let { description, typescript, base } = options;
@@ -228,7 +239,7 @@ export function scalar<Args>(
   return (args: any) => {
     let primitive = REGISTRY.getPrimitive(name);
 
-    return new registered.PrimitiveBuilder({
+    return new builders.PrimitiveBuilder({
       name: primitive.name,
       args,
       base: primitive.base

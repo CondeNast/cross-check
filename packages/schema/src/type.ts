@@ -1,5 +1,6 @@
 import { ValidationBuilder } from "@cross-check/dsl";
 import { unknown } from "ts-std";
+import { dehydrated } from "./descriptors";
 
 /**
  * Internals Vocabulary:
@@ -51,6 +52,7 @@ export interface Type {
   validation(): ValidationBuilder<unknown>;
   serialize(input: unknown): unknown;
   parse(input: unknown): unknown;
+  dehydrate(): dehydrated.Descriptor;
 }
 
 export type PrimitiveFactory<Args = unknown> = (args: Args) => Type;

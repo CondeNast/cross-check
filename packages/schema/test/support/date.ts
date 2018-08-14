@@ -1,5 +1,5 @@
 import { validators } from "@cross-check/dsl";
-import { registered, scalar } from "@cross-check/schema";
+import { builders, scalar } from "@cross-check/schema";
 
 function isValidDate(input: string): boolean {
   let parsed = Date.parse(input);
@@ -7,7 +7,7 @@ function isValidDate(input: string): boolean {
   return input === new Date(parsed).toISOString();
 }
 
-export const ISODate: () => registered.PrimitiveBuilder = scalar("ISODate", {
+export const ISODate: () => builders.PrimitiveBuilder = scalar("ISODate", {
   description: "ISO Date",
   typescript: "Date",
 
