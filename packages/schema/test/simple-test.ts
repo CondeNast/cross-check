@@ -2,6 +2,7 @@ import {
   keysError,
   missingError,
   typeError,
+  validate,
   validateDraft,
   validatePublished
 } from "./support";
@@ -20,6 +21,38 @@ QUnit.test("all fields are optional in draft mode", async assert => {
     "all fields can be null in drafts"
   );
 });
+
+QUnit.test(
+  "extra fields are permitted when strictKeys is false in draft mode",
+  async assert => {
+    assert.deepEqual(
+      await validate(SimpleArticle.with({ strictKeys: false, draft: true }), {
+        hed: null,
+        dek: null,
+        body: null,
+        other: null
+      }),
+      [],
+      "extra fields are permitted when strictKeys is false in draft mode"
+    );
+  }
+);
+
+QUnit.test(
+  "extra fields are permitted when strictKeys is false in publish mode",
+  async assert => {
+    assert.deepEqual(
+      await validate(SimpleArticle.with({ strictKeys: false }), {
+        hed: "hello world",
+        dek: "this is the dek",
+        body: "the body goes here",
+        other: null
+      }),
+      [],
+      "extra fields are permitted when strictKeys is false in publish mode"
+    );
+  }
+);
 
 QUnit.test("draft mode can accept the widened type", async assert => {
   assert.deepEqual(
@@ -125,7 +158,7 @@ QUnit.test("a valid published draft", async assert => {
   );
 });
 
-QUnit.test("Invalid shape", async assert => {
+QUnit.test("Invalid shape with strictKeys", async assert => {
   assert.deepEqual(
     await validatePublished(SimpleArticle, false as any),
     [typeError("object", null)],
@@ -199,3 +232,65 @@ QUnit.test("Invalid shape", async assert => {
     "extra and missing fields"
   );
 });
+
+QUnit.test(
+  "Shape restrictions are relaxed with strictKeys: false",
+  async assert => {
+    let sloppy = SimpleArticle.with({ strictKeys: false });
+
+    assert.deepEqual(
+      await validate(sloppy, false as any),
+      [typeError("object", null)],
+      "false is not an object even when strictKeys is false"
+    );
+
+    assert.deepEqual(
+      await validate(sloppy, [] as any),
+      [typeError("object", null)],
+      "[] is not an object even when strictKeys is false"
+    );
+
+    assert.deepEqual(
+      await validate(sloppy, (() => null) as any),
+      [typeError("object", null)],
+      "function is not an object even when strictKeys is false"
+    );
+
+    //   QUnit.dump.maxDepth = 10;
+
+    assert.deepEqual(
+      await validate(sloppy, {}),
+      [missingError("hed"), missingError("body")],
+      "required fields still may not be undefined, but optional fields may be undefined if strictKeys is false"
+    );
+
+    assert.deepEqual(
+      await validate(sloppy, {
+        hed: "Hello world"
+      }),
+      [missingError("body")],
+      "required fields still may not be undefined, but optional fields may be undefined if strictKeys is false"
+    );
+
+    assert.deepEqual(
+      await validate(sloppy, {
+        hed: "Hello world",
+        dek: "Hello, the cool world!",
+        body: "Hello!!!",
+        wat: "dis"
+      }),
+      [],
+      "extra fields are allowed when strictKeys is false"
+    );
+
+    assert.deepEqual(
+      await validate(sloppy, {
+        hed: "Hello world",
+        body: "Hello, the cool world!",
+        wat: "dis"
+      }),
+      [],
+      "missing optional fields and extra fields are allowed when strictKeys is false"
+    );
+  }
+);
