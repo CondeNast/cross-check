@@ -1,6 +1,11 @@
-import { Environment, ValidationDescriptor, ValidationError, validate } from "@cross-check/core";
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError,
+  validate
+} from "@cross-check/core";
 import { Task } from "no-show";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 import { ValidationBuilder, build } from "../builders";
 import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";

@@ -1,4 +1,4 @@
-import { Dict, JSONObject, Option, unknown } from "ts-std";
+import { Dict, JSONObject, Option } from "ts-std";
 import { RecordBuilder } from "../record";
 import { RegistryName } from "../registry";
 import { DictionaryImpl, ListArgs } from "../types";

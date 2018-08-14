@@ -1,4 +1,16 @@
-export * from "./descriptor";
+export {
+  ErrorPath,
+  ErrorMessage,
+  ValidationError,
+  Environment,
+  ValidatorFactory,
+  Validator,
+  ValidationDescriptor
+} from "./descriptor";
 export * from "./validate";
 export * from "./format";
-export * from "./validator";
+export {
+  BasicValidator,
+  HigherOrderBasicValidator,
+  validator
+} from "./validator";

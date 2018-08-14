@@ -1,5 +1,4 @@
 import { ValidationDescriptor, format } from "@cross-check/core";
-import { unknown } from "ts-std";
 
 QUnit.module("@cross-check/core format");
 

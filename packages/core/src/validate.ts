@@ -1,5 +1,5 @@
 import { Task } from "no-show";
-import { Indexable, Option, unknown } from "ts-std";
+import { Indexable, Option } from "ts-std";
 import {
   Environment,
   ValidationDescriptor,
@@ -7,7 +7,7 @@ import {
 } from "./descriptor";
 
 const DEFAULT_ENVIRONMENT: Environment = {
-  get(object: unknown, key: PropertyKey): unknown {
+  get(object: unknown, key: string | number): unknown {
     if (object !== null && object !== undefined) {
       return (object as Indexable)[key];
     } else {

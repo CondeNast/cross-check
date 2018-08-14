@@ -1,5 +1,5 @@
 import Task from "no-show";
-import { dict, isIndexable, unknown } from "ts-std";
+import { dict, isIndexable } from "ts-std";
 
 import {
   Environment,

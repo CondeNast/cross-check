@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, assert, unknown } from "ts-std";
+import { Dict, Option, assert } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";

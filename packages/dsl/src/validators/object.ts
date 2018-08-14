@@ -5,24 +5,16 @@ import {
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
-import {
-  Dict,
-  Indexable,
-  Option,
-  Present,
-  dict,
-  entries,
-  unknown
-} from "ts-std";
+import { Dict, Indexable, Option, Present, dict, entries } from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject } from "./is";
 
 function mapError(
   { path, message }: ValidationError,
-  key: string
+  key: string | number
 ): ValidationError {
-  return { path: [key, ...path], message };
+  return { path: [String(key), ...path], message };
 }
 
 /**

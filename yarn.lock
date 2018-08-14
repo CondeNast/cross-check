@@ -7006,10 +7006,10 @@ trim-right@^1.0.1:
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
   integrity sha1-yy4SAwZ+DI3h9hQJS5/kVwTqYAM=
 
-ts-std@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/ts-std/-/ts-std-0.6.2.tgz#bc76d271d338e7ca543e1b89ce4531ddc0424f8d"
-  integrity sha512-mhlyyOBvF7r+Xh8Ut4Fa3qe3BxjQMTWxHLb7NBSkOmxOe1V5Oc5+PpUl/y7tpBOL2sJZwLL1r5T8hqmc0SAFTw==
+ts-std@^0.6.2, ts-std@^0.7.0-beta.1:
+  version "0.7.0-beta.1"
+  resolved "https://registry.yarnpkg.com/ts-std/-/ts-std-0.7.0-beta.1.tgz#11bd69f153054449720123a68e1394453a13ea9d"
+  integrity sha512-sOeWEJ1lSggmcoVMn3hofZBKKBSe87pTYpqv/K5KDU+eQsgHkdz15kiyVUHLzVT1lrbv6H//bEFYwbEqwCwiNg==
 
 tslib@^1.8.0, tslib@^1.8.1:
   version "1.9.2"
@@ -7064,10 +7064,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@*, typescript@~2.8.3, typescript@~2.8.4:
-  version "2.8.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.8.4.tgz#0b1db68e6bdfb0b767fa2ab642136a35b059b199"
-  integrity sha512-IIU5cN1mR5J3z9jjdESJbnxikTrEz3lzAw/D0Tf45jHpBp55nY31UkUvmVHoffCfKHTqJs3fCLPDxknQTTFegQ==
+typescript@*, typescript@~2.8.3, typescript@~3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.1.tgz#43738f29585d3a87575520a4b93ab6026ef11fdb"
+  integrity sha512-zQIMOmC+372pC/CCVLqnQ0zSBiY7HHodU7mpQdjiZddek4GMj31I3dUJ7gAs9o65X7mnRma6OokOkc6f9jjfBg==
 
 uc.micro@^1.0.1, uc.micro@^1.0.5:
   version "1.0.5"

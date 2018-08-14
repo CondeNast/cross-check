@@ -1,4 +1,4 @@
-import { Dict, Option, entries, unknown } from "ts-std";
+import { Dict, Option, entries } from "ts-std";
 import { ValidationDescriptor } from "./descriptor";
 
 type PrimitiveOptions =

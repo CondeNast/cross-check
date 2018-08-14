@@ -1,5 +1,5 @@
 import { Task } from "no-show";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 
 export type ErrorPath = ReadonlyArray<string>;
 
@@ -35,7 +35,7 @@ export interface ValidationError {
  * validators written to be used in that environment.
  */
 export interface Environment {
-  get(object: unknown, key: string): unknown;
+  get(object: unknown, key: string | number): unknown;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { ValidationError } from "@cross-check/core";
-import { Option, unknown } from "ts-std";
+import { Option } from "ts-std";
 
 /// TODO: Extract into
 

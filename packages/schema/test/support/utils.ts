@@ -1,7 +1,7 @@
 import { ValidationError } from "@cross-check/core";
 import { Record, RecordBuilder, RecordImpl } from "@cross-check/schema";
 import { Task } from "no-show";
-import { Dict, Option, unknown } from "ts-std";
+import { Dict, Option } from "ts-std";
 
 export const ENV = {
   get(object: unknown, key: string): unknown {
@@ -12,7 +12,7 @@ export const ENV = {
 
 export function strip(
   strings: TemplateStringsArray,
-  ...expressions: unknown[]
+  ...expressions: Array<unknown>
 ): string {
   let result = strings
     .map((s, i) => `${s}${expressions[i] ? expressions[i] : ""}`)

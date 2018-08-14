@@ -6,7 +6,7 @@ import {
 } from "@cross-check/core";
 import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
 import { Task } from "no-show";
-import { Dict, JSONObject, unknown } from "ts-std";
+import { Dict, JSONObject } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
@@ -85,7 +85,7 @@ export class RecordImpl implements Type, Buildable {
 
 export interface RecordOptions {
   fields: Dict<builders.TypeBuilder>;
-  metadata?: JSONObject;
+  metadata?: JSONObject | null;
   registry?: Registry;
 }
 

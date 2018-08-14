@@ -1,4 +1,4 @@
-import { Dict, JSONObject, unknown } from "ts-std";
+import { Dict, JSONObject } from "ts-std";
 import { builders } from "../../descriptors";
 import { REGISTRY, Registry, RegistryName } from "../../registry";
 import { JSONValue } from "../../utils";

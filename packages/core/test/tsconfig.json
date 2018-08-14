@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "composite": true,
-    "outDir": "ts-build",
 
     "target": "es2015",
     "lib": ["es2015"],
@@ -14,24 +13,11 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 
-    "paths": {
-      "@cross-check/*": ["packages/*/src"]
-    },
-
     "moduleResolution": "node",
     "baseUrl": "./",
-    "rootDirs": ["packages/*/src", "packages/*/test"],
-    "sourceRoot": "./packages",
     "inlineSourceMap": true,
     "inlineSources": true,
 
     "experimentalDecorators": true
-  },
-
-  "include": ["packages/*/src", "packages/dsl/test", "packages/schema/test"],
-  "references": [
-    { "path": "packages/core/test" },
-    { "path": "packages/dsl/test" },
-    { "path": "packages/schema/test" }
-  ]
+  }
 }
