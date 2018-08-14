@@ -9,7 +9,7 @@ import {
   validate
 } from "@cross-check/core";
 import build, {
-  Buildable,
+  ValidationBuildable,
   ValidationBuilder,
   validates
 } from "@cross-check/dsl";
@@ -46,7 +46,7 @@ export class Env implements Environment {
 }
 
 export function buildAndRun<T>(
-  b: Buildable<T>,
+  b: ValidationBuildable<T>,
   value: T
 ): Task<ValidationError[]> {
   return run(build(b), value);

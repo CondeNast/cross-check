@@ -1,5 +1,10 @@
-import { Environment, ValidationError, validate } from "@cross-check/core";
-import build, { ValidationBuilder } from "@cross-check/dsl";
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError,
+  validate
+} from "@cross-check/core";
+import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, unknown } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
@@ -68,7 +73,7 @@ export class RecordBuilder {
   }
 }
 
-export class RecordImpl implements Type {
+export class RecordImpl implements Type, Buildable {
   constructor(private dictionary: DictionaryImpl, readonly name: string) {}
 
   dehydrate(): dehydrated.Dictionary {
@@ -91,6 +96,10 @@ export class RecordImpl implements Type {
 
   serialize(value: Dict): unknown {
     return this.dictionary.serialize(value);
+  }
+
+  [BUILD](): ValidationDescriptor {
+    return build(this.dictionary.validation());
   }
 }
 

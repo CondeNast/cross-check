@@ -4,8 +4,15 @@ import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";
 
+export interface DictionaryImplOptions {
+  strictKeys: boolean;
+}
+
 export class DictionaryImpl implements Type {
-  constructor(private members: Dict<Type>) {}
+  constructor(
+    private members: Dict<Type>,
+    private options: DictionaryImplOptions
+  ) {}
 
   dehydrate(): dehydrated.Dictionary {
     return {
@@ -49,9 +56,15 @@ export class DictionaryImpl implements Type {
   }
 
   validation(): ValidationBuilder<unknown> {
-    return validators.strictObject(
-      mapDict(this.members, member => member.validation())
-    );
+    if (this.options.strictKeys) {
+      return validators.strictObject(
+        mapDict(this.members, member => member.validation())
+      );
+    } else {
+      return validators.object(
+        mapDict(this.members, member => member.validation())
+      );
+    }
   }
 }
 

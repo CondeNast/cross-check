@@ -89,6 +89,7 @@ export interface Record {
 export interface HydrateParameters {
   features?: string[];
   draft?: boolean;
+  strictKeys?: boolean;
 }
 
 export function hydrate(
@@ -152,7 +153,8 @@ function buildType(
           } else {
             return undefined;
           }
-        })
+        }),
+        { strictKeys: parameters.strictKeys !== false }
       );
     }
 
