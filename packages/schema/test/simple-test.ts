@@ -87,7 +87,24 @@ QUnit.test("empty strings are not allowed by default", async assert => {
       dek: "",
       body: ""
     }),
-    [missingError("hed"), missingError("body")],
+    [{
+      "message": {
+        "details": null,
+        "name": "blank"
+      },
+      "path": [
+        "hed"
+      ]
+    },
+    {
+      "message": {
+        "details": null,
+        "name": "blank"
+      },
+      "path": [
+        "body"
+      ]
+    }],
     "published records must not be missing fields or have the widened type"
   );
 });
