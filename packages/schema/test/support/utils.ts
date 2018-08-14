@@ -42,14 +42,14 @@ export function validateDraft(
   record: RecordBuilder,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.draft.validate(obj, ENV);
+  return record.with({ draft: true }).validate(obj, ENV);
 }
 
 export function validatePublished(
   record: Record,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.validate(obj, ENV);
+  return record.with().validate(obj, ENV);
 }
 
 export function typeError(
