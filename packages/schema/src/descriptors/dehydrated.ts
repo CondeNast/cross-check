@@ -169,7 +169,12 @@ function buildType(
 
     case "Iterator": {
       let inner = registry.getRecord(descriptor.inner.name, parameters);
-      return new IteratorImpl(inner.dictionary);
+      return new IteratorImpl(
+        inner.dictionary,
+        inner.name,
+        descriptor.kind,
+        descriptor.metadata
+      );
     }
 
     case "List": {
@@ -186,7 +191,12 @@ function buildType(
 
     case "Pointer": {
       let inner = registry.getRecord(descriptor.inner.name, parameters);
-      return new PointerImpl(inner.dictionary);
+      return new PointerImpl(
+        inner.dictionary,
+        inner.name,
+        descriptor.kind,
+        descriptor.metadata
+      );
     }
 
     case "Primitive": {
@@ -256,6 +266,10 @@ export function visitorDescriptor(
   registry: Registry
 ): visitor.Record;
 export function visitorDescriptor(
+  descriptor: Record | Dictionary,
+  registry: Registry
+): visitor.Record | visitor.Dictionary;
+export function visitorDescriptor(
   descriptor: Descriptor,
   registry: Registry
 ): visitor.Descriptor;
@@ -317,7 +331,7 @@ export function visitorDescriptor(
           type: "Alias",
           target: "Dictionary",
           name: descriptor.inner.name,
-          required: descriptor.required
+          required: descriptor.inner.required
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,

@@ -9,9 +9,13 @@ export class IteratorImpl extends ReferenceImpl {
   dehydrate(): dehydrated.Iterator {
     return {
       type: "Iterator",
-      kind: null as any,
-      metadata: null as any,
-      inner: this.type.dehydrate() as any,
+      kind: this.kind,
+      metadata: this.metadata,
+      inner: {
+        type: "Record",
+        name: this.name,
+        required: true
+      },
       required: true
     };
   }
