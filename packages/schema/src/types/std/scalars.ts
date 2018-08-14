@@ -174,8 +174,8 @@ interface AllRegisterOptions<Args> extends RegisterOptions {
     | ValidationBuilder<unknown>
     | ((args: Args) => ValidationBuilder<unknown>);
   buildArgs?(args: any, required: boolean): any;
-  serialize?(input: any): any;
-  parse?(input: any): any;
+  serialize?(input: unknown): unknown;
+  parse?(input: unknown): unknown;
 }
 
 // TODO: clean up anys
@@ -204,7 +204,7 @@ export function scalar<Args>(
       }
     }
 
-    serialize(input: any): any {
+    serialize(input: unknown): unknown {
       if (options.serialize) {
         return options.serialize(input);
       } else {
@@ -212,7 +212,7 @@ export function scalar<Args>(
       }
     }
 
-    parse(input: any): any {
+    parse(input: unknown): unknown {
       if (options.parse) {
         return options.parse(input);
       } else {

@@ -1,4 +1,12 @@
-import { Dict, JSONObject, Option, dict, expect, unknown } from "ts-std";
+import {
+  Dict,
+  JSONObject,
+  Option,
+  assert,
+  dict,
+  expect,
+  unknown
+} from "ts-std";
 import { dehydrated } from "./descriptors";
 import * as type from "./type";
 import { DictionaryImpl } from "./types/fundamental";
@@ -118,16 +126,38 @@ export interface TypeID<K extends RegistryName> {
 }
 
 export class Registry {
-  private types: RegisteredTypeMap = TYPES();
-  private base = new Type<Base>();
+  static create(): Registry {
+    return new Registry();
+  }
 
-  // bootstrap(other: Registry): Registry {}
+  private constructor(
+    private types: RegisteredTypeMap = TYPES(),
+    private base: Type<Base> = new Type()
+  ) {}
+
+  clone(): Registry {
+    let types = {
+      Record: this.types.Record.copy(),
+      List: this.types.List.copy(),
+      Pointer: this.types.Pointer.copy(),
+      Iterator: this.types.Iterator.copy(),
+      Dictionary: this.types.Dictionary.copy(),
+      PrimitiveFactory: this.types.PrimitiveFactory.copy()
+    };
+
+    return new Registry(types, this.base.copy());
+  }
 
   setRecord(
     name: string,
     dictionary: dehydrated.Dictionary,
     metadata: JSONObject | null
   ) {
+    assert(
+      this.types.Record.get(name) === null,
+      `record:${name} was already registered. You should only register a record once.`
+    );
+
     this.types.Record.set(name, new Record(name, dictionary, metadata));
   }
 
@@ -156,6 +186,11 @@ export class Registry {
   }
 
   setPrimitive(name: string, primitive: PrimitiveRegistration): void {
+    assert(
+      this.types.PrimitiveFactory.get(name) === null,
+      `primitive:${name} was already registered. You should only register a record once.`
+    );
+
     this.types.PrimitiveFactory.set(name, new Primitive(primitive));
   }
 
@@ -199,4 +234,4 @@ export class Registry {
   }
 }
 
-export const REGISTRY = new Registry();
+export const REGISTRY = Registry.create();

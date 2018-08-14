@@ -1,11 +1,12 @@
 import { Environment, ValidationError, validate } from "@cross-check/core";
-import build from "@cross-check/dsl";
+import build, { ValidationBuilder } from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, JSONObject, unknown } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
 import { REGISTRY, Registry } from "./registry";
+import { Type } from "./type";
 import * as visitor from "./types/describe/visitor";
 import { DictionaryImpl } from "./types/fundamental";
 import { mapDict } from "./utils";
@@ -67,7 +68,7 @@ export class RecordBuilder {
   }
 }
 
-export class RecordImpl {
+export class RecordImpl implements Type {
   constructor(private dictionary: DictionaryImpl, readonly name: string) {}
 
   dehydrate(): dehydrated.Dictionary {
@@ -78,6 +79,10 @@ export class RecordImpl {
     let validation = this.dictionary.validation();
 
     return validate(obj, build(validation), null, env);
+  }
+
+  validation(): ValidationBuilder<unknown> {
+    return this.dictionary.validation();
   }
 
   parse(value: Dict): unknown {

@@ -7,3 +7,4 @@ export * from "./type";
 export { types };
 export * from "./descriptors";
 export { DEBUG_LOG } from "./debug";
+export { Registry, REGISTRY } from "./registry";
