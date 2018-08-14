@@ -1,14 +1,17 @@
+import { Environment, ValidationError, validate } from "@cross-check/core";
+import build from "@cross-check/dsl";
+import { Task } from "no-show";
 import { Dict, JSONObject, Option, unknown } from "ts-std";
-import { Registry, RegistryName } from "../registry";
+import { RecordBuilder } from "../record";
+import { REGISTRY, Registry, RegistryName } from "../registry";
 import { Type } from "../type";
 import {
   DictionaryImpl,
   IteratorImpl,
   ListImpl,
-  OptionalityType,
+  OptionalityImpl,
   PointerImpl
 } from "../types";
-import * as visitor from "../types/describe/visitor";
 import { JSONValue, mapDict } from "../utils";
 import * as dehydrated from "./dehydrated";
 import * as resolved from "./resolved";
@@ -18,10 +21,10 @@ export interface TypeMetadata {
   required: Option<boolean>;
 }
 
-export function finalizeMeta(registeredType: RegisteredType): MembersMeta {
+export function finalizeMeta(typeBuilder: TypeBuilder): MembersMeta {
   return {
-    features: registeredType.meta.features || undefined,
-    required: registeredType.meta.required || false
+    features: typeBuilder.meta.features || undefined,
+    required: typeBuilder.meta.required || false
   };
 }
 
@@ -38,76 +41,68 @@ export const DEFAULT_TYPE_METADATA = {
 export type TypeMap<State> = (state: TypeState<State>) => TypeState<State>;
 
 interface RegisteredTypeConstructor<T extends RegisteredType> {
-  new (state: T["state"], meta: TypeMetadata): T;
+  new (state: T["state"]): T;
 }
 
-export function mapMeta<T extends RegisteredType>(
+export function mapMeta<T extends TypeBuilder>(
   registeredType: T,
   callback: (meta: TypeMetadata) => TypeMetadata
 ): T {
-  let mapped = callback(registeredType.typeState.meta);
-  return registeredType.construct({
-    state: registeredType.typeState.state,
-    meta: mapped
-  });
+  let mapped = callback(registeredType.meta);
+  return registeredType.construct(registeredType.state, mapped);
 }
 
 export function mapState<T extends RegisteredType>(
   registeredType: T,
-  callback: (state: T["typeState"]["state"]) => T["typeState"]["state"]
+  callback: (state: T["state"]) => T["state"]
 ): T {
-  let mapped = callback(registeredType.typeState.state);
-  return registeredType.construct({
-    state: mapped,
-    meta: registeredType.typeState.meta
-  });
-}
-
-export interface RuntimeParameters {
-  draft?: boolean;
-  features?: string[];
+  let mapped = callback(registeredType.state);
+  return registeredType.construct(mapped);
 }
 
 export abstract class RegisteredType<State = unknown> {
-  readonly typeState: TypeState<State>;
+  constructor(readonly state: State) {}
 
-  constructor(state: State, meta: TypeMetadata = DEFAULT_TYPE_METADATA) {
-    this.typeState = { state, meta };
-  }
-
-  construct(state: this["typeState"]): this {
+  construct(state: this["state"]): this {
     let Class = this.constructor as RegisteredTypeConstructor<this>;
 
-    return new Class(state.state, state.meta);
+    return new Class(state);
   }
 
-  required(isRequiredType?: boolean): RegisteredType<State> {
+  copy(): this {
+    return this.construct(this.state);
+  }
+
+  abstract instantiate(registry: Registry): Type;
+}
+
+export abstract class TypeBuilder<State = unknown> {
+  constructor(
+    readonly state: State,
+    readonly meta: TypeMetadata = DEFAULT_TYPE_METADATA
+  ) {}
+
+  construct(state: State, meta: this["meta"]): this {
+    let Class = this.constructor as TypeBuilderConstructor<this>;
+    return new Class(state, meta) as this;
+  }
+
+  required(isRequiredType?: boolean): TypeBuilder<State> {
     return mapMeta(this, typeMetadata => ({
       ...typeMetadata,
       required: isRequiredType === undefined ? true : isRequiredType
     }));
   }
 
-  features(features: string[]): RegisteredType<State> {
+  features(features: string[]): TypeBuilder<State> {
     return mapMeta(this, typeMetadata => ({ ...typeMetadata, features }));
   }
 
-  get state() {
-    return this.typeState.state;
-  }
-
-  get meta() {
-    return this.typeState.meta;
-  }
-
   abstract dehydrate(): dehydrated.Descriptor;
-  abstract instantiate(registry: Registry): Type;
-  abstract visitor(registry: Registry): visitor.Descriptor;
-  abstract runtime(parameters: RuntimeParameters): RegisteredType;
 }
 
-export interface TypeBuilderConstructor<State> {
-  new (state: State, meta: TypeMetadata): RegisteredType<State>;
+export interface TypeBuilderConstructor<B extends TypeBuilder> {
+  new (state: B["state"], meta: TypeMetadata): TypeBuilder;
 }
 
 /***** Concrete Builders *****/
@@ -125,6 +120,20 @@ export interface DictionaryState {
 }
 
 export class Dictionary extends RegisteredType<DictionaryState> {
+  // TODO: Does this really need the registry? Or should it instead be
+  // done in hydrate?
+  instantiate(registry: Registry): DictionaryImpl {
+    return new DictionaryImpl(
+      mapDict(this.state.members, member => member.instantiate(registry))
+    );
+  }
+}
+
+export interface DictionaryBuilderState {
+  members: Dict<TypeBuilder>;
+}
+
+export class DictionaryBuilder extends TypeBuilder<DictionaryBuilderState> {
   dehydrate(): dehydrated.Dictionary {
     let members = mapDict(this.state.members, member => {
       return {
@@ -138,42 +147,6 @@ export class Dictionary extends RegisteredType<DictionaryState> {
       members
     };
   }
-
-  instantiate(registry: Registry): DictionaryImpl {
-    return new DictionaryImpl(
-      mapDict(
-        this.state.members,
-        member =>
-          new OptionalityType(member.instantiate(registry), {
-            isOptional: !member.meta.required
-          })
-      )
-    );
-  }
-
-  visitor(registry: Registry): visitor.Dictionary {
-    return {
-      type: "Dictionary",
-      members: mapDict(this.state.members, member => {
-        return {
-          descriptor: member.visitor(registry),
-          meta: finalizeMeta(member)
-        };
-      })
-    };
-  }
-
-  runtime(parameters: RuntimeParameters): Dictionary {
-    if (parameters.draft === true) {
-      let members = mapDict(this.state.members, member =>
-        member.runtime(parameters).required(false)
-      );
-
-      return new Dictionary({ members });
-    } else {
-      return this;
-    }
-  }
 }
 
 //// Iterator ////
@@ -181,34 +154,29 @@ export class Dictionary extends RegisteredType<DictionaryState> {
 export interface IteratorState {
   kind: string;
   metadata: JSONObject | null;
-  contents: Named;
+  record: Record;
 }
 
 export class Iterator extends RegisteredType<IteratorState> {
+  instantiate(registry: Registry): IteratorImpl {
+    return new IteratorImpl(this.state.record.instantiate(registry));
+  }
+}
+
+export interface IteratorBuilderState {
+  kind: string;
+  metadata: JSONObject | null;
+  record: RecordBuilder;
+}
+
+export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
   dehydrate(): dehydrated.Iterator {
     return {
       type: "Iterator",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.contents.dehydrate()
+      inner: this.state.record.dehydrate()
     };
-  }
-
-  instantiate(registry: Registry): IteratorImpl {
-    return new IteratorImpl(this.state.contents.instantiate(registry));
-  }
-
-  visitor(): visitor.Iterator {
-    return {
-      type: "Iterator",
-      inner: this.state.contents.visitor(),
-      metadata: this.state.metadata,
-      name: this.state.contents.state.name
-    };
-  }
-
-  runtime(): Iterator {
-    return this;
   }
 }
 
@@ -220,36 +188,26 @@ export interface ListState {
 }
 
 export class List extends RegisteredType<ListState> {
-  // constructor() {
-  //   super(...arguments);
-
-  //   if ("state" in this.typeState.state) debugger;
-  // }
-  dehydrate(): dehydrated.List {
-    return {
-      type: "List",
-      args: this.state.args,
-      inner: this.state.contents.dehydrate()
-    };
-  }
-
   instantiate(registry: Registry): ListImpl {
     return new ListImpl(
       this.state.contents.instantiate(registry),
       this.state.args
     );
   }
+}
 
-  visitor(registry: Registry): visitor.List {
+export interface ListBuilderState {
+  args?: resolved.ListArgs;
+  contents: TypeBuilder;
+}
+
+export class ListBuilder extends TypeBuilder<ListBuilderState> {
+  dehydrate(): dehydrated.List {
     return {
       type: "List",
-      inner: this.state.contents.visitor(registry),
-      args: this.state.args
+      args: this.state.args,
+      inner: this.state.contents.dehydrate()
     };
-  }
-
-  runtime(): List {
-    return this;
   }
 }
 
@@ -262,6 +220,19 @@ export interface NamedState {
 }
 
 export class Named extends RegisteredType<NamedState> {
+  instantiate(registry: Registry): Type {
+    let type = registry.get({ type: this.state.target, name: this.state.name });
+    return type.instantiate(registry);
+  }
+}
+
+export interface NamedBuilderState {
+  target: RegistryName;
+  name: string;
+  args?: {} | null;
+}
+
+export class NamedBuilder extends TypeBuilder<NamedBuilderState> {
   dehydrate(): dehydrated.Named {
     return {
       type: "Named",
@@ -270,56 +241,50 @@ export class Named extends RegisteredType<NamedState> {
       args: this.state.args
     };
   }
+}
 
-  instantiate(registry: Registry): Type {
-    let type = registry.get({ type: this.state.target, name: this.state.name });
-    return type.instantiate(registry);
-  }
+//// Optionality ////
+export interface OptionalityState {
+  optional: boolean;
+  inner: RegisteredType;
+}
 
-  visitor(): visitor.Alias {
-    return {
-      type: "Alias",
-      target: this.state.target,
-      name: this.state.name
-    };
-  }
-
-  runtime(): RegisteredType {
-    return this;
+export class Optionality extends RegisteredType<OptionalityState> {
+  instantiate(registry: Registry): OptionalityImpl {
+    return new OptionalityImpl(this.state.inner.instantiate(registry), {
+      isOptional: this.state.optional
+    });
   }
 }
+
+//// Pointer ////
 
 export interface PointerState {
   kind: string;
   metadata: JSONObject | null;
-  contents: Named;
+  record: Record;
 }
 
 export class Pointer extends RegisteredType<PointerState> {
+  instantiate(registry: Registry): PointerImpl {
+    return new PointerImpl(this.state.record.instantiate(registry));
+  }
+}
+
+export interface PointerBuilderState {
+  kind: string;
+  metadata: JSONObject | null;
+  record: RecordBuilder;
+}
+
+export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
   dehydrate(): dehydrated.Pointer {
     return {
       type: "Pointer",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.contents.dehydrate()
+      inner: this.state.record.dehydrate()
     };
-  }
-
-  instantiate(registry: Registry): PointerImpl {
-    return new PointerImpl(this.state.contents.instantiate(registry));
-  }
-
-  visitor(): visitor.Pointer {
-    return {
-      type: "Pointer",
-      inner: this.state.contents.visitor(),
-      metadata: this.state.metadata,
-      name: this.state.contents.state.name
-    };
-  }
-
-  runtime(): Pointer {
-    return this;
   }
 }
 
@@ -327,53 +292,35 @@ export class Pointer extends RegisteredType<PointerState> {
 
 export interface PrimitiveState {
   name: string;
-  base?: { name: string; args: JSONValue | undefined };
   args: JSONValue | undefined;
+  required: boolean;
 }
 
 export class Primitive extends RegisteredType<PrimitiveState> {
+  instantiate(registry: Registry): Type {
+    let { factory, buildArgs } = registry.getPrimitive(this.state.name);
+    let args = buildArgs
+      ? buildArgs(this.state.args, this.state.required)
+      : this.state.args;
+
+    return factory(args);
+  }
+}
+
+export interface PrimitiveBuilderState {
+  name: string;
+  args: JSONValue | undefined;
+  base?: { name: string; args: JSONValue | undefined };
+}
+
+export class PrimitiveBuilder extends TypeBuilder<PrimitiveBuilderState> {
   dehydrate(): dehydrated.Primitive {
     return {
       type: "Primitive",
       name: this.state.name,
-      args: this.state.args
-    };
-  }
-
-  instantiate(registry: Registry): Type {
-    let primitive = registry.getPrimitive(this.state.name);
-    return primitive.factory(this.state.args);
-  }
-
-  resolve(): resolved.Primitive {
-    return {
-      type: "Primitive",
-      name: this.state.name,
-      args: this.state.args
-    };
-  }
-
-  visitor(registry: Registry): visitor.Primitive {
-    let primitive = registry.getPrimitive(this.state.name);
-
-    return {
-      type: "Primitive",
-      name: this.state.name,
       args: this.state.args,
-      description: primitive.description,
-      typescript: primitive.typescript
+      base: this.state.base
     };
-  }
-
-  runtime(parameters: RuntimeParameters): Primitive {
-    if (parameters.draft === true && this.state.base) {
-      return new Primitive(this.state.base, {
-        required: false,
-        features: this.meta.features
-      });
-    } else {
-      return this;
-    }
   }
 }
 
@@ -385,34 +332,27 @@ export interface RecordState {
 }
 
 export class Record extends RegisteredType<RecordState> {
-  dehydrate(): dehydrated.Record {
-    return {
-      type: "Record",
-      name: this.state.name
-    };
-  }
-
   instantiate(registry: Registry): DictionaryImpl {
     return this.state.inner.instantiate(registry);
   }
 
-  visitor(registry: Registry): visitor.Record {
-    let inner = this.state.inner.visitor(registry);
+  validate(
+    obj: Dict,
+    env: Environment,
+    registry: Registry = REGISTRY
+  ): Task<ValidationError[]> {
+    let instance = this.instantiate(registry);
+    let validation = instance.validation();
 
-    return {
-      type: "Record",
-      name: this.state.name,
-      members: inner.members,
-      metadata: registry.getRecord(this.state.name).state.metadata
-    };
+    return validate(obj, build(validation), null, env);
   }
 
-  runtime(parameters: RuntimeParameters): Record {
-    return new Record({
-      name: this.state.name,
-      metadata: this.state.metadata,
-      inner: this.state.inner.runtime(parameters)
-    });
+  parse(value: Dict, registry = REGISTRY): unknown {
+    return this.instantiate(registry).parse(value);
+  }
+
+  serialize(value: Dict, registry = REGISTRY): unknown {
+    return this.instantiate(registry).serialize(value);
   }
 }
 

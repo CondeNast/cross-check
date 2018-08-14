@@ -5,7 +5,7 @@ import {
   validators
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import { registered, resolved } from "../../descriptors";
+import { resolved } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";
 
@@ -18,33 +18,7 @@ export abstract class AbstractType implements Type {
   abstract parse(input: unknown): unknown;
 }
 
-export function getFeatures(
-  typeBuilder: registered.RegisteredType
-): string[] | undefined {
-  return typeBuilder.meta.features || undefined;
-}
-
-// export abstract class AbstractContainerType extends AbstractType {
-//   readonly descriptor!: resolved.ContainerDescriptor;
-
-//   protected get type(): Type {
-//     return resolved.instantiate(this.descriptor.inner);
-//   }
-
-//   validation(): ValidationBuilder<unknown> {
-//     return this.type.validation();
-//   }
-
-//   serialize(input: unknown): unknown {
-//     return this.type.serialize(input);
-//   }
-
-//   parse(input: unknown): unknown {
-//     return this.type.parse(input);
-//   }
-// }
-
-export class OptionalityType implements Type {
+export class OptionalityImpl implements Type {
   constructor(private type: Type, private args: resolved.OptionalityArgs) {}
 
   validation(): ValidationBuilder<unknown> {

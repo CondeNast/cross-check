@@ -1,14 +1,7 @@
 import { ValidationError } from "@cross-check/core";
-import { Record, registered, types } from "@cross-check/schema";
+import { Record, dehydrated, registered, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
-import {
-  ENV,
-  keysError,
-  missingError,
-  typeError,
-  validateDraft,
-  validatePublished
-} from "./support";
+import { ENV, keysError, missingError, typeError, validate } from "./support";
 import { Features } from "./support/records";
 
 QUnit.dump.maxDepth = 100;
@@ -19,8 +12,11 @@ QUnit.test(
   "all feature-flagged fields are optional in draft mode",
   async assert => {
     assert.deepEqual(
-      await validateDraft(
-        Features.withFeatures(["category-picker", "description", "map"]),
+      await validate(
+        Features.with({
+          features: ["category-picker", "description", "map"],
+          draft: true
+        }),
         {
           hed: null,
           dek: null,
@@ -39,8 +35,11 @@ QUnit.test(
   "all feature-flagged fields are present in published mode if present",
   async assert => {
     assert.deepEqual(
-      await validateDraft(
-        Features.withFeatures(["category-picker", "description", "map"]),
+      await validate(
+        Features.with({
+          features: ["category-picker", "description", "map"],
+          draft: true
+        }),
         {
           hed: "Hello world",
           dek: "Hello, the cool world!",
@@ -56,7 +55,7 @@ QUnit.test(
 );
 
 export interface TestCase {
-  type: registered.RegisteredType;
+  type: registered.TypeBuilder;
   success: {};
   cases: Array<{
     value: {} | null | undefined;
@@ -238,26 +237,30 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
 
     type = type.features(["flag"]);
 
-    let FeaturesRecord = Record("Flag", {
+    const FeaturesRecordBuilder = Record("Flag", {
       fields: {
         field: type
       }
     });
 
+    let hydrateParams: dehydrated.HydrateParameters = {};
+
     if (draft) {
-      FeaturesRecord = FeaturesRecord.draft;
+      hydrateParams.draft = true;
       matrix.push("draft: true");
     } else {
       matrix.push("draft: false");
     }
 
     if (flagged) {
-      FeaturesRecord = FeaturesRecord.withFeatures(["flag"]);
+      hydrateParams.features = ["flag"];
       matrix.push("flagged: on");
     } else {
-      FeaturesRecord = FeaturesRecord.withFeatures([]);
+      hydrateParams.features = [];
       matrix.push("flagged: off");
     }
+
+    let FeaturesRecord = FeaturesRecordBuilder.with(hydrateParams);
 
     let testValue: { field?: unknown } = {};
 
@@ -611,7 +614,7 @@ QUnit.test(
   "when features flags are disabled, the fields aren't present in publish mode",
   async assert => {
     assert.deepEqual(
-      await validatePublished(Features.withFeatures([]), {
+      await validate(Features.with({ features: [] }), {
         hed: "Hello world",
         dek: "Hello, the cool world!"
       }),
@@ -625,7 +628,7 @@ QUnit.test(
   "when features flags are disabled, the fields aren't present in draft mode",
   async assert => {
     assert.deepEqual(
-      await validateDraft(Features.withFeatures([]), {
+      await validate(Features.with({ features: [], draft: true }), {
         hed: null,
         dek: null
       }),

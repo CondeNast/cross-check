@@ -1,6 +1,6 @@
 import { JSONObject, Option } from "ts-std";
 import { registered, resolved } from "../../descriptors";
-import { Record } from "../../record";
+import { RecordBuilder } from "../../record";
 import { ReferenceImpl } from "./reference";
 
 export class IteratorImpl extends ReferenceImpl {
@@ -8,12 +8,12 @@ export class IteratorImpl extends ReferenceImpl {
 }
 
 export function hasMany(
-  item: Record,
+  item: RecordBuilder,
   options: Option<JSONObject> = null
-): registered.Iterator {
-  return new registered.Iterator({
+): registered.IteratorBuilder {
+  return new registered.IteratorBuilder({
     kind: "hasMany",
     metadata: options,
-    contents: item.type
+    record: item
   });
 }

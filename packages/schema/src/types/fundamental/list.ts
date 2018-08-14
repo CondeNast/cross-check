@@ -35,10 +35,10 @@ export class ListImpl implements Type {
 }
 
 export function List(
-  contents: registered.RegisteredType,
-  options: { allowEmpty: boolean } = { allowEmpty: false }
-): registered.List {
-  return new registered.List({
+  contents: registered.TypeBuilder,
+  options?: { allowEmpty: boolean }
+): registered.ListBuilder {
+  return new registered.ListBuilder({
     args: options,
     contents
   });

@@ -51,7 +51,7 @@ export interface DictionaryOptions {
 }
 
 export function Dictionary(
-  members: Dict<registered.RegisteredType>
-): registered.Dictionary {
-  return new registered.Dictionary({ members });
+  members: Dict<registered.TypeBuilder>
+): registered.DictionaryBuilder {
+  return new registered.DictionaryBuilder({ members });
 }

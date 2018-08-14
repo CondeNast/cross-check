@@ -1,5 +1,5 @@
 import { ValidationError } from "@cross-check/core";
-import { Record } from "@cross-check/schema";
+import { Record, RecordBuilder, registered } from "@cross-check/schema";
 import { Task } from "no-show";
 import { Dict, Option, unknown } from "ts-std";
 
@@ -31,8 +31,15 @@ export function strip(
   return lines.join("\n");
 }
 
+export function validate(
+  record: registered.Record,
+  obj: Dict<unknown>
+): Task<ValidationError[]> {
+  return record.validate(obj, ENV);
+}
+
 export function validateDraft(
-  record: Record,
+  record: RecordBuilder,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
   return record.draft.validate(obj, ENV);

@@ -1,5 +1,5 @@
 import { Dict, unknown } from "ts-std";
-import { RegisteredRecord } from "../../../record";
+import { RecordBuilder } from "../../../record";
 import * as visitor from "../visitor";
 
 export interface ListTypesTypes extends visitor.RecursiveDelegateTypes {
@@ -50,6 +50,6 @@ class ListTypes implements visitor.RecursiveDelegate<ListTypesTypes> {
   }
 }
 
-export function listTypes(record: RegisteredRecord): unknown {
+export function listTypes(record: RecordBuilder): unknown {
   return new ListTypes().record(record.descriptor);
 }
