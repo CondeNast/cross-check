@@ -1,4 +1,5 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { ErrorMessage } from "@cross-check/core";
+import { ValidationBuilder, ValueValidator, builderFor, validators } from "@cross-check/dsl";
 import { JSONObject } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
@@ -8,7 +9,7 @@ import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args extends JSONValue | undefined>
   implements type.Type {
-  constructor(protected readonly args: Args, readonly name: string) {}
+  constructor(protected readonly args: Args, readonly name: string) { }
 
   abstract validation(): ValidationBuilder<unknown>;
 
@@ -30,10 +31,26 @@ export abstract class Scalar<Args extends JSONValue | undefined>
   }
 }
 
-const notBlankString = validators.is(
-  (value: string): value is string => value.length > 0,
-  "present"
-);
+export function isBlank(value: string) {
+  return value.trim() === "";
+}
+
+export class NotBlankValidator extends ValueValidator<string, void> {
+  static validatorName = "not-blank";
+  validate(value: string): ErrorMessage | void {
+    if (isBlank(value)) {
+      return { name: "not-blank", details: null };
+    }
+  }
+}
+
+export const isNotBlank = builderFor(NotBlankValidator);
+
+export function isRequired(): ValidationBuilder<string> {
+  return isNotBlank().catch(() => [
+    { path: [], message: { name: "blank", details: null } }
+  ]);
+}
 
 export function text(
   args: TextOptions | undefined
@@ -43,7 +60,7 @@ export function text(
   if (allowEmpty) {
     return validators.isString();
   } else {
-    return validators.isString().andThen(notBlankString());
+    return validators.isString().andThen(isRequired());
   }
 }
 
@@ -171,8 +188,8 @@ export interface RegisterOptionsWithoutArgs extends RegisterOptions {
 
 interface AllRegisterOptions<Args> extends RegisterOptions {
   validation:
-    | ValidationBuilder<unknown>
-    | ((args: Args) => ValidationBuilder<unknown>);
+  | ValidationBuilder<unknown>
+  | ((args: Args) => ValidationBuilder<unknown>);
   buildArgs?(args: any, required: boolean): any;
   serialize?(input: unknown): unknown;
   parse?(input: unknown): unknown;
