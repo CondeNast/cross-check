@@ -1,10 +1,9 @@
 import { Dict, JSONObject, Option, unknown } from "ts-std";
 import { RecordBuilder } from "../record";
 import { RegistryName } from "../registry";
-import { DictionaryImpl } from "../types";
+import { DictionaryImpl, ListArgs } from "../types";
 import { JSONValue, mapDict } from "../utils";
 import * as dehydrated from "./dehydrated";
-import * as resolved from "./resolved";
 
 export interface TypeMetadata {
   features: Option<string[]>;
@@ -127,7 +126,7 @@ export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
 //// List ////
 
 export interface ListBuilderState {
-  args?: resolved.ListArgs;
+  args?: ListArgs;
   contents: TypeBuilder;
 }
 

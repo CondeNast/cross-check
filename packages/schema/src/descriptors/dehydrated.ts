@@ -4,19 +4,15 @@ import { Type } from "../type";
 import {
   DictionaryImpl,
   IteratorImpl,
+  ListArgs,
   ListImpl,
   OptionalityImpl,
   PointerImpl,
   visitor
 } from "../types";
 import { JSONValue, exhausted, mapDict } from "../utils";
-import * as resolved from "./resolved";
 
 export type Args = JSONValue | undefined;
-
-export interface Factory<D extends Descriptor> {
-  new (descriptor: D): resolved.Descriptor;
-}
 
 /***** Concrete Descriptors *****/
 
@@ -49,7 +45,7 @@ export interface Iterator {
 //// List ////
 export interface List {
   readonly type: "List";
-  readonly args?: resolved.ListArgs;
+  readonly args?: ListArgs;
   readonly inner: Descriptor;
   readonly required: boolean;
 }
@@ -85,17 +81,10 @@ export interface Primitive {
 export interface Record {
   readonly type: "Record";
   readonly name: string;
-
-  // TODO: ???
   readonly required: boolean;
 }
 
 /***** Hydrator *****/
-
-export interface ResolveDelegate {
-  descriptor(id: Named): resolved.Descriptor;
-  instantiate(desc: Descriptor): Type;
-}
 
 export interface HydrateParameters {
   features?: string[];

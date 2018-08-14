@@ -1,7 +1,8 @@
 import { Dict, JSONObject, unknown } from "ts-std";
-import { builders, resolved } from "../../descriptors";
+import { builders } from "../../descriptors";
 import { REGISTRY, Registry, RegistryName } from "../../registry";
 import { JSONValue } from "../../utils";
+import { ListArgs } from "../fundamental";
 import {
   Accumulator,
   DictionaryPosition,
@@ -127,7 +128,7 @@ export interface Iterator {
 export interface List {
   type: "List";
   inner: Descriptor;
-  args: resolved.ListArgs;
+  args: ListArgs;
   required: boolean;
 }
 
