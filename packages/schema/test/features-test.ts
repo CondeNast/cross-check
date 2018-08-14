@@ -1,5 +1,5 @@
 import { ValidationError } from "@cross-check/core";
-import { Record, dehydrated, registered, types } from "@cross-check/schema";
+import { Record, builders, dehydrated, types } from "@cross-check/schema";
 import { unknown } from "ts-std";
 import { ENV, keysError, missingError, typeError, validate } from "./support";
 import { Features } from "./support/records";
@@ -55,7 +55,7 @@ QUnit.test(
 );
 
 export interface TestCase {
-  type: registered.TypeBuilder;
+  type: builders.TypeBuilder;
   success: {};
   cases: Array<{
     value: {} | null | undefined;

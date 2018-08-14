@@ -13,8 +13,7 @@ export interface TypeMetadata {
 
 export function finalizeMeta(typeBuilder: TypeBuilder): MembersMeta {
   return {
-    features: typeBuilder.meta.features || undefined,
-    required: typeBuilder.meta.required || false
+    features: typeBuilder.meta.features || undefined
   };
 }
 
@@ -23,19 +22,19 @@ export interface TypeState<State = unknown> {
   meta: TypeMetadata;
 }
 
-export const DEFAULT_TYPE_METADATA = {
+export const DEFAULT_TYPE_METADATA: TypeMetadata = {
   features: null,
-  required: false
+  required: null
 };
 
 export type TypeMap<State> = (state: TypeState<State>) => TypeState<State>;
 
 export function mapMeta<T extends TypeBuilder>(
-  registeredType: T,
+  builder: T,
   callback: (meta: TypeMetadata) => TypeMetadata
 ): T {
-  let mapped = callback(registeredType.meta);
-  return registeredType.construct(registeredType.state, mapped);
+  let mapped = callback(builder.meta);
+  return builder.construct(builder.state, mapped);
 }
 
 export abstract class TypeBuilder<State = unknown> {
@@ -60,7 +59,13 @@ export abstract class TypeBuilder<State = unknown> {
     return mapMeta(this, typeMetadata => ({ ...typeMetadata, features }));
   }
 
-  abstract dehydrate(): dehydrated.Descriptor;
+  abstract dehydrate(isRequiredPosition: boolean): dehydrated.Descriptor;
+
+  protected isRequired(isRequiredPosition: boolean) {
+    return this.meta.required === null
+      ? isRequiredPosition
+      : this.meta.required;
+  }
 }
 
 export interface TypeBuilderConstructor<B extends TypeBuilder> {
@@ -74,7 +79,6 @@ export interface TypeBuilderConstructor<B extends TypeBuilder> {
 export interface MembersMeta extends JSONObject {
   [key: string]: JSONValue | undefined;
   features?: string[];
-  required: boolean;
 }
 
 export interface DictionaryBuilderState {
@@ -82,17 +86,19 @@ export interface DictionaryBuilderState {
 }
 
 export class DictionaryBuilder extends TypeBuilder<DictionaryBuilderState> {
-  dehydrate(): dehydrated.Dictionary {
+  dehydrate(isRequiredPosition: boolean): dehydrated.Dictionary {
     let members = mapDict(this.state.members, member => {
       return {
-        descriptor: member.dehydrate(),
+        descriptor: member.dehydrate(false),
         meta: finalizeMeta(member)
       };
     });
 
     return {
       type: "Dictionary",
-      members
+      members,
+      required:
+        this.meta.required === null ? isRequiredPosition : this.meta.required
     };
   }
 }
@@ -106,12 +112,14 @@ export interface IteratorBuilderState {
 }
 
 export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
-  dehydrate(): dehydrated.Iterator {
+  dehydrate(isRequiredPosition: boolean): dehydrated.Iterator {
     return {
       type: "Iterator",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.record.dehydrate()
+      inner: this.state.record.dehydrate(),
+      required:
+        this.meta.required === null ? isRequiredPosition : this.meta.required
     };
   }
 }
@@ -124,11 +132,13 @@ export interface ListBuilderState {
 }
 
 export class ListBuilder extends TypeBuilder<ListBuilderState> {
-  dehydrate(): dehydrated.List {
+  dehydrate(isRequiredPosition: boolean): dehydrated.List {
     return {
       type: "List",
       args: this.state.args,
-      inner: this.state.contents.dehydrate()
+      inner: this.state.contents.dehydrate(true),
+      required:
+        this.meta.required === null ? isRequiredPosition : this.meta.required
     };
   }
 }
@@ -142,12 +152,13 @@ export interface NamedBuilderState {
 }
 
 export class NamedBuilder extends TypeBuilder<NamedBuilderState> {
-  dehydrate(): dehydrated.Named {
+  dehydrate(isRequiredPosition: boolean): dehydrated.Named {
     return {
       type: "Named",
       target: this.state.target,
       name: this.state.name,
-      args: this.state.args
+      args: this.state.args,
+      required: this.isRequired(isRequiredPosition)
     };
   }
 }
@@ -161,12 +172,13 @@ export interface PointerBuilderState {
 }
 
 export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
-  dehydrate(): dehydrated.Pointer {
+  dehydrate(isRequiredPosition: boolean): dehydrated.Pointer {
     return {
       type: "Pointer",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.record.dehydrate()
+      inner: this.state.record.dehydrate(),
+      required: this.isRequired(isRequiredPosition)
     };
   }
 }
@@ -180,12 +192,13 @@ export interface PrimitiveBuilderState {
 }
 
 export class PrimitiveBuilder extends TypeBuilder<PrimitiveBuilderState> {
-  dehydrate(): dehydrated.Primitive {
+  dehydrate(isRequiredPosition: boolean): dehydrated.Primitive {
     return {
       type: "Primitive",
       name: this.state.name,
       args: this.state.args,
-      base: this.state.base
+      base: this.state.base,
+      required: this.isRequired(isRequiredPosition)
     };
   }
 }
