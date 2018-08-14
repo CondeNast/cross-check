@@ -46,26 +46,6 @@ export class RecordBuilder {
     return visitorDescriptor(this.serialized, this.registry);
   }
 
-  get draft(): RecordImpl {
-    return this.with({ draft: true });
-  }
-
-  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return this.with().validate(obj, env);
-  }
-
-  parse(obj: Dict): unknown {
-    return this.with().parse(obj);
-  }
-
-  serialize(obj: Dict): unknown {
-    return this.with().serialize(obj);
-  }
-
-  withFeatures(features: string[]): RecordImpl {
-    return this.with({ features });
-  }
-
   with(params: dehydrated.HydrateParameters = {}): RecordImpl {
     let dictionary = hydrate(this.serialized, this.registry, params);
 

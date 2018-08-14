@@ -20,7 +20,9 @@ QUnit.test("simple - published", assert => {
 
 QUnit.test("simple - draft", assert => {
   assert.equal(
-    typescript(SimpleArticle.draft, { name: "SimpleArticleDraft" }),
+    typescript(SimpleArticle.with({ draft: true }), {
+      name: "SimpleArticleDraft"
+    }),
 
     strip`
         export interface SimpleArticleDraft {
@@ -64,7 +66,9 @@ QUnit.test("detailed - published", assert => {
 
 QUnit.test("detailed - draft", assert => {
   assert.equal(
-    typescript(MediumArticle.draft, { name: "MediumArticleDraft" }),
+    typescript(MediumArticle.with({ draft: true }), {
+      name: "MediumArticleDraft"
+    }),
 
     strip`
       export interface MediumArticleDraft {

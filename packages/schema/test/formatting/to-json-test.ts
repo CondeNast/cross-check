@@ -19,7 +19,7 @@ QUnit.test("simple - published", assert => {
 });
 
 QUnit.test("simple - draft", assert => {
-  assert.deepEqual(toJSON(SimpleArticle.draft), {
+  assert.deepEqual(toJSON(SimpleArticle.with({ draft: true })), {
     fields: {
       hed: { type: "Text", required: false, args: { allowEmpty: true } },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -114,7 +114,7 @@ QUnit.test("detailed - published", assert => {
 });
 
 QUnit.test("detailed - draft", assert => {
-  let actual = toJSON(MediumArticle.draft);
+  let actual = toJSON(MediumArticle.with({ draft: true }));
   let fields = {
     hed: { type: "Text", required: false, args: { allowEmpty: true } },
     dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -220,7 +220,7 @@ QUnit.test("relationships - published", assert => {
 
 QUnit.test("relationships - draft", assert => {
   assert.deepEqual(
-    toJSON(Related.draft),
+    toJSON(Related.with({ draft: true })),
 
     {
       fields: {

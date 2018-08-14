@@ -94,7 +94,7 @@ QUnit.test("empty strings are not allowed by default", async assert => {
 
 QUnit.test("parsing", assert => {
   assert.deepEqual(
-    SimpleArticle.parse({
+    SimpleArticle.with().parse({
       hed: "Hello world",
       body: "The body"
     }),
@@ -106,7 +106,7 @@ QUnit.test("parsing", assert => {
   );
 
   assert.deepEqual(
-    SimpleArticle.parse({
+    SimpleArticle.with().parse({
       hed: "Hello world",
       dek: "Hello. Hello world.",
       body: "The body"
@@ -121,7 +121,7 @@ QUnit.test("parsing", assert => {
 
 QUnit.test("serialize", assert => {
   assert.deepEqual(
-    SimpleArticle.serialize({
+    SimpleArticle.with().serialize({
       hed: "Hello world",
       dek: null,
       body: "The body"
@@ -133,7 +133,7 @@ QUnit.test("serialize", assert => {
   );
 
   assert.deepEqual(
-    SimpleArticle.serialize({
+    SimpleArticle.with().serialize({
       hed: "Hello world",
       dek: "Hello. Hello world.",
       body: "The body"
