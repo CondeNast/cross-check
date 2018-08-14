@@ -5,12 +5,16 @@ import {
   validators
 } from "@cross-check/dsl";
 import { Option, assert, unknown } from "ts-std";
-import { dehydrated, resolved } from "../../descriptors";
+import { dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";
 
+export interface OptionalityArgs {
+  isOptional: boolean;
+}
+
 export class OptionalityImpl implements Type {
-  constructor(private type: Type, private args: resolved.OptionalityArgs) {}
+  constructor(private type: Type, private args: OptionalityArgs) {}
 
   dehydrate(): dehydrated.Descriptor {
     return {
@@ -52,17 +56,6 @@ export class OptionalityImpl implements Type {
   private get isOptional(): boolean {
     return this.args.isOptional;
   }
-}
-
-export function Optionality(
-  inner: resolved.Descriptor,
-  isOptional: boolean
-): resolved.Optionality {
-  return {
-    type: "Optionality",
-    args: { isOptional },
-    inner
-  };
 }
 
 class AnyValidator extends ValueValidator<unknown, void> {

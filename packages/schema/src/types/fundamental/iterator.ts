@@ -1,11 +1,9 @@
 import { JSONObject, Option } from "ts-std";
-import { builders, dehydrated, resolved } from "../../descriptors";
+import { builders, dehydrated } from "../../descriptors";
 import { RecordBuilder } from "../../record";
 import { ReferenceImpl } from "./reference";
 
 export class IteratorImpl extends ReferenceImpl {
-  readonly descriptor!: resolved.Iterator;
-
   dehydrate(): dehydrated.Iterator {
     return {
       type: "Iterator",

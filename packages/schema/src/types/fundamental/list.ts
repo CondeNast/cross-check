@@ -1,6 +1,6 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { unknown } from "ts-std";
-import { builders, dehydrated, resolved } from "../../descriptors";
+import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 
 const isPresentArray = validators.is(
@@ -8,8 +8,12 @@ const isPresentArray = validators.is(
   "present-array"
 );
 
+export interface ListArgs {
+  readonly allowEmpty: boolean;
+}
+
 export class ListImpl implements Type {
-  constructor(private inner: Type, private args: resolved.ListArgs) {}
+  constructor(private inner: Type, private args: ListArgs) {}
 
   dehydrate(): dehydrated.List {
     return {
