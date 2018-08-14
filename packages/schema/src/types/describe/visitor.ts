@@ -144,6 +144,20 @@ export interface Dictionary {
   required: boolean;
 }
 
+export function toRecord(desc: Dictionary | Record): Record {
+  if (desc.type === "Record") {
+    return desc;
+  } else {
+    return {
+      type: "Record",
+      name: "anonymous",
+      members: desc.members,
+      metadata: null,
+      required: desc.required
+    };
+  }
+}
+
 export interface Record {
   type: "Record";
   name: string;

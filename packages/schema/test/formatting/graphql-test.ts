@@ -1,11 +1,6 @@
 import { graphql } from "@cross-check/schema";
 import { GRAPHQL_SCALAR_MAP, strip } from "../support";
-import {
-  // Bundle,
-  MediumArticle,
-  Related,
-  SimpleArticle
-} from "../support/records";
+import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 QUnit.module("[schema] formatting - graphql");
 
@@ -21,19 +16,19 @@ QUnit.test("simple", assert => {
     `
   );
 
-  // assert.equal(
-  //   graphql(SimpleArticle.draft, {
-  //     name: "Simple",
-  //     scalarMap: GRAPHQL_SCALAR_MAP
-  //   }),
-  //   strip`
-  //     type Simple {
-  //       hed: String
-  //       dek: String
-  //       body: String
-  //     }
-  //   `
-  // );
+  assert.equal(
+    graphql(SimpleArticle.draft, {
+      name: "Simple",
+      scalarMap: GRAPHQL_SCALAR_MAP
+    }),
+    strip`
+      type Simple {
+        hed: String
+        dek: String
+        body: String
+      }
+    `
+  );
 });
 
 QUnit.test("detailed", assert => {

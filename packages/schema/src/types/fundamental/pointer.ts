@@ -9,9 +9,13 @@ export class PointerImpl extends ReferenceImpl {
   dehydrate(): dehydrated.Pointer {
     return {
       type: "Pointer",
-      kind: null as any,
-      metadata: null as any,
-      inner: this.type.dehydrate() as any,
+      kind: this.kind,
+      metadata: this.metadata,
+      inner: {
+        type: "Record",
+        name: this.name,
+        required: true
+      },
       required: true
     };
   }

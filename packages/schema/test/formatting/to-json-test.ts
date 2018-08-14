@@ -179,7 +179,7 @@ QUnit.test("detailed - draft", assert => {
   assert.deepEqual(actual, expected);
 });
 
-QUnit.test("relationships", assert => {
+QUnit.test("relationships - published", assert => {
   assert.deepEqual(
     toJSON(Related),
     {
@@ -216,38 +216,37 @@ QUnit.test("relationships", assert => {
     },
     "Related"
   );
+});
 
-  // assert.deepEqual(
-  //   toJSON(Related.draft),
+QUnit.test("relationships - draft", assert => {
+  assert.deepEqual(
+    toJSON(Related.draft),
 
-  //   {
-  //     fields: {
-  //       first: { type: "Text", required: false, args: { allowEmpty: true } },
-  //       last: { type: "Text", required: false, args: { allowEmpty: true } },
-  //       person: {
-  //         type: "Pointer",
-  //         kind: "hasOne",
-  //         required: false,
-  //         of: {
-  //           alias: "SimpleArticle",
-  //           required: true
-  //         }
-  //       },
-  //       articles: {
-  //         type: "Iterator",
-  //         kind: "hasMany",
-  //         required: false,
-  //         of: {
-  //           alias: "MediumArticle",
-  //           required: true
-  //         }
-  //       }
-  //     },
-  //     metadata: {
-  //       collectionName: "related-articles",
-  //       modelName: "related-article"
-  //     }
-  //   },
-  //   "Related.draft"
-  // );
+    {
+      fields: {
+        first: { type: "Text", required: false, args: { allowEmpty: true } },
+        last: { type: "Text", required: false, args: { allowEmpty: true } },
+        person: {
+          type: "Pointer",
+          kind: "hasOne",
+          required: false,
+          of: {
+            alias: "SimpleArticle",
+            required: true
+          }
+        },
+        articles: {
+          type: "Iterator",
+          kind: "hasMany",
+          required: false,
+          of: {
+            alias: "MediumArticle",
+            required: true
+          }
+        }
+      },
+      metadata: undefined
+    },
+    "Related.draft"
+  );
 });

@@ -48,7 +48,7 @@ export interface JSONAlias {
 
 export interface JSONRecord {
   fields: Dict<Item>;
-  metadata: Option<JSONValue>;
+  metadata?: Option<JSONValue>;
 }
 
 export type Item = JSONGeneric | JSONPrimitive | JSONDictionary | JSONAlias;
@@ -132,14 +132,14 @@ class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
   }
 
   record(
-    descriptor: visitor.Record
+    descriptor: visitor.Record | visitor.Dictionary
   ): {
     fields: Dict<Item>;
-    metadata: Option<JSONValue>;
+    metadata?: Option<JSONValue>;
   } {
     return {
       fields: this.dictionaryOrRecord(descriptor),
-      metadata: descriptor.metadata
+      metadata: "metadata" in descriptor ? descriptor.metadata : undefined
     };
   }
 
