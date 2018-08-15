@@ -43,6 +43,6 @@
     "@cross-check/core": "0.11.0-beta.5",
     "@cross-check/dsl": "0.11.0-beta.5",
     "no-show": "^0.6.2",
-    "ts-std": "^0.7.0-beta.1"
+    "ts-std": "^0.7.0"
   }
 }
