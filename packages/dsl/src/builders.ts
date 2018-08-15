@@ -5,6 +5,7 @@ import {
   MapErrorTransform,
   and,
   chain,
+  ifValid,
   mapError,
   or
 } from "./combinators";
@@ -58,6 +59,11 @@ export interface ValidationBuilder<T> {
    * a "multi" validation that includes the errors for any validation that failed.
    */
   or<U extends T>(validation: ValidationBuildable<U>): ValidationBuilder<T>;
+
+  /**
+   * @api public
+   */
+  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U>;
 
   /**
    * @api public
@@ -294,6 +300,18 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
+  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U> {
+    return new IfValidBuilder(
+      "if",
+      ifValid,
+      [
+        build(validation) as ValidationDescriptor,
+        build(this) as ValidationDescriptor
+      ],
+      this.contexts
+    );
+  }
+
   andThen<U extends T>(
     validation: ValidationBuildable<U>
   ): ValidationBuilder<T> {
@@ -331,6 +349,20 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       this.name,
       this.factory as ValidatorFactory<T, unknown>,
       this.options,
+      this.contexts
+    );
+  }
+}
+
+class IfValidBuilder<T> extends BaseValidationBuilder<
+  T,
+  ReadonlyArray<ValidationDescriptor>
+> {
+  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U> {
+    return new IfValidBuilder(
+      "if",
+      ifValid,
+      [build(validation) as ValidationDescriptor, ...this.options],
       this.contexts
     );
   }

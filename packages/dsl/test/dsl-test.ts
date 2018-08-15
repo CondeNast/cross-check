@@ -5,6 +5,7 @@ import validates, {
   chain,
   extend,
   factoryForCallback,
+  ifValid,
   mapError,
   or
 } from "@cross-check/dsl";
@@ -170,6 +171,47 @@ QUnit.test("andThen", assert => {
         name: "validationCallback",
         validator: factoryForCallback,
         options: validationCallback,
+        contexts: []
+      }
+    ],
+    contexts: []
+  };
+
+  assert.deepEqual(validations, expected);
+});
+
+QUnit.test("if", assert => {
+  let validations = validates(
+    uniqueness()
+      .if(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
+      .if(str())
+  );
+
+  assert.equal(
+    format(validations),
+    `(if (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness))`
+  );
+
+  let expected = {
+    name: "if",
+    validator: ifValid,
+    options: [
+      {
+        name: "str",
+        validator: factory("str"),
+        options: undefined,
+        contexts: []
+      },
+      {
+        name: "isEmail",
+        validator: factory("isEmail"),
+        options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
+        contexts: []
+      },
+      {
+        name: "uniqueness",
+        validator: factory("uniqueness"),
+        options: undefined,
         contexts: []
       }
     ],

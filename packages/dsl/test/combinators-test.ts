@@ -10,6 +10,7 @@ import {
   MapErrorTransform,
   and,
   chain,
+  ifValid,
   mapError,
   muteAll,
   mutePath,
@@ -142,6 +143,30 @@ QUnit.test("or", async assert => {
         [error("reason")]
       ])
     ]
+  );
+});
+
+QUnit.test("if", async assert => {
+  assert.deepEqual(await runMulti(ifValid, [success(), success()]), []);
+  assert.deepEqual(await runMulti(ifValid, [fail("reason"), success()]), []);
+  assert.deepEqual(await runMulti(ifValid, [success(), fail("reason")]), [
+    error("reason")
+  ]);
+
+  assert.deepEqual(
+    await runMulti(ifValid, [
+      success(),
+      fail("reason 1"),
+      success(),
+      fail("reason 2"),
+      success()
+    ]),
+    []
+  );
+
+  assert.deepEqual(
+    await runMulti(ifValid, [fail("reason"), fail("reason"), fail("reason")]),
+    []
   );
 });
 

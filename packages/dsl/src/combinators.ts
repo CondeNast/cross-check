@@ -15,6 +15,13 @@ export type CombinatorFactory<T> = ValidatorFactory<
   ValidationDescriptors<T>
 >;
 
+/**
+ * Run a list of descriptors, one at a time. Report the first failure, and
+ * done't execute the remaining descriptors.
+ *
+ * @param descriptors
+ * @param env
+ */
 export function chain<T>(
   descriptors: ValidationDescriptors<T>,
   env: Environment
@@ -31,6 +38,13 @@ export function chain<T>(
   };
 }
 
+/**
+ * Run a list of descriptors, one at a time. Report a list of all of the
+ * failures, merged together. Dedupe identical errors.
+ *
+ * @param descriptors
+ * @param env
+ */
 export function and<T>(
   descriptors: ValidationDescriptors<T>,
   env: Environment
@@ -51,6 +65,14 @@ export function and<T>(
   };
 }
 
+/**
+ * Run a list of descriptors, one at a time. If any of the validations fail,
+ * report a "multiple" error containing a list of error lists, one for each
+ * validation failure.
+ *
+ * @param descriptors
+ * @param env
+ */
 export function or<T>(
   descriptors: ValidationDescriptors<T>,
   env: Environment
@@ -70,6 +92,43 @@ export function or<T>(
       }
 
       return [{ path: [], message: { name: "multiple", details: result } }];
+    });
+  };
+}
+
+/**
+ * Run a list of descriptors, one at a time. If any but the final descriptor
+ * fails, report no error.
+ *
+ * Otherwise, run the final descriptor and report its errors.
+ *
+ * This is useful when the head descriptors represent conditions that, when
+ * present, render future descriptors irrelevant (for example, if a feature
+ * flag is disabled, the remaining validations aren't important).
+ *
+ * @param descriptors
+ * @param env
+ */
+export function ifValid<T>(
+  descriptors: ValidationDescriptors<T>,
+  env: Environment
+): Validator<T> {
+  return (value, context): Task<ValidationError[]> => {
+    return new Task(async run => {
+      let head = descriptors.slice(0, -1);
+      let tail = descriptors.slice(-1)[0];
+
+      for (let descriptor of head) {
+        let errors = await run(validate(value, descriptor, context, env));
+
+        if (errors.length === 0) {
+          continue;
+        } else {
+          return [];
+        }
+      }
+
+      return run(validate(value, tail, context, env));
     });
   };
 }
