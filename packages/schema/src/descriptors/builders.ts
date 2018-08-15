@@ -7,7 +7,7 @@ import * as dehydrated from "./dehydrated";
 
 export interface TypeMetadata {
   features: Option<string[]>;
-  required: Option<boolean>;
+  required: Option<dehydrated.Required>;
 }
 
 export function finalizeMeta(typeBuilder: TypeBuilder): MembersMeta {
@@ -47,10 +47,10 @@ export abstract class TypeBuilder<State = unknown> {
     return new Class(state, meta) as this;
   }
 
-  required(isRequiredType?: boolean): TypeBuilder<State> {
+  required(declaration?: boolean | dehydrated.Required): TypeBuilder<State> {
     return mapMeta(this, typeMetadata => ({
       ...typeMetadata,
-      required: isRequiredType === undefined ? true : isRequiredType
+      required: required(declaration)
     }));
   }
 
@@ -58,9 +58,11 @@ export abstract class TypeBuilder<State = unknown> {
     return mapMeta(this, typeMetadata => ({ ...typeMetadata, features }));
   }
 
-  abstract dehydrate(isRequiredPosition: boolean): dehydrated.Descriptor;
+  abstract dehydrate(
+    isRequiredPosition: dehydrated.Required
+  ): dehydrated.Descriptor;
 
-  protected isRequired(isRequiredPosition: boolean) {
+  protected isRequired(isRequiredPosition: dehydrated.Required) {
     return this.meta.required === null
       ? isRequiredPosition
       : this.meta.required;
@@ -85,10 +87,10 @@ export interface DictionaryBuilderState {
 }
 
 export class DictionaryBuilder extends TypeBuilder<DictionaryBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.Dictionary {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Dictionary {
     let members = mapDict(this.state.members, member => {
       return {
-        descriptor: member.dehydrate(false),
+        descriptor: member.dehydrate("never"),
         meta: finalizeMeta(member)
       };
     });
@@ -111,7 +113,7 @@ export interface IteratorBuilderState {
 }
 
 export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.Iterator {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Iterator {
     return {
       type: "Iterator",
       kind: this.state.kind,
@@ -131,11 +133,11 @@ export interface ListBuilderState {
 }
 
 export class ListBuilder extends TypeBuilder<ListBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.List {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.List {
     return {
       type: "List",
       args: this.state.args,
-      inner: this.state.contents.dehydrate(true),
+      inner: this.state.contents.dehydrate("published"),
       required:
         this.meta.required === null ? isRequiredPosition : this.meta.required
     };
@@ -151,7 +153,7 @@ export interface NamedBuilderState {
 }
 
 export class NamedBuilder extends TypeBuilder<NamedBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.Named {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Named {
     return {
       type: "Named",
       target: this.state.target,
@@ -171,7 +173,7 @@ export interface PointerBuilderState {
 }
 
 export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.Pointer {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Pointer {
     return {
       type: "Pointer",
       kind: this.state.kind,
@@ -191,7 +193,7 @@ export interface PrimitiveBuilderState {
 }
 
 export class PrimitiveBuilder extends TypeBuilder<PrimitiveBuilderState> {
-  dehydrate(isRequiredPosition: boolean): dehydrated.Primitive {
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Primitive {
     return {
       type: "Primitive",
       name: this.state.name,
@@ -207,4 +209,18 @@ export interface RecordState {
   name: string;
   metadata: JSONObject | null;
   inner: DictionaryImpl;
+}
+
+///// Helper Functions /////
+
+function required(
+  declaration: undefined | boolean | dehydrated.Required
+): dehydrated.Required {
+  if (typeof declaration === "string") {
+    return declaration;
+  } else if (declaration === undefined || declaration === true) {
+    return "published";
+  } else {
+    return "never";
+  }
 }

@@ -19,7 +19,7 @@ export class OptionalityImpl implements Type {
   dehydrate(): dehydrated.Descriptor {
     return {
       ...this.type.dehydrate(),
-      required: !this.args.isOptional
+      required: this.args.isOptional ? "never" : "always"
     };
   }
 

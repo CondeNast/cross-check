@@ -17,7 +17,7 @@ export abstract class Scalar<Args extends JSONValue | undefined>
       type: "Primitive",
       name: this.name,
       args: this.args,
-      required: true
+      required: "always"
     };
   }
 

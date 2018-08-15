@@ -116,7 +116,7 @@ QUnit.test("detailed - published", assert => {
 QUnit.test("detailed - draft", assert => {
   let actual = toJSON(MediumArticle.with({ draft: true }));
   let fields = {
-    hed: { type: "Text", required: false, args: { allowEmpty: true } },
+    hed: { type: "Text", required: true },
     dek: { type: "Text", required: false, args: { allowEmpty: true } },
     body: { type: "Text", required: false, args: { allowEmpty: true } },
     author: {

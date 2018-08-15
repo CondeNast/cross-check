@@ -26,7 +26,7 @@ if (DEBUG_LOG === "debug") {
 
 export const MediumArticle: Record = Record("MediumArticle", {
   fields: {
-    hed: types.SingleLine().required(),
+    hed: types.SingleLine().required("always"),
     dek: types.Text(),
     body: types.Text().required(),
     author: types.Dictionary({

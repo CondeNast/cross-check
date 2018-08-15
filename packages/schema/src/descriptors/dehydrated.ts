@@ -14,6 +14,8 @@ import { JSONValue, exhausted, mapDict } from "../utils";
 
 export type Args = JSONValue | undefined;
 
+export type Required = "always" | "never" | "published";
+
 /***** Concrete Descriptors *****/
 
 //// Dictionary ////
@@ -30,7 +32,7 @@ export interface Member {
 export interface Dictionary {
   readonly type: "Dictionary";
   readonly members: Dict<Member>;
-  required: boolean;
+  readonly required: Required;
 }
 
 //// Iterator ////
@@ -39,7 +41,7 @@ export interface Iterator {
   readonly kind: string;
   readonly metadata: JSONObject | null;
   readonly inner: Record;
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 //// List ////
@@ -47,7 +49,7 @@ export interface List {
   readonly type: "List";
   readonly args?: ListArgs;
   readonly inner: Descriptor;
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 //// Named ////
@@ -56,7 +58,7 @@ export interface Named {
   readonly target: RegistryName;
   readonly name: string;
   readonly args?: JSONValue;
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 //// Pointer ////
@@ -65,7 +67,7 @@ export interface Pointer {
   readonly kind: string;
   readonly metadata: JSONObject | null;
   readonly inner: Record;
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 //// Primitive ////
@@ -74,14 +76,14 @@ export interface Primitive {
   readonly name: string;
   readonly args: JSONValue | undefined;
   readonly base?: { name: string; args: JSONValue | undefined };
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 //// Record ////
 export interface Record {
   readonly type: "Record";
   readonly name: string;
-  readonly required: boolean;
+  readonly required: Required;
 }
 
 /***** Hydrator *****/
@@ -110,17 +112,20 @@ export function hydrate(
   parameters: HydrateParameters,
   forceIsRequired?: boolean
 ): Type {
-  let isRequired: boolean;
+  let computedRequired: boolean;
 
   if (forceIsRequired !== undefined) {
-    isRequired = forceIsRequired;
+    computedRequired = forceIsRequired;
   } else {
-    isRequired = descriptor.required && !parameters.draft;
+    computedRequired = isRequired(
+      descriptor.required,
+      parameters.draft === true
+    );
   }
 
   return required(
-    buildType(descriptor, registry, parameters, isRequired),
-    isRequired
+    buildType(descriptor, registry, parameters, computedRequired),
+    computedRequired
   );
 }
 
@@ -128,7 +133,7 @@ function buildType(
   descriptor: Descriptor,
   registry: Registry,
   parameters: HydrateParameters,
-  isRequired: boolean
+  computedRequired: boolean
 ): Type {
   switch (descriptor.type) {
     case "Named": {
@@ -171,7 +176,7 @@ function buildType(
     case "List": {
       let args = descriptor.args || { allowEmpty: false };
 
-      if (!isRequired) {
+      if (!computedRequired) {
         args = { allowEmpty: true };
       }
 
@@ -203,7 +208,7 @@ function buildType(
       let args;
 
       if (buildArgs) {
-        args = buildArgs(primitive.args, isRequired);
+        args = buildArgs(primitive.args, computedRequired);
       } else {
         args = primitive.args;
       }
@@ -221,8 +226,8 @@ function buildType(
   }
 }
 
-function required(type: Type, isRequired: boolean): Type {
-  return new OptionalityImpl(type, { isOptional: !isRequired });
+function required(type: Type, computedRequired: boolean): Type {
+  return new OptionalityImpl(type, { isOptional: !computedRequired });
 }
 
 function hasFeatures(
@@ -274,7 +279,7 @@ export function visitorDescriptor(
         type: "Alias",
         target: descriptor.target,
         name: descriptor.name,
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -287,7 +292,7 @@ export function visitorDescriptor(
             meta: member.meta
           };
         }),
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -298,11 +303,11 @@ export function visitorDescriptor(
           type: "Alias",
           target: "Dictionary",
           name: descriptor.inner.name,
-          required: descriptor.inner.required
+          required: visitorRequired(descriptor.inner.required)
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -311,7 +316,7 @@ export function visitorDescriptor(
         type: "List",
         inner: visitorDescriptor(descriptor.inner, registry),
         args: descriptor.args || { allowEmpty: false },
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -322,11 +327,11 @@ export function visitorDescriptor(
           type: "Alias",
           target: "Dictionary",
           name: descriptor.inner.name,
-          required: descriptor.inner.required
+          required: visitorRequired(descriptor.inner.required)
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -338,7 +343,7 @@ export function visitorDescriptor(
       let { name, args } = descriptor;
 
       if (buildArgs) {
-        args = buildArgs(args, descriptor.required);
+        args = buildArgs(args, visitorRequired(descriptor.required));
       }
 
       return {
@@ -347,7 +352,7 @@ export function visitorDescriptor(
         args,
         description,
         typescript,
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -360,7 +365,7 @@ export function visitorDescriptor(
         name: descriptor.name,
         members,
         metadata,
-        required: descriptor.required
+        required: visitorRequired(descriptor.required)
       };
     }
 
@@ -382,3 +387,17 @@ export interface Descriptors {
 
 export type DescriptorType = keyof Descriptors;
 export type Descriptor = Descriptors[DescriptorType];
+
+/***** Helper Functions *****/
+
+function isRequired(requiredWhen: Required, draft: boolean): boolean {
+  if (draft === true) {
+    return requiredWhen === "always";
+  } else {
+    return requiredWhen === "always" || requiredWhen === "published";
+  }
+}
+
+function visitorRequired(requiredWhen: Required): boolean {
+  return requiredWhen === "always" || requiredWhen === "published";
+}

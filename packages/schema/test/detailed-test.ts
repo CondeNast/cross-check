@@ -35,8 +35,8 @@ QUnit.test(
   async assert => {
     assert.deepEqual(
       await validateDraft({}),
-      [],
-      "draft records can be missing fields"
+      [missingError("hed")],
+      "draft records can be missing fields (but not `required('always')`)"
     );
   }
 );
@@ -53,6 +53,7 @@ QUnit.test("drafts", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       categories: []
     }),
     [],
@@ -61,6 +62,7 @@ QUnit.test("drafts", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       categories: ["This\nis\na multiline\nstring"]
     }),
     [],
@@ -98,6 +100,7 @@ QUnit.test("published documents", async assert => {
 QUnit.test("dates (issueDate)", async assert => {
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       issueDate: "not -- a valid :: date"
     }),
     [typeError("iso-date", "issueDate")],
@@ -118,6 +121,7 @@ QUnit.test("dates (issueDate)", async assert => {
 QUnit.test("optional dictionaries (geo)", async assert => {
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       geo: {
         lat: null,
         long: null
@@ -162,10 +166,11 @@ QUnit.test("optional dictionaries (geo)", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       geo: { lat: "10", long: "20" }
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-    "nested fields in drafts use the draft type (but numbers still are't strings)"
+    "nested fields in drafts use the draft type (but numbers still aren't strings)"
   );
 
   assert.deepEqual(
@@ -195,6 +200,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       author: { first: "Christina\nTODO: Check", last: "Kung" }
     }),
     [],
@@ -216,6 +222,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
 QUnit.test("optional dictionaries (geo)", async assert => {
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       geo: {
         lat: null,
         long: null
@@ -260,6 +267,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       geo: { lat: "10", long: "20" }
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
@@ -279,6 +287,7 @@ QUnit.test("optional dictionaries (geo)", async assert => {
 
   assert.deepEqual(
     await validateDraft({
+      hed: "hello world",
       author: { first: "Christina\nTODO: Check", last: "Kung" }
     }),
     [],

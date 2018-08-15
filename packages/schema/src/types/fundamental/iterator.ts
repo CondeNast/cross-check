@@ -12,9 +12,9 @@ export class IteratorImpl extends ReferenceImpl {
       inner: {
         type: "Record",
         name: this.name,
-        required: true
+        required: "always"
       },
-      required: true
+      required: "always"
     };
   }
 }

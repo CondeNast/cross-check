@@ -20,7 +20,7 @@ export class DictionaryImpl implements Type {
       members: mapDict(this.members, member => {
         return { descriptor: member.dehydrate() };
       }),
-      required: true
+      required: "always"
     };
   }
 

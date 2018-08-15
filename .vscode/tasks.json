@@ -5,12 +5,12 @@
   "tasks": [
     {
       "label": "Type Check",
-      "type": "npm",
-      "script": "problems",
+      "type": "shell",
+      "command": "yarn problems",
       "problemMatcher": "$tsc",
       "presentation": {
         "echo": false,
-        "reveal": "never",
+        "reveal": "always",
         "focus": false,
         "panel": "shared"
       },

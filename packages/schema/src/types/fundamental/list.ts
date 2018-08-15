@@ -19,7 +19,7 @@ export class ListImpl implements Type {
       type: "List",
       args: this.args,
       inner: this.inner.dehydrate(),
-      required: true
+      required: "always"
     };
   }
 

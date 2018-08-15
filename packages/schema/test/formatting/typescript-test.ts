@@ -72,7 +72,7 @@ QUnit.test("detailed - draft", assert => {
 
     strip`
       export interface MediumArticleDraft {
-        hed?: string;
+        hed: string;
         dek?: string;
         body?: string;
         author?: {

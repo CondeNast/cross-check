@@ -38,7 +38,7 @@ export class RecordBuilder {
     return {
       type: "Record",
       name: this.serialized.name,
-      required: true
+      required: "always"
     };
   }
 
@@ -97,15 +97,18 @@ export function Record(
     type: "Dictionary",
     members: mapDict(fields, member => {
       return {
-        descriptor: member.dehydrate(false),
+        descriptor: member.dehydrate("never"),
         meta: finalizeMeta(member)
       };
     }),
-    required: true
+    required: "always"
   };
 
   registry.setRecord(name, dictionary, metadata);
-  return new RecordBuilder({ type: "Record", name, required: true }, registry);
+  return new RecordBuilder(
+    { type: "Record", name, required: "always" },
+    registry
+  );
 }
 
 export type Record = RecordBuilder;
