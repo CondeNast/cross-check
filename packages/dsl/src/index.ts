@@ -1,5 +1,13 @@
 export { build as default } from "./builders";
-export * from "./builders";
+export {
+  ValidationBuildable,
+  BUILD,
+  Buildable,
+  ValidationBuilder,
+  validates,
+  extend,
+  builderForDescriptor
+} from "./builders";
 export * from "./combinators";
 import * as validators from "./validators";
 export { validators };

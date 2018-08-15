@@ -20,14 +20,16 @@ function isMultiple(error: ValidationError): error is Multiple {
   return error.message.name === "multiple";
 }
 
+export type MappedDict<D, U> = { [P in keyof D]: U };
+
 export function mapDict<D extends Dict<T>, T, U>(
-  input: Dict<T> & D,
+  input: D & Dict<T>,
   callback: (value: T, key: keyof D) => U | undefined
-): Dict<U> {
-  let out = dict<U>();
+): MappedDict<D, U> {
+  let out = dict() as MappedDict<D, U>;
 
   for (let [key, value] of entries(input)) {
-    let result = callback(value!, key);
+    let result = callback(value! as T, key);
     if (result !== undefined) {
       out[key] = result;
     }

@@ -1,5 +1,5 @@
 import { ErrorMessage } from "@cross-check/core";
-import { Absent, Present, isIndexable as indexable, unknown } from "ts-std";
+import { Absent, Present, isIndexable as indexable } from "ts-std";
 import { ValidationBuilder, validates } from "../builders";
 import { factoryFor } from "./abstract";
 import { ValueValidator } from "./value";
@@ -67,6 +67,6 @@ export const isObject = is(
   "object"
 );
 export const isArray = is(
-  (value: unknown): value is unknown[] => Array.isArray(value),
+  (value: unknown): value is Array<unknown> => Array.isArray(value),
   "array"
 );

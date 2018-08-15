@@ -3,7 +3,6 @@
  */
 
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
-import { unknown } from "ts-std";
 
 /** @internal */
 export function descriptor<T>(

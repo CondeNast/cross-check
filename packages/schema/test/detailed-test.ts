@@ -1,6 +1,6 @@
 import { ValidationError } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, unknown } from "ts-std";
+import { Dict } from "ts-std";
 import { ENV, error, missingError, typeError, urlish } from "./support";
 import { MediumArticle } from "./support/records";
 
@@ -23,11 +23,11 @@ function create(object: Dict = {}) {
 }
 
 export function validateDraft(obj: Dict<unknown>): Task<ValidationError[]> {
-  return MediumArticle.draft.validate(create(obj), ENV);
+  return MediumArticle.with({ draft: true }).validate(create(obj), ENV);
 }
 
 export function validatePublished(obj: Dict<unknown>): Task<ValidationError[]> {
-  return MediumArticle.validate(create(obj), ENV);
+  return MediumArticle.with().validate(create(obj), ENV);
 }
 
 QUnit.test(
@@ -391,7 +391,7 @@ QUnit.test("optional lists (tags)", async assert => {
 
 QUnit.test("parsing", assert => {
   assert.deepEqual(
-    MediumArticle.parse({
+    MediumArticle.with().parse({
       hed: "Hello world",
       body: "The body",
       categories: ["one category", "two categories"]
@@ -411,7 +411,7 @@ QUnit.test("parsing", assert => {
   );
 
   assert.deepEqual(
-    MediumArticle.parse({
+    MediumArticle.with().parse({
       hed: "Hello world",
       dek: null,
       body: "The body",
@@ -441,7 +441,7 @@ QUnit.test("parsing", assert => {
   let url = urlish("https://example.com/path/to/hello");
 
   assert.deepEqual(
-    MediumArticle.parse({
+    MediumArticle.with().parse({
       hed: "Hello world",
       dek: "Hello. Hello world.",
       body: "The body",
@@ -490,7 +490,7 @@ QUnit.test("parsing", assert => {
 
 QUnit.test("serializing", assert => {
   assert.deepEqual(
-    MediumArticle.serialize(
+    MediumArticle.with().serialize(
       create({
         hed: "Hello world",
         body: "The body",
@@ -508,7 +508,7 @@ QUnit.test("serializing", assert => {
   let url = urlish("https://example.com/path/to/hello");
 
   assert.deepEqual(
-    MediumArticle.serialize(
+    MediumArticle.with().serialize(
       create({
         hed: "Hello world",
         dek: "Hello. Hello world.",

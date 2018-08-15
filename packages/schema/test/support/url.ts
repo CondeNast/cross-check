@@ -1,6 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
 import { builders, scalar } from "@cross-check/schema";
-import { unknown } from "ts-std";
 import { format } from "./format";
 
 export type UrlKind =

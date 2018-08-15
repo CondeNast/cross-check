@@ -1,10 +1,9 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { unknown } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 
 const isPresentArray = validators.is(
-  (value: unknown[]): value is unknown[] => value.length > 0,
+  (value: Array<unknown>): value is Array<unknown> => value.length > 0,
   "present-array"
 );
 

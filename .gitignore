@@ -5,3 +5,4 @@ tmp
 package/
 *.tgz
 DEBUG/
+ts-build/

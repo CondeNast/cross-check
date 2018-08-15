@@ -4,7 +4,7 @@ import {
   builderFor,
   validators
 } from "@cross-check/dsl";
-import { Option, assert, unknown } from "ts-std";
+import { Option, assert } from "ts-std";
 import { dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";

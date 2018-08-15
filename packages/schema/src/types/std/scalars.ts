@@ -1,5 +1,5 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { JSONObject, unknown } from "ts-std";
+import { JSONObject } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
 import * as type from "../../type";

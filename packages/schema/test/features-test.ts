@@ -6,7 +6,6 @@ import {
   dehydrated,
   types
 } from "@cross-check/schema";
-import { unknown } from "ts-std";
 import { ENV, keysError, missingError, typeError, validate } from "./support";
 import { Features } from "./support/records";
 

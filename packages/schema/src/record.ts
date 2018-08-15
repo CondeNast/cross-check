@@ -6,7 +6,7 @@ import {
 } from "@cross-check/core";
 import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
 import { Task } from "no-show";
-import { Dict, JSONObject, unknown } from "ts-std";
+import { Dict, JSONObject } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
@@ -44,26 +44,6 @@ export class RecordBuilder {
 
   get descriptor(): visitor.Record {
     return visitorDescriptor(this.serialized, this.registry);
-  }
-
-  get draft(): RecordImpl {
-    return this.with({ draft: true });
-  }
-
-  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
-    return this.with().validate(obj, env);
-  }
-
-  parse(obj: Dict): unknown {
-    return this.with().parse(obj);
-  }
-
-  serialize(obj: Dict): unknown {
-    return this.with().serialize(obj);
-  }
-
-  withFeatures(features: string[]): RecordImpl {
-    return this.with({ features });
   }
 
   with(params: dehydrated.HydrateParameters = {}): RecordImpl {
@@ -105,7 +85,7 @@ export class RecordImpl implements Type, Buildable {
 
 export interface RecordOptions {
   fields: Dict<builders.TypeBuilder>;
-  metadata?: JSONObject;
+  metadata?: JSONObject | null;
   registry?: Registry;
 }
 

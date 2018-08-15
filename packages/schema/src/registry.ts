@@ -1,12 +1,4 @@
-import {
-  Dict,
-  JSONObject,
-  Option,
-  assert,
-  dict,
-  expect,
-  unknown
-} from "ts-std";
+import { Dict, JSONObject, Option, assert, dict, expect } from "ts-std";
 import { dehydrated } from "./descriptors";
 import * as type from "./type";
 import { DictionaryImpl } from "./types/fundamental";

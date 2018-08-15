@@ -17,7 +17,7 @@ QUnit.test("simple", assert => {
   );
 
   assert.equal(
-    graphql(SimpleArticle.draft, {
+    graphql(SimpleArticle.with({ draft: true }), {
       name: "Simple",
       scalarMap: GRAPHQL_SCALAR_MAP
     }),

@@ -1,5 +1,5 @@
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
-import { assert, unknown } from "ts-std";
+import { assert } from "ts-std";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -247,13 +247,11 @@ function isCallback<T>(
   return typeof buildable === "function";
 }
 
-function isBuilder<T>(
-  buildable: Partial<Buildable<T>>
-): buildable is Buildable<T> {
-  return typeof (buildable as any)[BUILD] === "function";
+function isBuilder<T>(buildable: any): buildable is Buildable<T> {
+  return typeof buildable[BUILD] === "function";
 }
 
-export function builderFor<T>(
+export function builderForDescriptor<T>(
   desc: ValidationDescriptor<T>
 ): ValidationBuilder<T> {
   return new BaseValidationBuilder(
