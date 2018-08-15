@@ -1,6 +1,6 @@
 {
   "name": "@cross-check/schema",
-  "version": "0.11.0-beta.5",
+  "version": "0.11.0",
   "description": "A library for schema validations",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>",
@@ -40,8 +40,8 @@
     "write-pkg": "*"
   },
   "peerDependencies": {
-    "@cross-check/core": "0.11.0-beta.5",
-    "@cross-check/dsl": "0.11.0-beta.5",
+    "@cross-check/core": "0.11.0",
+    "@cross-check/dsl": "0.11.0",
     "no-show": "^0.6.2",
     "ts-std": "^0.7.0"
   }
