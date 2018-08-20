@@ -1,5 +1,4 @@
 import { Dict, JSONObject, Option } from "ts-std";
-import { RecordBuilder } from "../record";
 import { RegistryName } from "../registry";
 import { DictionaryImpl, ListArgs } from "../types";
 import { JSONValue, mapDict } from "../utils";
@@ -109,7 +108,7 @@ export class DictionaryBuilder extends TypeBuilder<DictionaryBuilderState> {
 export interface IteratorBuilderState {
   kind: string;
   metadata: JSONObject | null;
-  record: RecordBuilder;
+  record: string;
 }
 
 export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
@@ -118,7 +117,7 @@ export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
       type: "Iterator",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.record.dehydrate(),
+      inner: this.state.record,
       required:
         this.meta.required === null ? isRequiredPosition : this.meta.required
     };
@@ -169,7 +168,7 @@ export class NamedBuilder extends TypeBuilder<NamedBuilderState> {
 export interface PointerBuilderState {
   kind: string;
   metadata: JSONObject | null;
-  record: RecordBuilder;
+  record: string;
 }
 
 export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
@@ -178,7 +177,7 @@ export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
       type: "Pointer",
       kind: this.state.kind,
       metadata: this.state.metadata,
-      inner: this.state.record.dehydrate(),
+      inner: this.state.record,
       required: this.isRequired(isRequiredPosition)
     };
   }
