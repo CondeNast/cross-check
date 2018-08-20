@@ -62,8 +62,8 @@ export const Related: Record = Record("Related", {
     first: types.SingleLine(),
     last: types.Text(),
 
-    person: types.hasOne(SimpleArticle).required(),
-    articles: types.hasMany(MediumArticle)
+    person: types.hasOne("SimpleArticle").required(),
+    articles: types.hasMany("MediumArticle")
   },
   metadata: {
     collectionName: "related-articles",

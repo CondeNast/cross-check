@@ -40,7 +40,7 @@ export interface Iterator {
   readonly type: "Iterator";
   readonly kind: string;
   readonly metadata: JSONObject | null;
-  readonly inner: Record;
+  readonly inner: string;
   readonly required: Required;
 }
 
@@ -66,7 +66,7 @@ export interface Pointer {
   readonly type: "Pointer";
   readonly kind: string;
   readonly metadata: JSONObject | null;
-  readonly inner: Record;
+  readonly inner: string;
   readonly required: Required;
 }
 
@@ -164,7 +164,7 @@ function buildType(
     }
 
     case "Iterator": {
-      let inner = registry.getRecord(descriptor.inner.name, parameters);
+      let inner = registry.getRecord(descriptor.inner, parameters);
       return new IteratorImpl(
         inner.dictionary,
         inner.name,
@@ -186,7 +186,7 @@ function buildType(
     }
 
     case "Pointer": {
-      let inner = registry.getRecord(descriptor.inner.name, parameters);
+      let inner = registry.getRecord(descriptor.inner, parameters);
       return new PointerImpl(
         inner.dictionary,
         inner.name,
@@ -302,8 +302,8 @@ export function visitorDescriptor(
         inner: {
           type: "Alias",
           target: "Dictionary",
-          name: descriptor.inner.name,
-          required: visitorRequired(descriptor.inner.required)
+          name: descriptor.inner,
+          required: true
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
@@ -326,8 +326,8 @@ export function visitorDescriptor(
         inner: {
           type: "Alias",
           target: "Dictionary",
-          name: descriptor.inner.name,
-          required: visitorRequired(descriptor.inner.required)
+          name: descriptor.inner,
+          required: true
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
