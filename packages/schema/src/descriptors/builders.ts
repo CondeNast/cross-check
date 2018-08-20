@@ -7,11 +7,17 @@ import * as dehydrated from "./dehydrated";
 export interface TypeMetadata {
   features: Option<string[]>;
   required: Option<dehydrated.Required>;
+  mutabilityMode: Option<
+    dehydrated.MutabilityMode | dehydrated.MutabilityShorthand
+  >;
 }
 
 export function finalizeMeta(typeBuilder: TypeBuilder): MembersMeta {
   return {
-    features: typeBuilder.meta.features || undefined
+    features: typeBuilder.meta.features || undefined,
+    mutabilityMode: typeBuilder.meta.mutabilityMode
+      ? dehydrated.mutabilityMode(typeBuilder.meta.mutabilityMode)
+      : undefined
   };
 }
 
@@ -22,7 +28,8 @@ export interface TypeState<State = unknown> {
 
 export const DEFAULT_TYPE_METADATA: TypeMetadata = {
   features: null,
-  required: null
+  required: null,
+  mutabilityMode: null
 };
 
 export type TypeMap<State> = (state: TypeState<State>) => TypeState<State>;
@@ -55,6 +62,27 @@ export abstract class TypeBuilder<State = unknown> {
 
   features(features: string[]): TypeBuilder<State> {
     return mapMeta(this, typeMetadata => ({ ...typeMetadata, features }));
+  }
+
+  readonly(): TypeBuilder<State> {
+    return mapMeta(this, typeMetadata => ({
+      ...typeMetadata,
+      mutabilityMode: "read"
+    }));
+  }
+
+  writable(options: { on: "create" | "update" }): TypeBuilder<State> {
+    return mapMeta(this, typeMetadata => {
+      let mutabilityMode = {
+        ...dehydrated.READONLY,
+        [options.on]: true
+      };
+
+      return {
+        ...typeMetadata,
+        mutabilityMode
+      };
+    });
   }
 
   abstract dehydrate(

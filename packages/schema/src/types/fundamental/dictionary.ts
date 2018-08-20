@@ -18,7 +18,9 @@ export class DictionaryImpl implements Type {
     return {
       type: "Dictionary",
       members: mapDict(this.members, member => {
-        return { descriptor: member.dehydrate() };
+        return {
+          descriptor: member.dehydrate()
+        };
       }),
       required: "always"
     };

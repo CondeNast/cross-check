@@ -22,6 +22,7 @@ export type Required = "always" | "never" | "published";
 export interface MembersMeta extends JSONObject {
   [key: string]: JSONValue | undefined;
   readonly features?: string[];
+  readonly mutabilityMode?: MutabilityMode;
 }
 
 export interface Member {
@@ -88,10 +89,45 @@ export interface Record {
 
 /***** Hydrator *****/
 
+export interface MutabilityMode extends JSONObject {
+  create: boolean;
+  read: boolean;
+  update: boolean;
+}
+
+export const READONLY: MutabilityMode = {
+  read: true,
+  create: false,
+  update: false
+};
+
+export type MutabilityShorthand = "create" | "read" | "all";
+
+export function mutabilityMode(
+  mode: MutabilityMode | MutabilityShorthand
+): MutabilityMode {
+  if (typeof mode === "string") {
+    switch (mode) {
+      case "create":
+        return { create: true, read: true, update: false };
+      case "read":
+        return { create: false, read: true, update: false };
+      case "all":
+        return { create: true, read: true, update: true };
+
+      default:
+        return exhausted(mode);
+    }
+  } else {
+    return mode;
+  }
+}
+
 export interface HydrateParameters {
   features?: string[];
   draft?: boolean;
   strictKeys?: boolean;
+  mode?: "create" | "read" | "update";
 }
 
 export function hydrate(
@@ -112,6 +148,8 @@ export function hydrate(
   parameters: HydrateParameters,
   forceIsRequired?: boolean
 ): Type {
+  parameters.mode = parameters.mode || "read";
+
   let computedRequired: boolean;
 
   if (forceIsRequired !== undefined) {
@@ -152,6 +190,10 @@ function buildType(
             hasFeatures(
               parameters.features,
               member.meta && member.meta.features
+            ) &&
+            inMutabilityMode(
+              parameters.mode,
+              member.meta && member.meta.mutabilityMode
             )
           ) {
             return hydrate(member.descriptor, registry, parameters);
@@ -245,6 +287,17 @@ function hasFeatures(
   }
 
   return true;
+}
+
+function inMutabilityMode(
+  currentMode: "create" | "read" | "update" | undefined,
+  requiredMode: MutabilityMode | undefined
+): boolean {
+  if (requiredMode === undefined) {
+    return true;
+  } else {
+    return requiredMode[currentMode || "read"] === true;
+  }
 }
 
 /***** Visitor Descriptors *****/
