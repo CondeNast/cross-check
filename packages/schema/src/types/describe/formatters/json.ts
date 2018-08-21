@@ -1,7 +1,4 @@
 import { Dict, JSONObject, Option, dict } from "ts-std";
-import { visitorDescriptor } from "../../../descriptors/dehydrated";
-import { RecordBuilder, RecordImpl } from "../../../record";
-import { REGISTRY, Registry } from "../../../registry";
 import { JSONValue, exhausted } from "../../../utils";
 import {
   Pos,
@@ -59,6 +56,7 @@ interface JSONTypes extends visitor.RecursiveDelegateTypes {
   dictionary: JSONDictionary;
   alias: JSONAlias;
   required: Item;
+  record: JSONRecord;
 }
 
 class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
@@ -175,13 +173,4 @@ function genericOptions(
   return options;
 }
 
-export function toJSON(
-  record: RecordBuilder | RecordImpl,
-  registry: Registry = REGISTRY
-): JSONRecord {
-  let desc: visitor.Dictionary | visitor.Record = visitorDescriptor(
-    record.dehydrate(),
-    registry
-  );
-  return new JSONFormatter().record(desc);
-}
+export const toJSON = visitor.recursive<JSONTypes>(JSONFormatter);

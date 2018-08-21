@@ -1,10 +1,42 @@
-import { REGISTRY, Record, types } from "@cross-check/schema";
+import { REGISTRY, Record, toJSON, types } from "@cross-check/schema";
 import { keysError, missingError, typeError, validate } from "./support";
 
 QUnit.module(
   "[schema] issue #9 - List(Record) is equivalent to List(Named(Dictionary))",
   () => {
     QUnit.module("optional list", () => {
+      QUnit.test("toJSON", async assert => {
+        const registry = REGISTRY.clone();
+
+        const Inner = Record("inner", {
+          fields: {
+            hed: types.SingleWord().required()
+          },
+          registry
+        });
+
+        const TestCase = Record("list-of-record", {
+          fields: {
+            list: types.List(Inner)
+          },
+          registry
+        });
+
+        let actual = toJSON(TestCase, registry);
+
+        assert.deepEqual(actual, {
+          fields: {
+            list: {
+              type: "List",
+              args: { allowEmpty: true },
+              of: { alias: "inner", required: true },
+              required: false
+            }
+          },
+          metadata: null
+        });
+      });
+
       QUnit.test("validation", async assert => {
         const registry = REGISTRY.clone();
 
@@ -44,11 +76,6 @@ QUnit.module(
           "a list's Record contents must pass the inner shape validations even in draft mode"
         );
         assert.deepEqual(
-          await validate(TestCase.with({ strictKeys: false }), { list: [{}] }),
-          [],
-          "a list's Record contents need not pass the inner shape validations when strict keys are disabled"
-        );
-        assert.deepEqual(
           await validate(TestCase.with(), { list: [{ hed: 1 }] }),
           [typeError("string", "list.0.hed")],
           "a list's Record contents must pass the inner type validations"
@@ -76,6 +103,37 @@ QUnit.module(
     });
 
     QUnit.module("required list", () => {
+      QUnit.test("toJSON", async assert => {
+        const registry = REGISTRY.clone();
+
+        const Inner = Record("inner", {
+          fields: {
+            hed: types.Text().required()
+          },
+          registry
+        });
+
+        const TestCase = Record("list-of-record", {
+          fields: {
+            list: types.List(Inner).required()
+          },
+          registry
+        });
+
+        let actual = toJSON(TestCase, registry);
+
+        assert.deepEqual(actual, {
+          fields: {
+            list: {
+              type: "List",
+              of: { alias: "inner", required: true },
+              required: true
+            }
+          },
+          metadata: null
+        });
+      });
+
       QUnit.test("validation", async assert => {
         const registry = REGISTRY.clone();
 

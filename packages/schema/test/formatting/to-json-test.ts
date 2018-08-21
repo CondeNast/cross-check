@@ -25,7 +25,10 @@ QUnit.test("simple - draft", assert => {
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
       body: { type: "Text", required: false, args: { allowEmpty: true } }
     },
-    metadata: undefined
+    metadata: {
+      collectionName: "simple-articles",
+      modelName: "simple-article"
+    }
   });
 });
 
@@ -173,7 +176,10 @@ QUnit.test("detailed - draft", assert => {
 
   let expected = {
     fields,
-    metadata: undefined
+    metadata: {
+      collectionName: "medium-articles",
+      modelName: "medium-article"
+    }
   };
 
   assert.deepEqual(actual, expected);
@@ -245,7 +251,10 @@ QUnit.test("relationships - draft", assert => {
           }
         }
       },
-      metadata: undefined
+      metadata: {
+        collectionName: "related-articles",
+        modelName: "related-article"
+      }
     },
     "Related.draft"
   );
