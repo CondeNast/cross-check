@@ -1,5 +1,4 @@
-import { REGISTRY, Record } from "@cross-check/schema";
-import { TypeBuilder } from "@cross-check/schema/src/descriptors/builders";
+import { REGISTRY, Record, builders } from "@cross-check/schema";
 import { ENV, keysError } from "./support";
 import { ISODate } from "./support/date";
 
@@ -38,7 +37,7 @@ QUnit.test("no readonly() means always required", async assert => {
 
 async function testMode(
   assert: typeof QUnit.assert,
-  type: TypeBuilder,
+  type: builders.TypeBuilder,
   options: { read?: true; create?: true; update?: true }
 ) {
   let modes: Array<"create" | "read" | "update"> = ["create", "read", "update"];

@@ -12,11 +12,11 @@ export interface TypeMetadata {
   >;
 }
 
-export function finalizeMeta(typeBuilder: TypeBuilder): MembersMeta {
+export function finalizeMeta(meta: TypeMetadata): MembersMeta {
   return {
-    features: typeBuilder.meta.features || undefined,
-    mutabilityMode: typeBuilder.meta.mutabilityMode
-      ? dehydrated.mutabilityMode(typeBuilder.meta.mutabilityMode)
+    features: meta.features || undefined,
+    mutabilityMode: meta.mutabilityMode
+      ? dehydrated.mutabilityMode(meta.mutabilityMode)
       : undefined
   };
 }
@@ -34,7 +34,7 @@ export const DEFAULT_TYPE_METADATA: TypeMetadata = {
 
 export type TypeMap<State> = (state: TypeState<State>) => TypeState<State>;
 
-export function mapMeta<T extends TypeBuilder>(
+export function mapMeta<T extends AbstractTypeBuilder>(
   builder: T,
   callback: (meta: TypeMetadata) => TypeMetadata
 ): T {
@@ -42,36 +42,54 @@ export function mapMeta<T extends TypeBuilder>(
   return builder.construct(builder.state, mapped);
 }
 
-export abstract class TypeBuilder<State = unknown> {
+export interface TypeBuilderMember {
+  readonly builder: TypeBuilder;
+}
+
+export interface TypeBuilder extends TypeBuilderMember {
+  readonly meta: TypeMetadata;
+  required(declaration?: boolean | dehydrated.Required): TypeBuilder;
+  features(features: string[]): TypeBuilder;
+  readonly(): TypeBuilder;
+  writable(options: { on: "create" | "update" }): TypeBuilder;
+  dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Descriptor;
+}
+
+export abstract class AbstractTypeBuilder<State = unknown>
+  implements AbstractTypeBuilder, TypeBuilderMember {
   constructor(
     readonly state: State,
     readonly meta: TypeMetadata = DEFAULT_TYPE_METADATA
   ) {}
+
+  get builder(): TypeBuilder {
+    return this;
+  }
 
   construct(state: State, meta: this["meta"]): this {
     let Class = this.constructor as TypeBuilderConstructor<this>;
     return new Class(state, meta) as this;
   }
 
-  required(declaration?: boolean | dehydrated.Required): TypeBuilder<State> {
+  required(declaration?: boolean | dehydrated.Required): TypeBuilder {
     return mapMeta(this, typeMetadata => ({
       ...typeMetadata,
       required: required(declaration)
     }));
   }
 
-  features(features: string[]): TypeBuilder<State> {
+  features(features: string[]): TypeBuilder {
     return mapMeta(this, typeMetadata => ({ ...typeMetadata, features }));
   }
 
-  readonly(): TypeBuilder<State> {
+  readonly(): TypeBuilder {
     return mapMeta(this, typeMetadata => ({
       ...typeMetadata,
       mutabilityMode: "read"
     }));
   }
 
-  writable(options: { on: "create" | "update" }): TypeBuilder<State> {
+  writable(options: { on: "create" | "update" }): TypeBuilder {
     return mapMeta(this, typeMetadata => {
       let mutabilityMode = {
         ...dehydrated.READONLY,
@@ -96,8 +114,8 @@ export abstract class TypeBuilder<State = unknown> {
   }
 }
 
-export interface TypeBuilderConstructor<B extends TypeBuilder> {
-  new (state: B["state"], meta: TypeMetadata): TypeBuilder;
+export interface TypeBuilderConstructor<B extends AbstractTypeBuilder> {
+  new (state: B["state"], meta: TypeMetadata): AbstractTypeBuilder;
 }
 
 /***** Concrete Builders *****/
@@ -110,15 +128,18 @@ export interface MembersMeta extends JSONObject {
 }
 
 export interface DictionaryBuilderState {
-  members: Dict<TypeBuilder>;
+  members: Dict<TypeBuilderMember>;
 }
 
-export class DictionaryBuilder extends TypeBuilder<DictionaryBuilderState> {
+export class DictionaryBuilder extends AbstractTypeBuilder<
+  DictionaryBuilderState
+> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Dictionary {
     let members = mapDict(this.state.members, member => {
+      let builder = member.builder;
       return {
-        descriptor: member.dehydrate("never"),
-        meta: finalizeMeta(member)
+        descriptor: builder.dehydrate("never"),
+        meta: finalizeMeta(builder.meta)
       };
     });
 
@@ -139,7 +160,7 @@ export interface IteratorBuilderState {
   record: string;
 }
 
-export class IteratorBuilder extends TypeBuilder<IteratorBuilderState> {
+export class IteratorBuilder extends AbstractTypeBuilder<IteratorBuilderState> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Iterator {
     return {
       type: "Iterator",
@@ -159,7 +180,7 @@ export interface ListBuilderState {
   contents: TypeBuilder;
 }
 
-export class ListBuilder extends TypeBuilder<ListBuilderState> {
+export class ListBuilder extends AbstractTypeBuilder<ListBuilderState> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.List {
     return {
       type: "List",
@@ -174,12 +195,12 @@ export class ListBuilder extends TypeBuilder<ListBuilderState> {
 //// Named ////
 
 export interface NamedBuilderState {
-  target: RegistryName;
+  target: RegistryName | "Record";
   name: string;
   args?: {} | null;
 }
 
-export class NamedBuilder extends TypeBuilder<NamedBuilderState> {
+export class NamedBuilder extends AbstractTypeBuilder<NamedBuilderState> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Named {
     return {
       type: "Named",
@@ -199,7 +220,7 @@ export interface PointerBuilderState {
   record: string;
 }
 
-export class PointerBuilder extends TypeBuilder<PointerBuilderState> {
+export class PointerBuilder extends AbstractTypeBuilder<PointerBuilderState> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Pointer {
     return {
       type: "Pointer",
@@ -219,7 +240,9 @@ export interface PrimitiveBuilderState {
   base?: { name: string; args: JSONValue | undefined };
 }
 
-export class PrimitiveBuilder extends TypeBuilder<PrimitiveBuilderState> {
+export class PrimitiveBuilder extends AbstractTypeBuilder<
+  PrimitiveBuilderState
+> {
   dehydrate(isRequiredPosition: dehydrated.Required): dehydrated.Primitive {
     return {
       type: "Primitive",

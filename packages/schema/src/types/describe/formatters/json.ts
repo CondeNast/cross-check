@@ -179,6 +179,9 @@ export function toJSON(
   record: RecordBuilder | RecordImpl,
   registry: Registry = REGISTRY
 ): JSONRecord {
-  let desc = visitorDescriptor(record.dehydrate(), registry);
+  let desc: visitor.Dictionary | visitor.Record = visitorDescriptor(
+    record.dehydrate(),
+    registry
+  );
   return new JSONFormatter().record(desc);
 }

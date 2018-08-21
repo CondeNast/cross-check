@@ -47,11 +47,11 @@ export class ListImpl implements Type {
 }
 
 export function List(
-  contents: builders.TypeBuilder,
+  contents: builders.TypeBuilderMember,
   options?: { allowEmpty: boolean }
 ): builders.ListBuilder {
   return new builders.ListBuilder({
     args: options,
-    contents: contents.required()
+    contents: contents.builder.required()
   });
 }

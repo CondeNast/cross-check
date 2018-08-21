@@ -8,12 +8,11 @@
       "type": "shell",
       "command": "yarn problems",
       "problemMatcher": {
-        "base": "$tsc",
-        "owner": "ts"
+        "base": "$tsc"
       },
       "presentation": {
         "echo": false,
-        "reveal": "always",
+        "reveal": "silent",
         "focus": false,
         "panel": "shared"
       },

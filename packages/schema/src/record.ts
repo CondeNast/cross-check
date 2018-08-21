@@ -9,7 +9,6 @@ import { Task } from "no-show";
 import { Dict, JSONObject } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
-import { hydrate, visitorDescriptor } from "./descriptors/dehydrated";
 import { REGISTRY, Registry } from "./registry";
 import { Type } from "./type";
 import * as visitor from "./types/describe/visitor";
@@ -20,34 +19,28 @@ export interface RecordState {
   name: string;
 }
 
-/**
- * Note: This class, at the moment, serves as both a Record Builder (duh)
- * as well as a runtime representation of the hydrated Record. This is
- * largely for historical reasons -- in earlier versions of Crosscheck,
- * builders and types were conflated. It should be possible to remove the
- * conflation through a breaking change, if such a breaking change is
- * possible and appropriate.
- */
-export class RecordBuilder {
+export class RecordBuilder implements builders.TypeBuilderMember {
   constructor(
     readonly serialized: dehydrated.Record,
     readonly registry: Registry
   ) {}
 
+  get builder(): builders.DictionaryBuilder {
+    let { dictionary } = this.registry.getRawRecord(this.serialized.name);
+
+    return dehydrated.functions.builder(dictionary, this.registry);
+  }
+
   dehydrate(): dehydrated.Record {
-    return {
-      type: "Record",
-      name: this.serialized.name,
-      required: "always"
-    };
+    return this.serialized;
   }
 
   get descriptor(): visitor.Record {
-    return visitorDescriptor(this.serialized, this.registry);
+    return dehydrated.visitorDescriptor(this.serialized, this.registry);
   }
 
   with(params: dehydrated.HydrateParameters = {}): RecordImpl {
-    let dictionary = hydrate(this.serialized, this.registry, params);
+    let { dictionary } = this.registry.getRecord(this.serialized.name, params);
 
     return new RecordImpl(dictionary, this.serialized.name);
   }
@@ -98,7 +91,7 @@ export function Record(
     members: mapDict(fields, member => {
       return {
         descriptor: member.dehydrate("never"),
-        meta: finalizeMeta(member)
+        meta: finalizeMeta(member.meta)
       };
     }),
     required: "always"
@@ -106,7 +99,7 @@ export function Record(
 
   registry.setRecord(name, dictionary, metadata);
   return new RecordBuilder(
-    { type: "Record", name, required: "always" },
+    { type: "Named", target: "Record", name, required: "always" },
     registry
   );
 }
