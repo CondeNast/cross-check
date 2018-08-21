@@ -76,7 +76,7 @@ export interface DictionaryOptions {
 }
 
 export function Dictionary(
-  members: Dict<builders.TypeBuilder>
+  members: Dict<builders.TypeBuilderMember>
 ): builders.DictionaryBuilder {
   return new builders.DictionaryBuilder({ members });
 }

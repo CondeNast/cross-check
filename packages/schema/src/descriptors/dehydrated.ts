@@ -1,4 +1,5 @@
 import { Dict, JSONObject } from "ts-std";
+import { RecordBuilder } from "../record";
 import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
 import {
@@ -11,6 +12,7 @@ import {
   visitor
 } from "../types";
 import { JSONValue, exhausted, mapDict } from "../utils";
+import * as builders from "./builders";
 
 export type Args = JSONValue | undefined;
 
@@ -56,10 +58,18 @@ export interface List {
 //// Named ////
 export interface Named {
   readonly type: "Named";
-  readonly target: RegistryName;
+  readonly target: RegistryName | "Record";
   readonly name: string;
   readonly args?: JSONValue;
   readonly required: Required;
+}
+
+export interface Record extends Named {
+  readonly target: "Record";
+}
+
+export function isRecord(desc: Named): desc is Record {
+  return desc.target === "Record";
 }
 
 //// Pointer ////
@@ -77,13 +87,6 @@ export interface Primitive {
   readonly name: string;
   readonly args: JSONValue | undefined;
   readonly base?: { name: string; args: JSONValue | undefined };
-  readonly required: Required;
-}
-
-//// Record ////
-export interface Record {
-  readonly type: "Record";
-  readonly name: string;
   readonly required: Required;
 }
 
@@ -131,7 +134,7 @@ export interface HydrateParameters {
 }
 
 export function hydrate(
-  descriptor: Dictionary | Record,
+  descriptor: Dictionary,
   registry: Registry,
   parameters: HydrateParameters,
   forceIsRequired?: boolean
@@ -175,6 +178,11 @@ function buildType(
 ): Type {
   switch (descriptor.type) {
     case "Named": {
+      if (descriptor.target === "Record") {
+        let dictionary = registry.getRawRecord(descriptor.name).dictionary;
+        return hydrate(dictionary, registry, parameters);
+      }
+
       let desc = registry.get({
         type: descriptor.target,
         name: descriptor.name
@@ -258,11 +266,6 @@ function buildType(
       return factory(args);
     }
 
-    case "Record": {
-      let dictionary = registry.getRawRecord(descriptor.name).dictionary;
-      return hydrate(dictionary, registry, parameters);
-    }
-
     default:
       return exhausted(descriptor);
   }
@@ -303,6 +306,10 @@ function inMutabilityMode(
 /***** Visitor Descriptors *****/
 
 export function visitorDescriptor(
+  descriptor: Record,
+  registry: Registry
+): visitor.Record;
+export function visitorDescriptor(
   descriptor: Named,
   registry: Registry
 ): visitor.Alias;
@@ -310,10 +317,6 @@ export function visitorDescriptor(
   descriptor: Dictionary,
   registry: Registry
 ): visitor.Dictionary;
-export function visitorDescriptor(
-  descriptor: Record,
-  registry: Registry
-): visitor.Record;
 export function visitorDescriptor(
   descriptor: Record | Dictionary,
   registry: Registry
@@ -328,6 +331,19 @@ export function visitorDescriptor(
 ): visitor.Descriptor {
   switch (descriptor.type) {
     case "Named": {
+      if (descriptor.target === "Record") {
+        let { dictionary, metadata } = registry.getRawRecord(descriptor.name);
+        let members = visitorDescriptor(dictionary, registry).members;
+
+        return {
+          type: "Record",
+          name: descriptor.name,
+          members,
+          metadata,
+          required: visitorRequired(descriptor.required)
+        };
+      }
+
       return {
         type: "Alias",
         target: descriptor.target,
@@ -409,19 +425,6 @@ export function visitorDescriptor(
       };
     }
 
-    case "Record": {
-      let { dictionary, metadata } = registry.getRawRecord(descriptor.name);
-      let members = visitorDescriptor(dictionary, registry).members;
-
-      return {
-        type: "Record",
-        name: descriptor.name,
-        members,
-        metadata,
-        required: visitorRequired(descriptor.required)
-      };
-    }
-
     default:
       return exhausted(descriptor);
   }
@@ -435,7 +438,6 @@ export interface Descriptors {
   Named: Named;
   Pointer: Pointer;
   Primitive: Primitive;
-  Record: Record;
 }
 
 export type DescriptorType = keyof Descriptors;
@@ -453,4 +455,111 @@ function isRequired(requiredWhen: Required, draft: boolean): boolean {
 
 function visitorRequired(requiredWhen: Required): boolean {
   return requiredWhen === "always" || requiredWhen === "published";
+}
+
+/***** Functional Combinators *****/
+
+function builderForDescriptor(
+  desc: Dictionary,
+  registry: Registry,
+  meta?: builders.TypeMetadata
+): builders.DictionaryBuilder;
+function builderForDescriptor(
+  desc: Descriptor,
+  registry: Registry,
+  meta?: builders.TypeMetadata
+): builders.TypeBuilderMember;
+function builderForDescriptor(
+  desc: Descriptor,
+  registry: Registry,
+  meta?: builders.TypeMetadata
+): builders.TypeBuilderMember {
+  switch (desc.type) {
+    case "Dictionary":
+      return new builders.DictionaryBuilder(
+        {
+          members: mapDict(desc.members, member =>
+            functions.builder(
+              member.descriptor,
+              registry,
+              metaForBuilder(desc, member.meta)
+            )
+          )
+        },
+        meta
+      );
+
+    case "Iterator":
+      return new builders.IteratorBuilder(
+        {
+          kind: desc.kind,
+          metadata: desc.metadata,
+          record: desc.inner
+        },
+        meta
+      );
+
+    case "List":
+      return new builders.ListBuilder(
+        {
+          args: desc.args,
+          contents: functions.builder(desc.inner, registry).builder
+        },
+        meta
+      );
+
+    case "Named": {
+      if (desc.target === "Record") {
+        return new RecordBuilder(desc as Record, registry);
+      }
+
+      return new builders.NamedBuilder({
+        target: desc.target,
+        name: desc.name,
+        args: desc.args
+      });
+    }
+
+    case "Pointer":
+      return new builders.PointerBuilder(
+        {
+          kind: desc.kind,
+          metadata: desc.metadata,
+          record: desc.inner
+        },
+        meta
+      );
+
+    case "Primitive":
+      return new builders.PrimitiveBuilder({
+        name: desc.name,
+        args: desc.args,
+        base: desc.base
+      });
+
+    default:
+      return exhausted(desc);
+  }
+}
+
+export const functions = {
+  required(desc: Descriptor, requiredMode: Required): Descriptor {
+    return {
+      ...desc,
+      required: requiredMode
+    };
+  },
+
+  builder: builderForDescriptor
+};
+
+function metaForBuilder(
+  desc: Descriptor,
+  meta?: MembersMeta
+): builders.TypeMetadata {
+  return {
+    features: meta && meta.features ? meta.features : null,
+    required: desc.required,
+    mutabilityMode: meta && meta.mutabilityMode ? meta.mutabilityMode : null
+  };
 }

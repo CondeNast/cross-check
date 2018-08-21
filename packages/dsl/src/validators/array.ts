@@ -14,7 +14,7 @@ function mapError(
   { path, message }: ValidationError,
   index: number
 ): ValidationError {
-  return { path: [...path, String(index)], message };
+  return { path: [String(index), ...path], message };
 }
 
 /**
