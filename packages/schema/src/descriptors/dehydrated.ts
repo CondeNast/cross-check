@@ -331,19 +331,6 @@ export function visitorDescriptor(
 ): visitor.Descriptor {
   switch (descriptor.type) {
     case "Named": {
-      if (descriptor.target === "Record") {
-        let { dictionary, metadata } = registry.getRawRecord(descriptor.name);
-        let members = visitorDescriptor(dictionary, registry).members;
-
-        return {
-          type: "Record",
-          name: descriptor.name,
-          members,
-          metadata,
-          required: visitorRequired(descriptor.required)
-        };
-      }
-
       return {
         type: "Alias",
         target: descriptor.target,

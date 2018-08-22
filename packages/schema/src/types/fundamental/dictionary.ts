@@ -10,7 +10,7 @@ export interface DictionaryImplOptions {
 
 export class DictionaryImpl implements Type {
   constructor(
-    private members: Dict<Type>,
+    readonly members: Dict<Type>,
     private options: DictionaryImplOptions
   ) {}
 
