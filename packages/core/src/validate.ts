@@ -1,10 +1,8 @@
 import { Task } from "no-show";
 import { Indexable, Option } from "ts-std";
-import {
-  Environment,
-  ValidationDescriptor,
-  ValidationError
-} from "./descriptor";
+import { ValidationDescriptor } from "./descriptor";
+import { Environment } from "./environment";
+import { Validity } from "./validity";
 
 const DEFAULT_ENVIRONMENT: Environment = {
   get(object: unknown, key: string | number): unknown {
@@ -12,6 +10,14 @@ const DEFAULT_ENVIRONMENT: Environment = {
       return (object as Indexable)[key];
     } else {
       return object;
+    }
+  },
+
+  asArray(object: unknown): Option<Iterator<unknown>> {
+    if (Array.isArray(object)) {
+      return object[Symbol.iterator]();
+    } else {
+      return null;
     }
   }
 };
@@ -34,12 +40,12 @@ const DEFAULT_ENVIRONMENT: Environment = {
  *  descriptor can represent multiple composed validations
  * @param context Optionally, a string that represents the saving context
  */
-export function validate<T, Options>(
+export function validate<T, U extends T>(
   value: T,
-  descriptor: ValidationDescriptor<T, Options>,
+  descriptor: ValidationDescriptor<T, U, unknown>,
   context: Option<string> = null,
   env: Environment = DEFAULT_ENVIRONMENT
-): Task<ValidationError[]> {
+): Task<Validity<T, U>> {
   return new Task(async run => {
     let { validator, options, contexts } = descriptor;
 
@@ -50,5 +56,5 @@ export function validate<T, Options>(
     let validateFunction = validator(options, env);
 
     return await run(validateFunction(value, context));
-  });
+  }) as Task<Validity<T, U>>;
 }

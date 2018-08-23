@@ -5,11 +5,11 @@
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
 
 /** @internal */
-export function descriptor<T>(
+export function descriptor<T, U extends T, Options>(
   name: string,
-  validator: ValidatorFactory<T, unknown>,
-  options: unknown,
+  validator: ValidatorFactory<T, U, Options>,
+  options: Options,
   contexts: ReadonlyArray<string>
-): ValidationDescriptor<T> {
+): ValidationDescriptor<T, U, Options> {
   return { name, validator, options, contexts };
 }

@@ -2,12 +2,27 @@ import {
   Environment,
   ValidationDescriptor,
   ValidationError,
+  ValidatorFactory,
+  Validity,
+  invalid,
+  valid,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
-import { ValidationBuilder, build } from "../builders";
-import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
+import {
+  ValidationBuildable,
+  ValidationBuilder,
+  build,
+  builderForDescriptor,
+  validates
+} from "../builders";
+import {
+  ValidatorClass,
+  ValidatorInstance,
+  builderFor,
+  factoryFor
+} from "./abstract";
 import { isArray } from "./is";
 
 function mapError(
@@ -25,26 +40,34 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `items()`.
  */
-export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
+export class ItemsValidator<T = unknown, U extends T = T>
+  implements ValidatorInstance<T[], U[]> {
   static validatorName = "array-items";
 
   constructor(
     protected env: Environment,
-    protected descriptor: ValidationDescriptor<T>
+    protected descriptor: ValidationDescriptor<T, U>
   ) {}
 
-  run(value: T[], context: Option<string>): Task<ValidationError[]> {
+  run(value: T[], context: Option<string>): Task<Validity<T[], U[]>> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let i = 0; i < value.length; i++) {
-        let suberrors = await run(
+        let validity = await run(
           validate(value[i], this.descriptor, context, this.env)
         );
-        errors.push(...suberrors.map(error => mapError(error, i)));
+
+        if (validity.valid === false) {
+          errors.push(...validity.errors.map(error => mapError(error, i)));
+        }
       }
 
-      return errors;
+      if (errors.length === 0) {
+        return valid(value as U[]);
+      } else {
+        return invalid(value, errors);
+      }
     });
   }
 }
@@ -65,14 +88,25 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
  *
  * Generally speaking, you should normally use `array()`.
  */
-export function items<T>(
-  builder: ValidationBuilder<T>
-): ValidationBuilder<T[]> {
-  return builderFor(ItemsValidator as ValidatorClass<
-    T[],
-    ValidationDescriptor<T>
-  >)(build(builder));
+export function items<T, U extends T>(
+  itemsBuilder: ValidationBuildable<T, U>
+): ValidationBuilder<T[], U[], ValidationDescriptor<T, U>> {
+  type Options = ValidationDescriptor<T, U>;
+
+  return builderFor(ItemsValidator as ValidatorClass<T[], U[], Options>)(
+    build(itemsBuilder)
+  );
 }
+
+// class IsArray extends SimpleValueValidator<unknown> {
+//   static validatorName = "is-array";
+
+//   validate(value: unknown): ErrorMessage | void {
+//     if (!this.env.asArray(value)) {
+//       return { name: "type", details: "array" };
+//     }
+//   }
+// }
 
 /**
  * @api public

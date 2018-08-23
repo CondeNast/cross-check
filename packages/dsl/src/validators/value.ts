@@ -1,6 +1,11 @@
-import { Environment, ValidationError } from "@cross-check/core";
+import {
+  Environment,
+  ValidationDescriptor,
+  ValidationError
+} from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
+import { BUILD } from "../builders";
 import { ValidatorInstance } from "./abstract";
 import { ValidationResult } from "./callback";
 
@@ -34,5 +39,24 @@ export abstract class ValueValidator<T, Options = void>
         return [];
       }
     });
+  }
+}
+
+export abstract class SimpleValueValidator<T> extends ValueValidator<T, void> {
+  static get validatorName() {
+    return this.name;
+  }
+
+  static [BUILD]<T>(): ValidationDescriptor<T> {
+    let Class = (this as any) as {
+      new (env: Environment, options: unknown): SimpleValueValidator<T>;
+    };
+
+    return {
+      name: this.validatorName,
+      validator: (options: unknown, env: Environment) => (value: T) =>
+        new Class(env, options).run(value, null),
+      options: undefined
+    };
   }
 }

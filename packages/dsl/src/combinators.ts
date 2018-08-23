@@ -5,14 +5,56 @@ import {
   ValidationError,
   Validator,
   ValidatorFactory,
+  Validity,
+  invalid,
+  valid,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
 
-export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
-export type CombinatorFactory<T> = ValidatorFactory<
+export class ValidationDescriptors<T, U extends T> {
+  private descs: Array<ValidationDescriptor<unknown, unknown, unknown>>;
+
+  constructor(descriptor: ValidationDescriptor<T, U, any>) {
+    this.descs = [descriptor] as Array<
+      ValidationDescriptor<unknown, unknown, unknown>
+    >;
+  }
+
+  chain<V extends U>(
+    desc: ValidationDescriptor<U, V>
+  ): ValidationDescriptors<T, V> {
+    this.descs.push(desc as any);
+    return this as any;
+  }
+
+  union<V extends T>(
+    desc: ValidationDescriptor<T, V>
+  ): ValidationDescriptors<T, U | V> {
+    this.descs.push(desc as any);
+    return this as any;
+  }
+
+  intersection<V extends T>(
+    desc: ValidationDescriptor<T, V>
+  ): ValidationDescriptors<T, U & V> {
+    this.descs.push(desc as any);
+    return this as any;
+  }
+
+  toArray(): Array<ValidationDescriptor<unknown, unknown, unknown>> {
+    return this.descs;
+  }
+}
+
+// export type ValidationDescriptors<T, U extends T> = ReadonlyArray<
+//   ValidationDescriptor<unknown, unknown>
+// >;
+
+export type CombinatorFactory<T, U extends T> = ValidatorFactory<
   T,
-  ValidationDescriptors<T>
+  U,
+  ValidationDescriptors<T, U>
 >;
 
 /**
@@ -22,18 +64,20 @@ export type CombinatorFactory<T> = ValidatorFactory<
  * @param descriptors
  * @param env
  */
-export function chain<T>(
-  descriptors: ValidationDescriptors<T>,
+export function chain<T, U extends T>(
+  descriptors: ValidationDescriptors<T, U>,
   env: Environment
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      for (let descriptor of descriptors) {
-        let errors = await run(validate(value, descriptor, context, env));
-        if (errors.length) return errors;
+): Validator<T, U> {
+  return (value, context): Task<Validity<T, U>> => {
+    return new Task<Validity<T, U>>(async run => {
+      for (let descriptor of descriptors.toArray()) {
+        let validity = (await run(
+          validate(value, descriptor, context, env)
+        )) as Validity<T, U>;
+        if (validity.valid === false) return validity;
       }
 
-      return [];
+      return valid(value as U);
     });
   };
 }
@@ -45,22 +89,21 @@ export function chain<T>(
  * @param descriptors
  * @param env
  */
-export function and<T>(
-  descriptors: ValidationDescriptors<T>,
+export function and<T, U extends T>(
+  descriptors: ValidationDescriptors<T, U>,
   env: Environment
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context): Task<Validity<T, U>> => {
     return new Task(async run => {
       let result: ValidationError[] = [];
 
-      for (let descriptor of descriptors) {
-        mergeErrors(
-          result,
-          await run(validate(value, descriptor, context, env))
-        );
+      for (let descriptor of descriptors.toArray()) {
+        mergeErrors(result, (await run(
+          validate(value, descriptor, context, env)
+        )) as Validity<T, U>);
       }
 
-      return result;
+      return invalid(value, result);
     });
   };
 }
@@ -73,25 +116,29 @@ export function and<T>(
  * @param descriptors
  * @param env
  */
-export function or<T>(
-  descriptors: ValidationDescriptors<T>,
+export function or<T, U extends T>(
+  descriptors: ValidationDescriptors<T, U>,
   env: Environment
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context) => {
     return new Task(async run => {
       let result: ValidationError[][] = [];
 
-      for (let descriptor of descriptors) {
-        let errors = await run(validate(value, descriptor, context, env));
+      for (let descriptor of descriptors.toArray()) {
+        let validity = (await run(
+          validate(value, descriptor, context, env)
+        )) as Validity<T, U>;
 
-        if (errors.length === 0) {
-          return [];
+        if (validity.valid) {
+          return validity;
         } else {
-          result.push(errors);
+          result.push(validity.errors);
         }
       }
 
-      return [{ path: [], message: { name: "multiple", details: result } }];
+      return invalid(value, [
+        { path: [], message: { name: "multiple", details: result } }
+      ]);
     });
   };
 }
@@ -109,26 +156,32 @@ export function or<T>(
  * @param descriptors
  * @param env
  */
-export function ifValid<T>(
-  descriptors: ValidationDescriptors<T>,
+export function ifValid<T, U extends T>(
+  descriptors: ValidationDescriptors<T, U>,
   env: Environment
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context): Task<Validity<T, U>> => {
     return new Task(async run => {
-      let head = descriptors.slice(0, -1);
-      let tail = descriptors.slice(-1)[0];
+      let descs = descriptors.toArray();
+
+      let head = descs.slice(0, -1);
+      let tail = descs.slice(-1)[0];
 
       for (let descriptor of head) {
-        let errors = await run(validate(value, descriptor, context, env));
+        let validity = (await run(
+          validate(value, descriptor, context, env)
+        )) as Validity<T, U>;
 
-        if (errors.length === 0) {
+        if (validity.valid) {
           continue;
         } else {
-          return [];
+          return validity;
         }
       }
 
-      return run(validate(value, tail, context, env));
+      return run(validate(value, tail, context, env)) as Promise<
+        Validity<T, U>
+      >;
     });
   };
 }
@@ -137,23 +190,31 @@ export type MapErrorTransform = (
   errors: ValidationError[]
 ) => ValidationError[];
 
-export interface MapErrorOptions<T> {
-  do: ValidationDescriptor<T>;
+export interface MapErrorOptions<T, U extends T> {
+  do: ValidationDescriptor<T, U, unknown>;
   catch: MapErrorTransform;
 }
 
-export function mapError<T>(
-  options: MapErrorOptions<T>,
+export function mapError<T, U extends T>(
+  options: MapErrorOptions<T, U>,
   env: Environment
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context): Task<Validity<T, U>> => {
     return new Task(async run => {
-      let errors = await run(validate(value, options.do, context, env));
+      let validity = (await run(
+        validate(value, options.do, context, env)
+      )) as Validity<T, U>;
 
-      if (errors.length) {
-        return options.catch(errors);
+      if (validity.valid === true) {
+        return validity;
       } else {
-        return errors;
+        let errors = options.catch(validity.errors);
+
+        if (errors.length === 0) {
+          return valid(value) as Validity<T, U>;
+        } else {
+          return invalid(value, errors) as Validity<T, U>;
+        }
       }
     });
   };
@@ -173,9 +234,13 @@ export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
 
 function mergeErrors(
   base: ValidationError[],
-  additions: ValidationError[]
+  additions: Validity<unknown, unknown>
 ): void {
-  additions.forEach(addition => {
+  if (additions.valid === true) {
+    return;
+  }
+
+  additions.errors.forEach(addition => {
     if (base.every(error => !matchError(error, addition))) {
       base.push(addition);
     }

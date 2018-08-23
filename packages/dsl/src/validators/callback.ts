@@ -7,10 +7,10 @@ export type ValidationCallback<T> = (
   env: Environment
 ) => ValidationResult | PromiseLike<ValidationResult>;
 
-export function factoryForCallback<T>(
+export function factoryForCallback<T, U extends T>(
   cb: ValidationCallback<T>,
   env: Environment
-): Validator<T> {
+): Validator<T, U> {
   return value => {
     return new Task(async run => {
       let message = await run(cb(value, env));
