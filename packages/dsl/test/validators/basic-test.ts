@@ -21,8 +21,14 @@ function hasContributors({ contributors }: Indexable): boolean {
 
 QUnit.module("Validators (basic)");
 
+interface PackageJSON {
+  name: string;
+  author: string;
+  contributors: [unknown, ...Array<unknown>];
+}
+
 QUnit.test("PackageJSONValidator", async assert => {
-  class PackageJSONValidator extends BasicValidator<Indexable> {
+  class PackageJSONValidator extends BasicValidator<Indexable, PackageJSON> {
     static validatorName = "package-json";
 
     validate(json: Indexable): ValidationError[] {

@@ -79,13 +79,13 @@ export function factoryFor<T, U extends T, Options>(
 
 export function builderFor<T, U extends T>(
   Class: ValidatorClass<T, U, void>
-): () => ValidationBuilder<T, U, void>;
+): () => ValidationBuilder<T, U>;
 export function builderFor<T, U extends T, Options>(
   Class: ValidatorClass<T, U, Options>
-): (options: Options) => ValidationBuilder<T, U, Options>;
+): (options: Options) => ValidationBuilder<T, U>;
 export function builderFor<T, U extends T, Options>(
   Class: ValidatorClass<T, U, Options>
-): (options: Options) => ValidationBuilder<T, U, Options> {
+): (options: Options) => ValidationBuilder<T, U> {
   let factory = factoryFor(Class);
 
   return (options: Options) => validates(Class.validatorName, factory, options);

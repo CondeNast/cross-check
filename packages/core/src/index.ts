@@ -1,7 +1,8 @@
 export {
   ValidatorFactory,
   Validator,
-  ValidationDescriptor
+  ValidationDescriptor,
+  descriptor
 } from "./descriptor";
 export * from "./validate";
 export * from "./format";

@@ -1,11 +1,13 @@
 import Task from "no-show";
-import { dict, isIndexable } from "ts-std";
+import { Option, dict, isIndexable } from "ts-std";
 
 import {
   Environment,
   ValidationDescriptor,
   ValidationError,
   ValidatorFactory,
+  Validity,
+  valid,
   validate
 } from "@cross-check/core";
 import build, {
@@ -16,26 +18,32 @@ import build, {
 
 export const presence = builder("presence");
 export const str = builder("str");
-export const email = builder<unknown, { tlds: string[] }>("email");
-export const isEmail = builder<string, { tlds: string[] }>("isEmail");
+export const email = builder<unknown, string, { tlds: string[] }>("email");
+export const isEmail = builder<string, string, { tlds: string[] }>("isEmail");
 export const uniqueness = builder("uniqueness");
 
-let factories = dict<ValidatorFactory<unknown, unknown>>();
+let factories = dict<ValidatorFactory<unknown, unknown, unknown>>();
 
-export function factory(name: string): ValidatorFactory<unknown, unknown> {
+export function factory(
+  name: string
+): ValidatorFactory<unknown, unknown, unknown> {
   if (!factories[name]) {
     factories[name] = () => {
-      return () => new Task(async () => []);
+      return () => new Task(async v => valid(v));
     };
   }
   return factories[name]!;
 }
 
-function builder<T = unknown>(name: string): () => ValidationBuilder<T>;
-function builder<T, Options>(
+function builder<T = unknown, U extends T = T, Options = unknown>(
   name: string
-): (options: Options) => ValidationBuilder<T>;
-function builder(name: string): (options: any) => ValidationBuilder<unknown> {
+): () => ValidationBuilder<T, U>;
+function builder<T, U extends T, Options>(
+  name: string
+): (options: Options) => ValidationBuilder<T, U>;
+function builder(
+  name: string
+): (options: any) => ValidationBuilder<unknown, unknown> {
   return (options: any) => validates(name, factory(name), options);
 }
 
@@ -43,18 +51,26 @@ export class Env implements Environment {
   get(object: unknown, key: string): unknown {
     return isIndexable(object) ? object[key] : undefined;
   }
+
+  asArray(object: unknown): Option<Iterator<unknown>> {
+    if (Array.isArray(object)) {
+      return object[Symbol.iterator]();
+    } else {
+      return null;
+    }
+  }
 }
 
-export function buildAndRun<T>(
-  b: ValidationBuildable<T>,
+export function buildAndRun<T, U extends T>(
+  b: ValidationBuildable<T, U>,
   value: T
-): Task<ValidationError[]> {
+): Task<Validity<T, U>> {
   return run(build(b), value);
 }
 
-export function run<T>(
-  descriptor: ValidationDescriptor<T>,
+export function run<T, U extends T>(
+  descriptor: ValidationDescriptor<T, U>,
   value: T
-): Task<ValidationError[]> {
+): Task<Validity<T, U>> {
   return validate(value, descriptor, null, new Env());
 }

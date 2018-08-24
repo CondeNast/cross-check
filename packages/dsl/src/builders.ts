@@ -1,4 +1,8 @@
-import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
+import {
+  ValidationDescriptor,
+  ValidatorFactory,
+  descriptor
+} from "@cross-check/core";
 import { assert } from "ts-std";
 import {
   MapErrorOptions,
@@ -9,7 +13,6 @@ import {
   mapError,
   or
 } from "./combinators";
-import { descriptor } from "./internal";
 import { ValidationCallback, factoryForCallback } from "./validators/callback";
 
 /**
@@ -20,19 +23,15 @@ import { ValidationCallback, factoryForCallback } from "./validators/callback";
  * It's either another ValidationBuilder or a callback, which allows a more inline
  * style of composing validation chains.
  */
-export type ValidationBuildable<
-  T = unknown,
-  U extends T = T,
-  Options = unknown
-> =
+export type ValidationBuildable<T = unknown, U extends T = T> =
   | ValidationCallback<T>
-  | Buildable<T, U, Options>
+  | Buildable<T, U>
   | ValidationDescriptor<T, U>;
 
 export const BUILD = Symbol("BUILD");
 
-export interface Buildable<T = unknown, U extends T = T, Options = unknown> {
-  [BUILD](): ValidationDescriptor<T, U, Options>;
+export interface Buildable<T = unknown, U extends T = T> {
+  [BUILD](): ValidationDescriptor<T, U>;
 }
 
 /**
@@ -41,7 +40,10 @@ export interface Buildable<T = unknown, U extends T = T, Options = unknown> {
  * The main API for building validations. In general, always depend on this interface,
  * rather than concrete implementations of the interface.
  */
-export interface ValidationBuilder<T, U extends T, Options> {
+export interface ValidationBuilder<T, U extends T> extends Buildable<T, U> {
+  INPUT: T;
+  OUTPUT: U;
+
   name: string;
 
   /**
@@ -55,7 +57,7 @@ export interface ValidationBuilder<T, U extends T, Options> {
    */
   andAlso<V extends U>(
     validation: ValidationBuildable<T, V>
-  ): ValidationBuilder<T, U & V, ValidationDescriptors<T, U & V>>;
+  ): ValidationBuilder<T, U & V>;
 
   /**
    * @api public
@@ -66,7 +68,7 @@ export interface ValidationBuilder<T, U extends T, Options> {
    */
   or<V extends T>(
     validation: ValidationBuildable<T, V>
-  ): ValidationBuilder<T, U | V, ValidationDescriptors<T, U | V>>;
+  ): ValidationBuilder<T, U | V>;
 
   // /**
   //  * @api public
@@ -90,7 +92,7 @@ export interface ValidationBuilder<T, U extends T, Options> {
    */
   andThen<V extends U>(
     validation: ValidationBuildable<U, V>
-  ): ValidationBuilder<T, V, ValidationDescriptors<T, V>>;
+  ): ValidationBuilder<T, V>;
 
   /**
    * @api public
@@ -117,9 +119,7 @@ export interface ValidationBuilder<T, U extends T, Options> {
    * Note that the `.catch` transformer will only run if there is at least
    * one validation error.
    */
-  catch(
-    transform: MapErrorTransform
-  ): ValidationBuilder<T, U, MapErrorOptions<T, U>>;
+  catch(transform: MapErrorTransform): ValidationBuilder<T, U>;
 
   /**
    * @api public
@@ -149,9 +149,9 @@ export interface ValidationBuilder<T, U extends T, Options> {
    *   validation), but which only needs to pass validation when
    *   finally publishing the article.
    */
-  on(...contexts: string[]): ValidationBuilder<T, U, Options>;
+  on(...contexts: string[]): ValidationBuilder<T, U>;
 
-  [BUILD](): ValidationDescriptor<T, U, Options>;
+  [BUILD](): ValidationDescriptor<T, U>;
 }
 
 /**
@@ -172,12 +172,12 @@ export function build<T>(
   name?: string
 ): ValidationDescriptor<T, T, unknown>;
 export function build<T, U extends T, Options>(
-  builder: Buildable<T, U, Options> | ValidationDescriptor<T, U, Options>
+  builder: Buildable<T, U> | ValidationDescriptor<T, U>
 ): ValidationDescriptor<T, U, unknown>;
 export function build<T, U extends T, Options>(
-  buildable: ValidationBuildable<T, U, Options>,
+  buildable: ValidationBuildable<T, U>,
   name?: string
-): ValidationDescriptor<T, U, unknown>;
+): ValidationDescriptor<T, U>;
 
 export function build<T, U extends T>(
   buildable: ValidationBuildable<T, U>,
@@ -203,8 +203,13 @@ export function validates<T, U extends T, Options>(
   name: string,
   factory: ValidatorFactory<T, U, Options>,
   options: Options
-): ValidationBuilder<T, U, Options> {
-  return new BaseValidationBuilder(name, factory, options);
+): ValidationBuilder<T, U> {
+  return new BaseValidationBuilder({
+    name,
+    validator: factory as ValidatorFactory<T, U, unknown>,
+    options: options as unknown,
+    contexts: []
+  });
 }
 
 /**
@@ -246,20 +251,20 @@ export function extend<T, U extends T>({
   validator,
   options,
   contexts
-}: ValidationDescriptor<T, U, any>): ValidationBuilder<T, U, any> {
+}: ValidationDescriptor<T, U, any>): ValidationBuilder<T, U> {
   if (validator === and) {
-    return new AndBuilder("all", validator, options, contexts);
+    return new AndBuilder({ name: "all", validator, options, contexts });
   } else if (validator === or) {
-    return new OrBuilder("any", validator, options, contexts);
+    return new OrBuilder({ name: "any", validator, options, contexts });
   } else if (validator === chain) {
-    return new ChainBuilder("pipe", validator, options, contexts);
+    return new ChainBuilder({ name: "pipe", validator, options, contexts });
   } else {
-    return new BaseValidationBuilder(
-      `extends ${name}`,
+    return new BaseValidationBuilder({
+      name: `extends ${name}`,
       validator,
       options,
       contexts
-    );
+    });
   }
 }
 
@@ -273,45 +278,50 @@ function isBuilder<T>(buildable: any): buildable is Buildable<T> {
   return typeof buildable[BUILD] === "function";
 }
 
-export function builderForDescriptor<T, U extends T, Options>(
-  desc: ValidationDescriptor<T, U, Options>
-): ValidationBuilder<T, U, Options> {
-  return new BaseValidationBuilder(
-    desc.name,
-    desc.validator,
-    desc.options,
-    desc.contexts
-  );
+export function builderForDescriptor<T, U extends T>(
+  desc: ValidationDescriptor<T, U>
+): ValidationBuilder<T, U> {
+  return new BaseValidationBuilder(desc);
 }
 
-class BaseValidationBuilder<T, U extends T, Options>
-  implements ValidationBuilder<T, U, Options>, Buildable<T, U, Options> {
-  constructor(
-    public name: string,
-    protected factory: ValidatorFactory<T, U, Options>,
-    protected options: Options,
-    protected contexts: ReadonlyArray<string> = []
-  ) {}
+class BaseValidationBuilder<T, U extends T>
+  implements ValidationBuilder<T, U>, Buildable<T, U> {
+  INPUT!: T;
+  OUTPUT!: U;
+
+  constructor(readonly desc: ValidationDescriptor<T, U>) {}
+
+  get options(): unknown {
+    return this.desc.options;
+  }
+
+  get name(): string {
+    return this.desc.name;
+  }
 
   andAlso<V extends U>(
     validation: ValidationBuildable<T, V>
-  ): ValidationBuilder<T, U & V, ValidationDescriptors<T, U & V>> {
+  ): ValidationBuilder<T, U & V> {
     return new AndBuilder(
-      "all",
-      and,
-      new ValidationDescriptors(build(this)).intersection(build(validation)),
-      this.contexts
+      descriptor<T, U & V, ValidationDescriptors<T, U & V>>(
+        "all",
+        and,
+        new ValidationDescriptors(build(this)).intersection(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 
   or<V extends T>(
     validation: ValidationBuildable<T, V>
-  ): ValidationBuilder<T, U | V, ValidationDescriptors<T, U | V>> {
+  ): ValidationBuilder<T, U | V> {
     return new OrBuilder(
-      "any",
-      or,
-      new ValidationDescriptors(build(this)).union(build(validation)),
-      this.contexts
+      descriptor<T, U | V, ValidationDescriptors<T, U | V>>(
+        "any",
+        or,
+        new ValidationDescriptors(build(this)).union(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 
@@ -329,50 +339,41 @@ class BaseValidationBuilder<T, U extends T, Options>
 
   andThen<V extends U>(
     validation: ValidationBuildable<U, V>
-  ): ValidationBuilder<T, V, ValidationDescriptors<T, V>> {
+  ): ValidationBuilder<T, V> {
     return new ChainBuilder(
-      "pipe",
-      chain,
-      new ValidationDescriptors(build(this)).chain(build(validation)),
-      this.contexts
+      descriptor<T, V, ValidationDescriptors<T, V>>(
+        "pipe",
+        chain,
+        new ValidationDescriptors(build(this)).chain(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 
-  catch(
-    onError: MapErrorTransform
-  ): ValidationBuilder<T, U, MapErrorOptions<T, U>> {
-    return new BaseValidationBuilder<T, U, MapErrorOptions<T, U>>(
-      "try",
-      mapError,
-      { do: build(this), catch: onError },
-      this.contexts
+  catch(onError: MapErrorTransform): ValidationBuilder<T, U> {
+    return new BaseValidationBuilder<T, U>(
+      descriptor<T, U, MapErrorOptions<T, U>>(
+        "try",
+        mapError,
+        { do: build(this), catch: onError },
+        this.desc.contexts
+      )
     );
   }
 
-  on(...contexts: string[]): OnBuilder<T, U, Options> {
+  on(...contexts: string[]): OnBuilder<T, U> {
     assert(
       !!contexts.length,
       "You must provide at least one validation context"
     );
 
-    return new OnBuilder(this.name, this.factory, this.options, contexts);
+    return new OnBuilder({ ...this.desc, contexts });
   }
 
-  [BUILD](): ValidationDescriptor<T, U, Options> {
-    return descriptor(
-      this.name,
-      this.factory as ValidatorFactory<T, U, any>,
-      this.options,
-      this.contexts
-    );
+  [BUILD](): ValidationDescriptor<T, U> {
+    return this.desc;
   }
 }
-
-class CombinatorValidationBuilder<T, U extends T> extends BaseValidationBuilder<
-  T,
-  U,
-  ValidationDescriptors<T, U>
-> {}
 
 // class IfValidBuilder<T> extends BaseValidationBuilder<
 //   T,
@@ -388,62 +389,69 @@ class CombinatorValidationBuilder<T, U extends T> extends BaseValidationBuilder<
 //   }
 // }
 
-class AndBuilder<T, U extends T> extends CombinatorValidationBuilder<T, U> {
+class AndBuilder<T, U extends T> extends BaseValidationBuilder<T, U> {
+  readonly options!: ValidationDescriptors<T, U>;
+
   andAlso<V extends U>(
     validation: ValidationBuildable<T, V>
   ): AndBuilder<T, U & V> {
     return new AndBuilder(
-      "all",
-      and,
-      this.options.intersection(build(validation)),
-      this.contexts
+      descriptor<T, U & V, ValidationDescriptors<T, U & V>>(
+        "all",
+        and,
+        this.options.intersection(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 }
 
-class OrBuilder<T, U extends T> extends CombinatorValidationBuilder<T, U> {
+class OrBuilder<T, U extends T> extends BaseValidationBuilder<T, U> {
+  readonly options!: ValidationDescriptors<T, U>;
+
   or<V extends T>(validation: ValidationBuildable<T, V>): OrBuilder<T, U | V> {
     return new OrBuilder(
-      "any",
-      or,
-      this.options.union(build(validation)),
-      this.contexts
+      descriptor<T, U | V, ValidationDescriptors<T, U | V>>(
+        "any",
+        or,
+        this.options.union(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 }
 
-class ChainBuilder<T, U extends T> extends CombinatorValidationBuilder<T, U> {
+class ChainBuilder<T, U extends T> extends BaseValidationBuilder<T, U> {
+  readonly options!: ValidationDescriptors<T, U>;
+
   andThen<V extends U>(
     validation: ValidationBuildable<U, V>
   ): ChainBuilder<T, V> {
     return new ChainBuilder(
-      "pipe",
-      chain,
-      this.options.chain(build(validation)),
-      this.contexts
+      descriptor<T, V, ValidationDescriptors<T, V>>(
+        "pipe",
+        chain,
+        this.options.chain(build(validation)),
+        this.desc.contexts
+      )
     );
   }
 }
 
-class OnBuilder<T, U extends T, Options> extends BaseValidationBuilder<
-  T,
-  U,
-  Options
-> {
-  constructor(
-    name: string,
-    factory: ValidatorFactory<T, U, Options>,
-    options: Options,
-    contexts: ReadonlyArray<string>
-  ) {
+class OnBuilder<T, U extends T> extends BaseValidationBuilder<T, U> {
+  constructor(desc: ValidationDescriptor<T, U>) {
     assert(
-      !!contexts.length,
+      !!(desc.contexts && desc.contexts.length),
       "You must provide at least one validation context"
     );
-    super(name, factory, options, contexts);
+
+    super(desc);
   }
 
-  on(...contexts: string[]): OnBuilder<T, U, Options> {
-    return new OnBuilder(this.name, this.factory, this.options, contexts);
+  on(...contexts: string[]): OnBuilder<T, U> {
+    return new OnBuilder({
+      ...this.desc,
+      contexts
+    });
   }
 }

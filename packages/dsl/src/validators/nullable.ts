@@ -15,17 +15,17 @@ function unwrapErrors(errors: ValidationError[]) {
   return result[1];
 }
 
-export function nullable<T>(
-  builder: ValidationBuilder<T>
-): ValidationBuilder<T | null> {
+export function nullable<T, U extends T>(
+  builder: ValidationBuilder<T, U>
+): ValidationBuilder<T | null, U> {
   return isNull()
     .or(builder)
     .catch(unwrapErrors);
 }
 
-export function maybe<T>(
-  builder: ValidationBuilder<T>
-): ValidationBuilder<T | null | undefined | void> {
+export function maybe<T, U extends T>(
+  builder: ValidationBuilder<T, U>
+): ValidationBuilder<T | null | undefined | void, U> {
   return isAbsent()
     .or(builder)
     .catch(unwrapErrors);

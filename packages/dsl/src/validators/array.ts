@@ -2,7 +2,6 @@ import {
   Environment,
   ValidationDescriptor,
   ValidationError,
-  ValidatorFactory,
   Validity,
   invalid,
   valid,
@@ -10,19 +9,8 @@ import {
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
-import {
-  ValidationBuildable,
-  ValidationBuilder,
-  build,
-  builderForDescriptor,
-  validates
-} from "../builders";
-import {
-  ValidatorClass,
-  ValidatorInstance,
-  builderFor,
-  factoryFor
-} from "./abstract";
+import { ValidationBuildable, ValidationBuilder, build } from "../builders";
+import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
 
 function mapError(
@@ -90,7 +78,7 @@ export class ItemsValidator<T = unknown, U extends T = T>
  */
 export function items<T, U extends T>(
   itemsBuilder: ValidationBuildable<T, U>
-): ValidationBuilder<T[], U[], ValidationDescriptor<T, U>> {
+): ValidationBuilder<T[], U[]> {
   type Options = ValidationDescriptor<T, U>;
 
   return builderFor(ItemsValidator as ValidatorClass<T[], U[], Options>)(
@@ -121,8 +109,8 @@ export function items<T, U extends T>(
  * If the value itself is not an array, this validation will fail with the error
  * `{ key: 'type', args: 'array' }`.
  */
-export function array(
-  builder: ValidationBuilder<unknown>
-): ValidationBuilder<unknown> {
+export function array<T>(
+  builder: ValidationBuilder<unknown, T>
+): ValidationBuilder<any, T[]> {
   return isArray().andThen(items(builder));
 }

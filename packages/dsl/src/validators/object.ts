@@ -2,6 +2,9 @@ import {
   Environment,
   ValidationDescriptor,
   ValidationError,
+  Validity,
+  invalid,
+  valid,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
@@ -25,7 +28,8 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `fields()`.
  */
-export class FieldsValidator<T> implements ValidatorInstance<Present> {
+export class FieldsValidator<T, U extends T>
+  implements ValidatorInstance<Present, Dict<U>> {
   static validatorName = "fields";
 
   constructor(
@@ -33,12 +37,15 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
     protected descriptors: Dict<ValidationDescriptor<T>>
   ) {}
 
-  run(value: Present, context: Option<string>): Task<ValidationError[]> {
+  run(
+    value: Present,
+    context: Option<string>
+  ): Task<Validity<Present, Dict<U>>> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of entries(this.descriptors)) {
-        let suberrors = await run(
+        let validity = await run(
           validate(
             this.env.get(value, key) as T,
             descriptor!,
@@ -46,13 +53,22 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
             this.env
           )
         );
-        errors.push(...suberrors.map(error => mapError(error, key)));
+
+        if (validity.valid === false) {
+          errors.push(...validity.errors.map(error => mapError(error, key)));
+        }
       }
 
-      return errors;
+      if (errors.length === 0) {
+        return valid(value as Dict<U>);
+      } else {
+        return invalid(value, errors);
+      }
     });
   }
 }
+
+export type Shape<K extends string> = { [P in K]: unknown };
 
 /**
  * @api primitive
@@ -62,12 +78,13 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
  * This validator checks that the value contains all of the enumerated fields
  * and also does not contain any extra fields.
  */
-export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
+export class KeysValidator<I extends Indexable, K extends string>
+  implements ValidatorInstance<I, I & Shape<K>> {
   static validatorName = "keys";
 
   constructor(protected env: Environment, protected descriptorKeys: string[]) {}
 
-  run(value: Indexable<T>): Task<ValidationError[]> {
+  run(value: I): Task<Validity<I, I & Shape<K>>> {
     return new Task(async () => {
       let errors: ValidationError[] = [];
       let valueKeys = Object.keys(value);
@@ -94,23 +111,22 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
       );
 
       if (errors.length) {
-        return [{ path: [], message: { name: "keys", details: errors } }];
+        return invalid(value, [
+          { path: [], message: { name: "keys", details: errors } }
+        ]);
       } else {
-        return [];
+        return valid(value as I & Shape<K>);
       }
     });
   }
 }
 
-export function fields<T>(
-  builders: Dict<ValidationBuilder<T>>
-): ValidationBuilder<Present> {
+export function fields<T, U extends T>(
+  builders: Dict<ValidationBuilder<T, U>>
+): ValidationBuilder<Present, Dict<U>> {
   return validates(
     "fields",
-    factoryFor(FieldsValidator as ValidatorClass<
-      Present,
-      Dict<ValidationDescriptor<T>>
-    >),
+    factoryFor(FieldsValidator),
     normalizeFields(builders)
   );
 }
@@ -128,27 +144,27 @@ export function keys<T>(
 /**
  * @api public
  */
-export function object(
-  builders: Dict<ValidationBuilder<unknown>>
-): ValidationBuilder<unknown> {
+export function object<T, U extends T>(
+  builders: Dict<ValidationBuilder<unknown, U>>
+): ValidationBuilder<unknown, Dict<U>> {
   return isObject().andThen(fields(builders));
 }
 
 /**
  * @api public
  */
-export function strictObject(
-  builders: Dict<ValidationBuilder<unknown>>
-): ValidationBuilder<unknown> {
+export function strictObject<D extends Dict>(
+  builders: Dict<ValidationBuilder<unknown, D>>
+): ValidationBuilder<unknown, D> {
   return isObject()
     .andThen(keys(Object.keys(builders)))
     .andThen(fields(builders));
 }
 
-function normalizeFields<T>(
-  builders: Dict<ValidationBuilder<T>>
-): Dict<ValidationDescriptor<T>> {
-  let out = dict<ValidationDescriptor<T>>();
+function normalizeFields<T, U extends T>(
+  builders: Dict<ValidationBuilder<T, U>>
+): Dict<ValidationDescriptor<T, U>> {
+  let out = dict<ValidationDescriptor<T, U>>();
 
   for (let [key, value] of entries(builders)) {
     out[key] = build(value!);

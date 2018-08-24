@@ -1,4 +1,10 @@
-import { Environment, ErrorMessage, Validator } from "@cross-check/core";
+import {
+  Environment,
+  ErrorMessage,
+  Validator,
+  invalid,
+  valid
+} from "@cross-check/core";
 import { Task } from "no-show";
 
 export type ValidationResult = ErrorMessage | void;
@@ -16,9 +22,9 @@ export function factoryForCallback<T, U extends T>(
       let message = await run(cb(value, env));
 
       if (message) {
-        return [{ path: [], message }];
+        return invalid(value, [{ path: [], message }]);
       } else {
-        return [];
+        return valid(value as U);
       }
     });
   };

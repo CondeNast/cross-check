@@ -51,7 +51,7 @@ QUnit.test("arrayItems", async assert => {
 });
 
 async function itemTests(
-  builder: ValidationBuilder<Array<unknown>>,
+  builder: ValidationBuilder<Array<unknown>, string[]>,
   assert: typeof QUnit.assert
 ) {
   assert.deepEqual(await run(builder, []), success());

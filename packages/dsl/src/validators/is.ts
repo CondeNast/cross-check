@@ -9,8 +9,8 @@ export type Checker<From, To extends From> = (value: From) => value is To;
 export function is<From, To extends From>(
   checker: Checker<From, To>,
   type: string
-): () => ValidationBuilder<From> {
-  class Validator extends ValueValidator<From, void> {
+): () => ValidationBuilder<From, To> {
+  class Validator extends ValueValidator<From, To, void> {
     static validatorName = `is-${type}`;
 
     validate(value: From): ErrorMessage | void {
@@ -23,8 +23,23 @@ export function is<From, To extends From>(
   return () => builder;
 }
 
-function isTypeOf<To>(typeOf: string): () => ValidationBuilder<unknown> {
-  return is((value: unknown): value is To => typeof value === typeOf, typeOf);
+interface PrimitiveTypes {
+  string: string;
+  number: number;
+  symbol: symbol;
+  object: object | null;
+  undefined: undefined;
+  boolean: boolean;
+  function: <T>(...args: any[]) => T;
+}
+
+function isTypeOf<K extends keyof PrimitiveTypes>(
+  typeOf: K
+): () => ValidationBuilder<unknown, PrimitiveTypes[K]> {
+  return is(
+    (value: unknown): value is PrimitiveTypes[K] => typeof value === typeOf,
+    typeOf
+  );
 }
 
 export type NotNull = Present | undefined;

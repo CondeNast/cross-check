@@ -15,10 +15,14 @@ import { Task } from "no-show";
 export class ValidationDescriptors<T, U extends T> {
   private descs: Array<ValidationDescriptor<unknown, unknown, unknown>>;
 
-  constructor(descriptor: ValidationDescriptor<T, U, any>) {
-    this.descs = [descriptor] as Array<
-      ValidationDescriptor<unknown, unknown, unknown>
-    >;
+  constructor(
+    descriptor: ValidationDescriptor<T, U> | Array<ValidationDescriptor<T, U>>
+  ) {
+    if (Array.isArray(descriptor)) {
+      this.descs = descriptor as ValidationDescriptor[];
+    } else {
+      this.descs = [descriptor] as ValidationDescriptor[];
+    }
   }
 
   chain<V extends U>(
@@ -194,6 +198,11 @@ export interface MapErrorOptions<T, U extends T> {
   do: ValidationDescriptor<T, U, unknown>;
   catch: MapErrorTransform;
 }
+
+export type MapError<T, U extends T> = (
+  options: MapErrorOptions<T, U>,
+  env: Environment
+) => Validator<T, U>;
 
 export function mapError<T, U extends T>(
   options: MapErrorOptions<T, U>,

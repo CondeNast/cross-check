@@ -27,7 +27,7 @@ export type ValidatorFactory<T, U extends T, Options> = (
 export type Validator<T = unknown, U extends T = T> = (
   value: T,
   context: Option<string>
-) => Task<Validity<T, U>>;
+) => Task<Validity<T extends any ? unknown : T, U>>;
 
 /**
  * @api primitive
@@ -44,3 +44,17 @@ export type ValidationDescriptor<
   options: Options;
   contexts?: ReadonlyArray<string>;
 }>;
+
+export function descriptor<T, U extends T, Options>(
+  name: string,
+  validator: ValidatorFactory<T, U, Options>,
+  options: Options,
+  contexts?: ReadonlyArray<string>
+): ValidationDescriptor<T, U> {
+  return {
+    name,
+    validator: validator as ValidatorFactory<T, U, unknown>,
+    options,
+    contexts
+  };
+}

@@ -35,7 +35,7 @@ export interface InvalidValue<T> {
   errors: ValidationError[];
 }
 
-export type Validity<T, U extends T> = ValidValue<U> | InvalidValue<T>;
+export type Validity<T, U> = ValidValue<U> | InvalidValue<T>;
 
 export function valid<T, U extends T>(value: U): Validity<T, U> {
   return {

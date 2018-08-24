@@ -1,4 +1,10 @@
-import { Environment, ValidationError } from "@cross-check/core";
+import {
+  Environment,
+  ValidationError,
+  Validity,
+  invalid,
+  valid
+} from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidatorInstance } from "./abstract";
@@ -12,8 +18,8 @@ import { ValidatorInstance } from "./abstract";
  * errors. If you only need to return a single error, use `ValueValidator`
  * instead.
  */
-export abstract class BasicValidator<T, Options = void>
-  implements ValidatorInstance<T> {
+export abstract class BasicValidator<T, U extends T, Options = void>
+  implements ValidatorInstance<T, U> {
   constructor(protected env: Environment, protected options: Options) {}
 
   abstract validate(
@@ -21,7 +27,16 @@ export abstract class BasicValidator<T, Options = void>
     context: Option<string>
   ): ValidationError[] | PromiseLike<ValidationError[]>;
 
-  run(value: T, context: Option<string>): Task<ValidationError[]> {
-    return new Task(async run => run(this.validate(value, context)));
+  run(value: T, context: Option<string>): Task<Validity<T, U>> {
+    return new Task(async run => {
+      let errors = await run(this.validate(value, context));
+
+      // TODO: This transformer should be abstracted
+      if (errors.length === 0) {
+        return valid(value as U);
+      } else {
+        return invalid(value, errors);
+      }
+    });
   }
 }

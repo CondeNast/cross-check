@@ -3,11 +3,17 @@ import {
   ValidationDescriptor,
   ValidationError,
   Validator,
-  ValidatorFactory
+  ValidatorFactory,
+  Validity,
+  descriptor,
+  invalid,
+  valid
 } from "@cross-check/core";
 import {
+  MapError,
   MapErrorOptions,
   MapErrorTransform,
+  ValidationDescriptors,
   and,
   chain,
   ifValid,
@@ -22,8 +28,10 @@ import { run } from "./support";
 
 QUnit.module("Combinators");
 
-const Success: ValidatorFactory<unknown, void> = (): Validator<unknown> => {
-  return () => new Task(async () => []);
+const Success: ValidatorFactory<undefined, undefined, void> = (): Validator<
+  undefined
+> => {
+  return () => new Task(async () => valid(undefined));
 };
 
 interface FailOptions {
@@ -31,26 +39,28 @@ interface FailOptions {
   path: ErrorPath;
 }
 
-const Fail: ValidatorFactory<unknown, FailOptions> = ({
+const Fail: ValidatorFactory<undefined, undefined, FailOptions> = ({
   reason,
   path
 }: FailOptions) => {
-  return () =>
-    new Task<ValidationError[]>(async () => [error(reason, null, path)]);
+  return (v: undefined) =>
+    new Task<Validity<undefined, undefined>>(async () =>
+      invalid(v, [error(reason, null, path)])
+    );
 };
 
-function descriptorFor<T>(
+function descriptorFor<T, U extends T>(
   name: string,
-  factory: ValidatorFactory<T, void>
-): ValidationDescriptor<T>;
-function descriptorFor<T, Options>(
+  factory: ValidatorFactory<T, U, void>
+): ValidationDescriptor<T, U>;
+function descriptorFor<T, U extends T, Options>(
   name: string,
-  factory: ValidatorFactory<T, Options>,
+  factory: ValidatorFactory<T, U, Options>,
   options: Options
-): ValidationDescriptor<T>;
-function descriptorFor<T>(
+): ValidationDescriptor<T, U>;
+function descriptorFor<T, U extends T>(
   name: string,
-  validator: ValidatorFactory<T, any>,
+  validator: ValidatorFactory<T, U, any>,
   options?: any
 ): ValidationDescriptor<T> {
   return {
@@ -75,15 +85,24 @@ function error(
   };
 }
 
-const success = () => descriptorFor("Success", Success);
+const success = () => descriptorFor<undefined, undefined>("Success", Success);
 const fail = (reason: string, path: ErrorPath = []) =>
   descriptorFor("Fail", Fail, { reason, path });
 
-function runMulti(
-  factory: ValidatorFactory<unknown, ValidationDescriptor[]>,
-  descriptors: ValidationDescriptor[]
-): Task<ValidationError[]> {
-  return run(descriptorFor("multi", factory, descriptors), null);
+async function runMulti(
+  factory: ValidatorFactory<
+    undefined,
+    undefined,
+    ValidationDescriptors<undefined, undefined>
+  >,
+  descriptors: Array<ValidationDescriptor<undefined, undefined>>
+): Promise<ValidationError[]> {
+  let results = await run(
+    descriptor("multi", factory, new ValidationDescriptors(descriptors)),
+    undefined
+  );
+
+  return results.valid ? [] : results.errors;
 }
 
 QUnit.test("and", async assert => {
@@ -190,25 +209,31 @@ QUnit.test("chain", async assert => {
 });
 
 QUnit.test("mapError", async assert => {
-  function map(
-    descriptor: ValidationDescriptor,
+  function map<U extends undefined>(
+    desc: ValidationDescriptor<undefined, U>,
     transform: MapErrorTransform
-  ): Task<ValidationError[]> {
+  ): Task<Validity<undefined, U>> {
+    let options: MapErrorOptions<undefined, U> = {
+      do: desc,
+      catch: transform
+    } as MapErrorOptions<undefined, U>;
+
     return run(
-      descriptorFor<unknown, MapErrorOptions<unknown>>("mapError", mapError, {
-        do: descriptor,
-        catch: transform
-      }),
-      null
+      descriptorFor("mapError", mapError as MapError<undefined, U>, options),
+      undefined
     );
   }
 
-  function cast(descriptor: ValidationDescriptor): Task<ValidationError[]> {
-    return map(descriptor, () => [error("casted")]);
+  function cast<U extends undefined>(
+    desc: ValidationDescriptor<undefined, U>
+  ): Task<Validity<undefined, U>> {
+    return map(desc, () => [error("casted")]);
   }
 
-  function append(descriptor: ValidationDescriptor): Task<ValidationError[]> {
-    return map(descriptor, errors => [...errors, error("appended")]);
+  function append<U extends undefined>(
+    desc: ValidationDescriptor<undefined, U>
+  ): Task<Validity<undefined, U>> {
+    return map(desc, errors => [...errors, error("appended")]);
   }
 
   assert.deepEqual(await cast(success()), []);
