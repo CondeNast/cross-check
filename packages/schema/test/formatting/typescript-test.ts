@@ -1,11 +1,10 @@
 import { module, strip } from "../support";
-import { MediumArticle, SimpleArticle } from "../support/records";
 
 const mod = module("[schema] formatting - typescript");
 
-mod.test("simple - published", (assert, { typescript }) => {
+mod.test("simple - published", (assert, { format }) => {
   assert.equal(
-    typescript(SimpleArticle, { name: "SimpleArticle" }),
+    format.published.typescript("SimpleArticle", { name: "SimpleArticle" }),
 
     strip`
         export interface SimpleArticle {
@@ -17,9 +16,9 @@ mod.test("simple - published", (assert, { typescript }) => {
   );
 });
 
-mod.test("simple - draft", (assert, { registry, typescript }) => {
+mod.test("simple - draft", (assert, { format }) => {
   assert.equal(
-    typescript(SimpleArticle.with({ draft: true, registry }), {
+    format.draft.typescript("SimpleArticle", {
       name: "SimpleArticleDraft"
     }),
 
@@ -33,9 +32,9 @@ mod.test("simple - draft", (assert, { registry, typescript }) => {
   );
 });
 
-mod.test("detailed - published", (assert, { typescript }) => {
+mod.test("detailed - published", (assert, { format }) => {
   assert.equal(
-    typescript(MediumArticle, { name: "MediumArticle" }),
+    format.published.typescript("MediumArticle", { name: "MediumArticle" }),
 
     strip`
       export interface MediumArticle {
@@ -63,9 +62,9 @@ mod.test("detailed - published", (assert, { typescript }) => {
   );
 });
 
-mod.test("detailed - draft", (assert, { registry, typescript }) => {
+mod.test("detailed - draft", (assert, { format }) => {
   assert.equal(
-    typescript(MediumArticle.with({ draft: true, registry }), {
+    format.draft.typescript("MediumArticle", {
       name: "MediumArticleDraft"
     }),
 

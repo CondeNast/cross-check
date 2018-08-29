@@ -1,16 +1,10 @@
 import { module, strip } from "../support";
-import {
-  MediumArticle,
-  Nesting,
-  Related,
-  SimpleArticle
-} from "../support/records";
 
 const mod = module("[schema] formatting - describe");
 
-mod.test("simple", (assert, { describe }) => {
+mod.test("simple", (assert, { format }) => {
   assert.equal(
-    describe(SimpleArticle),
+    format.published.describe("SimpleArticle"),
 
     strip`
       {
@@ -34,9 +28,9 @@ mod.test("simple", (assert, { describe }) => {
   // );
 });
 
-mod.test("detailed", (assert, { describe }) => {
+mod.test("detailed", (assert, { format }) => {
   assert.equal(
-    describe(MediumArticle),
+    format.published.describe("MediumArticle"),
 
     strip`
       {
@@ -92,9 +86,9 @@ mod.test("detailed", (assert, { describe }) => {
   // );
 });
 
-mod.test("relationships", (assert, { describe }) => {
+mod.test("relationships", (assert, { format }) => {
   assert.equal(
-    describe(Related),
+    format.published.describe("Related"),
 
     strip`
       {
@@ -120,9 +114,9 @@ mod.test("relationships", (assert, { describe }) => {
   // );
 });
 
-mod.test("nested", (assert, { describe }) => {
+mod.test("nested", (assert, { format }) => {
   assert.equal(
-    describe(Nesting),
+    format.published.describe("Nesting"),
 
     strip`
       {

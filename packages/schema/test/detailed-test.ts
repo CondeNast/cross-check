@@ -24,18 +24,18 @@ const mod = module("[schema] - detailed schema", {
 
 mod.test(
   "missing fields (including dictionaries with required fields inside and required arrays)",
-  async (assert, { validateSloppy }) => {
+  async (assert, { validate }) => {
     assert.deepEqual(
-      await validateSloppy({}),
+      await validate.sloppy({}),
       [missingError("hed")],
       "draft records can be missing fields (but not `required('always')`)"
     );
   }
 );
 
-mod.test("drafts", async (assert, { validateSloppy }) => {
+mod.test("drafts", async (assert, { validate }) => {
   assert.deepEqual(
-    await validateSloppy({
+    await validate.sloppy({
       hed: "Not\nactually\na\nsingle\nline",
       canonicalUrl: "totally -- invalid :: url"
     }),
@@ -44,7 +44,7 @@ mod.test("drafts", async (assert, { validateSloppy }) => {
   );
 
   assert.deepEqual(
-    await validateSloppy({
+    await validate.sloppy({
       hed: "hello world",
       categories: []
     }),
@@ -53,7 +53,7 @@ mod.test("drafts", async (assert, { validateSloppy }) => {
   );
 
   assert.deepEqual(
-    await validateSloppy({
+    await validate.sloppy({
       hed: "hello world",
       categories: ["This\nis\na multiline\nstring"]
     }),
@@ -62,9 +62,9 @@ mod.test("drafts", async (assert, { validateSloppy }) => {
   );
 });
 
-mod.test("published documents", async (assert, { validatePublished }) => {
+mod.test("published documents", async (assert, { validate }) => {
   assert.deepEqual(
-    await validatePublished({
+    await validate.published({
       hed: "Not\nactually\na\nsingle\nline",
       dek: null,
       body: null,
@@ -86,7 +86,7 @@ mod.test("published documents", async (assert, { validatePublished }) => {
   );
 
   assert.deepEqual(
-    await validatePublished({
+    await validate.published({
       hed: "A single line",
       body: "Hello world\nMore content",
       tags: [1, "tag", {}],
@@ -104,447 +104,432 @@ mod.test("published documents", async (assert, { validatePublished }) => {
   );
 });
 
-mod.test(
-  "dates (issueDate)",
-  async (assert, { validateSloppy, validatePublished }) => {
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        issueDate: "not -- a valid :: date"
-      }),
-      [typeError("iso-date", "issueDate")],
-      "dates don't widen into strings for drafts"
-    );
+mod.test("dates (issueDate)", async (assert, { validate }) => {
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      issueDate: "not -- a valid :: date"
+    }),
+    [typeError("iso-date", "issueDate")],
+    "dates don't widen into strings for drafts"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        issueDate: "not -- a valid :: date",
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      issueDate: "not -- a valid :: date",
+      categories: ["single"],
 
-        dek: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        geo: null,
-        contributors: null
-      }),
-      [typeError("iso-date", "issueDate")]
-    );
-  }
-);
+      dek: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      geo: null,
+      contributors: null
+    }),
+    [typeError("iso-date", "issueDate")]
+  );
+});
 
-mod.test(
-  "optional dictionaries (geo)",
-  async (assert, { validateSloppy, validatePublished }) => {
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        geo: {
-          lat: null,
-          long: null
-        }
-      }),
-      [],
-      "drafts do not need nested required fields"
-    );
+mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      geo: {
+        lat: null,
+        long: null
+      }
+    }),
+    [],
+    "drafts do not need nested required fields"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: {
-          lat: null,
-          long: null
-        },
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: {
+        lat: null,
+        long: null
+      },
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null
-      }),
-      [missingError("geo.lat"), missingError("geo.long")],
-      "published documents must include nested required fields if dictionary is present"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null
+    }),
+    [missingError("geo.lat"), missingError("geo.long")],
+    "published documents must include nested required fields if dictionary is present"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        geo: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null
-      }),
-      [],
-      "published documents may leave out optional dictionaries"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      geo: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null
+    }),
+    [],
+    "published documents may leave out optional dictionaries"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        categories: null,
-        geo: null
-      }),
-      [missingError("categories")],
-      "published documents may not leave out required dictionaries"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      categories: null,
+      geo: null
+    }),
+    [missingError("categories")],
+    "published documents may not leave out required dictionaries"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        geo: { lat: "10", long: "20" },
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      geo: { lat: "10", long: "20" },
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        categories: null
-      }),
-      [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-      "nested fields in drafts use the draft type (but numbers still aren't strings)"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      categories: null
+    }),
+    [typeError("number", "geo.lat"), typeError("number", "geo.long")],
+    "nested fields in drafts use the draft type (but numbers still aren't strings)"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: "10", long: "20" },
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: "10", long: "20" },
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null
-      }),
-      [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-      "nested fields in published documents use the record type (but numbers aren't strings)"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null
+    }),
+    [typeError("number", "geo.lat"), typeError("number", "geo.long")],
+    "nested fields in published documents use the record type (but numbers aren't strings)"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10.5, long: 20.5 },
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10.5, long: 20.5 },
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        author: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null
-      }),
-      [
-        typeError("number:integer", "geo.lat"),
-        typeError("number:integer", "geo.long")
-      ],
-      "nested fields in published documents use the record type (floats aren't integers)"
-    );
+      dek: null,
+      issueDate: null,
+      author: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null
+    }),
+    [
+      typeError("number:integer", "geo.lat"),
+      typeError("number:integer", "geo.long")
+    ],
+    "nested fields in published documents use the record type (floats aren't integers)"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        author: { first: "Christina\nTODO: Check", last: "Kung" }
-      }),
-      [],
-      "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
-    );
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      author: { first: "Christina\nTODO: Check", last: "Kung" }
+    }),
+    [],
+    "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        author: { first: "Christina\nTODO: Check", last: "Kung" },
-        body: "Hello world\nMore content",
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      author: { first: "Christina\nTODO: Check", last: "Kung" },
+      body: "Hello world\nMore content",
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        geo: null
-      }),
-      [typeError("string:single-line", "author.first")],
-      "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
-    );
-  }
-);
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      geo: null
+    }),
+    [typeError("string:single-line", "author.first")],
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
+  );
+});
 
-mod.test(
-  "optional dictionaries (geo)",
-  async (assert, { validateSloppy, validatePublished }) => {
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        geo: {
-          lat: null,
-          long: null
-        }
-      }),
-      [],
-      "drafts do not need nested required fields"
-    );
+mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      geo: {
+        lat: null,
+        long: null
+      }
+    }),
+    [],
+    "drafts do not need nested required fields"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: {
-          lat: null,
-          long: null
-        },
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: {
+        lat: null,
+        long: null
+      },
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        author: null
-      }),
-      [missingError("geo.lat"), missingError("geo.long")],
-      "published documents must include nested required fields if dictionary is present"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      author: null
+    }),
+    [missingError("geo.lat"), missingError("geo.long")],
+    "published documents must include nested required fields if dictionary is present"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        geo: null,
-        author: null
-      }),
-      [],
-      "published documents may leave out optional dictionaries"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      geo: null,
+      author: null
+    }),
+    [],
+    "published documents may leave out optional dictionaries"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        geo: null,
-        categories: null,
-        author: null
-      }),
-      [missingError("categories")],
-      "published documents may not leave out required dictionaries"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      geo: null,
+      categories: null,
+      author: null
+    }),
+    [missingError("categories")],
+    "published documents may not leave out required dictionaries"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        geo: { lat: "10", long: "20" }
-      }),
-      [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-      "nested fields in drafts use the draft type (but numbers still are't strings)"
-    );
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      geo: { lat: "10", long: "20" }
+    }),
+    [typeError("number", "geo.lat"), typeError("number", "geo.long")],
+    "nested fields in drafts use the draft type (but numbers still are't strings)"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: "10", long: "20" },
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: "10", long: "20" },
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        author: null
-      }),
-      [typeError("number", "geo.lat"), typeError("number", "geo.long")],
-      "nested fields in published documents use the record type (but numbers aren't strings)"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      author: null
+    }),
+    [typeError("number", "geo.lat"), typeError("number", "geo.long")],
+    "nested fields in published documents use the record type (but numbers aren't strings)"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "hello world",
-        author: { first: "Christina\nTODO: Check", last: "Kung" }
-      }),
-      [],
-      "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
-    );
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "hello world",
+      author: { first: "Christina\nTODO: Check", last: "Kung" }
+    }),
+    [],
+    "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        author: { first: "Christina\nTODO: Check", last: "Kung" },
-        body: "Hello world\nMore content",
-        categories: ["single"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      author: { first: "Christina\nTODO: Check", last: "Kung" },
+      body: "Hello world\nMore content",
+      categories: ["single"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        geo: null
-      }),
-      [typeError("string:single-line", "author.first")],
-      "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
-    );
-  }
-);
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      geo: null
+    }),
+    [typeError("string:single-line", "author.first")],
+    "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
+  );
+});
 
-mod.test(
-  "required lists (categories)",
-  async (assert, { validateSloppy, validatePublished }) => {
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
-        categories: [],
+mod.test("required lists (categories)", async (assert, { validate }) => {
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
+      categories: [],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        author: null
-      }),
-      [typeError("present-array", "categories")],
-      "in published documents, required lists must have at least one element"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      author: null
+    }),
+    [typeError("present-array", "categories")],
+    "in published documents, required lists must have at least one element"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
-        categories: []
-      }),
-      [],
-      "in drafts, required lists may be empty"
-    );
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
+      categories: []
+    }),
+    [],
+    "in drafts, required lists may be empty"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        author: null,
-        categories: null
-      }),
-      [typeError("present", "categories")],
-      "in published documents, required lists may not be missing"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      author: null,
+      categories: null
+    }),
+    [typeError("present", "categories")],
+    "in published documents, required lists may not be missing"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 }
-      }),
-      [],
-      "in drafts, required lists may be missing"
-    );
-  }
-);
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 }
+    }),
+    [],
+    "in drafts, required lists may be missing"
+  );
+});
 
-mod.test(
-  "optional lists (tags)",
-  async (assert, { validateSloppy, validatePublished }) => {
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
-        tags: [],
-        categories: ["somecategory"],
+mod.test("optional lists (tags)", async (assert, { validate }) => {
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
+      tags: [],
+      categories: ["somecategory"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        contributors: null,
-        author: null
-      }),
-      [],
-      "in published documents, optional lists may be empty"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      contributors: null,
+      author: null
+    }),
+    [],
+    "in published documents, optional lists may be empty"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
-        tags: [],
-        categories: ["somecategory"]
-      }),
-      [],
-      "in drafts, optional lists may be empty"
-    );
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
+      tags: [],
+      categories: ["somecategory"]
+    }),
+    [],
+    "in drafts, optional lists may be empty"
+  );
 
-    assert.deepEqual(
-      await validatePublished({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        geo: { lat: 10, long: 20 },
-        categories: ["somecategory"],
+  assert.deepEqual(
+    await validate.published({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      geo: { lat: 10, long: 20 },
+      categories: ["somecategory"],
 
-        dek: null,
-        issueDate: null,
-        canonicalUrl: null,
-        tags: null,
-        contributors: null,
-        author: null
-      }),
-      [],
-      "in published documents, optional lists may be missing"
-    );
+      dek: null,
+      issueDate: null,
+      canonicalUrl: null,
+      tags: null,
+      contributors: null,
+      author: null
+    }),
+    [],
+    "in published documents, optional lists may be missing"
+  );
 
-    assert.deepEqual(
-      await validateSloppy({
-        hed: "A single line",
-        body: "Hello world\nMore content",
-        categories: ["somecategory"],
-        geo: { lat: 10, long: 20 }
-      }),
-      [],
-      "in drafts, optional lists may be missing"
-    );
-  }
-);
+  assert.deepEqual(
+    await validate.sloppy({
+      hed: "A single line",
+      body: "Hello world\nMore content",
+      categories: ["somecategory"],
+      geo: { lat: 10, long: 20 }
+    }),
+    [],
+    "in drafts, optional lists may be missing"
+  );
+});
 
 mod.test("parsing", (assert, { registry }) => {
   assert.deepEqual(

@@ -1,15 +1,20 @@
-import { listTypes } from "@cross-check/schema";
 import { module } from "../support";
-import { MediumArticle, SimpleArticle } from "../support/records";
 
 const mod = module("[schema] formatting - listTypes");
 
-mod.test("simple", (assert, { registry }) => {
-  assert.deepEqual(listTypes(SimpleArticle, registry), ["SingleLine", "Text"]);
+mod.test("simple", (assert, { std }) => {
+  assert.deepEqual(std.published.listTypes("SimpleArticle"), [
+    "SingleLine",
+    "Text"
+  ]);
 });
 
-mod.test("detailed", (assert, { registry }) => {
-  assert.deepEqual(listTypes(MediumArticle, registry), [
+mod.test("simple - draft", (assert, { std }) => {
+  assert.deepEqual(std.draft.listTypes("SimpleArticle"), ["Text"]);
+});
+
+mod.test("detailed", (assert, { std }) => {
+  assert.deepEqual(std.published.listTypes("MediumArticle"), [
     "Dictionary",
     "ISODate",
     "Integer",
@@ -18,5 +23,15 @@ mod.test("detailed", (assert, { registry }) => {
     "SingleWord",
     "Text",
     "Url"
+  ]);
+});
+
+mod.test("detailed - draft", (assert, { std }) => {
+  assert.deepEqual(std.draft.listTypes("MediumArticle"), [
+    "Dictionary",
+    "ISODate",
+    "Integer",
+    "List",
+    "Text"
   ]);
 });

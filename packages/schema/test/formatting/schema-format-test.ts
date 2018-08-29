@@ -1,11 +1,10 @@
 import { module, strip } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 const mod = module("[schema] formatting - schemaFormat");
 
-mod.test("simple", (assert, { schemaFormat }) => {
+mod.test("simple", (assert, { format }) => {
   assert.equal(
-    schemaFormat(SimpleArticle),
+    format.published.schemaFormat("SimpleArticle"),
 
     strip`
       Record("SimpleArticle", {
@@ -20,9 +19,9 @@ mod.test("simple", (assert, { schemaFormat }) => {
   );
 });
 
-mod.test("detailed - published", (assert, { schemaFormat }) => {
+mod.test("detailed - published", (assert, { format }) => {
   assert.equal(
-    schemaFormat(MediumArticle),
+    format.published.schemaFormat("MediumArticle"),
 
     strip`
       Record("MediumArticle", {
@@ -53,9 +52,9 @@ mod.test("detailed - published", (assert, { schemaFormat }) => {
   );
 });
 
-mod.test("relationships", (assert, { schemaFormat }) => {
+mod.test("relationships", (assert, { format }) => {
   assert.equal(
-    schemaFormat(Related),
+    format.published.schemaFormat("Related"),
 
     strip`
       Record("Related", {
