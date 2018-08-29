@@ -10,7 +10,7 @@ import {
 } from "@cross-check/schema";
 import Task from "no-show";
 import { Dict } from "ts-std";
-import { register } from "./records";
+import { resolve } from "./records";
 import { ENV } from "./utils";
 
 QUnit.dump.maxDepth = 100;
@@ -124,8 +124,9 @@ export function module(
     | RecordSubjectOptions,
   nested?: ((test: Test) => void) | ((test: RecordSubjectTest) => void)
 ): { registry: Registry; test: Test | RecordSubjectTest } {
-  let registry: Registry = REGISTRY.clone();
-  register(registry);
+  let registry: Registry = REGISTRY.clone({
+    record: resolve
+  });
 
   let poison = false;
 
@@ -144,8 +145,10 @@ export function module(
 
   let wrappedHooks = {
     beforeEach() {
-      registry = REGISTRY.clone();
-      register(registry);
+      registry = REGISTRY.clone({
+        record: resolve
+      });
+
       if (hooks && hooks.beforeEach) {
         hooks.beforeEach();
       }

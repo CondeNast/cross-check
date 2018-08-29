@@ -53,18 +53,16 @@ export class RecordBuilder
   }
 
   descriptor(registry: Registry): visitor.Record {
-    let { dictionary, metadata } = registry.getRawRecord(this.name);
-
     return {
       type: "Record",
       name: this.name,
-      members: mapDict(dictionary.members, member => {
+      members: mapDict(this.members.members, member => {
         return {
           descriptor: visitorDescriptor(member.descriptor, registry),
           meta: member.meta
         };
       }),
-      metadata,
+      metadata: this.metadata,
       required:
         this.members.required === "always" ||
         this.members.required === "published"

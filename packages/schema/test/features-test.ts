@@ -14,7 +14,7 @@ import {
   typeError,
   validate
 } from "./support";
-import { Features } from "./support/records";
+import { Features, resolve } from "./support/records";
 
 const mod = module("[schema] - record with feature flags");
 
@@ -249,7 +249,9 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
 
     type = type.features(["flag"]);
 
-    const registry = REGISTRY.clone();
+    const registry = REGISTRY.clone({
+      record: resolve
+    });
 
     const FeaturesRecordBuilder = Record("Flag", {
       fields: {

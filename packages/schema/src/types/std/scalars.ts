@@ -249,8 +249,9 @@ export function scalar<Args>(
 
   let { description, typescript, base } = options;
 
-  REGISTRY.setPrimitive(name, {
+  REGISTRY.registerPrimitive(name, {
     name,
+    default: true,
     description,
     typescript,
     base: base === undefined ? undefined : { name: base, args: undefined },

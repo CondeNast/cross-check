@@ -1,6 +1,7 @@
 import { REGISTRY, Record, builders } from "@cross-check/schema";
 import { ENV, keysError, module } from "./support";
 import { ISODate } from "./support/date";
+import { resolve } from "./support/records";
 
 const mod = module("[schema] readonly");
 
@@ -49,7 +50,9 @@ async function testMode(
   });
 
   for (let mode of modes) {
-    let registry = REGISTRY.clone();
+    let registry = REGISTRY.clone({
+      record: resolve
+    });
     let recordWithMode = Article.with({ mode, registry });
     let result = await recordWithMode.validate({}, ENV);
 
