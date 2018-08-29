@@ -1,6 +1,6 @@
-import { RecordBuilder } from "@cross-check/schema/src/record";
 import { Dict, JSONObject, Option, assert, dict, expect } from "ts-std";
 import { dehydrated } from "./descriptors";
+import { RecordBuilder, RecordImpl } from "./record";
 import * as type from "./type";
 import { DictionaryImpl } from "./types/fundamental";
 import { JSONValue, mapDict } from "./utils";
@@ -156,6 +156,14 @@ export class Registry {
     );
 
     this.types.Record.set(name, new Record(name, dictionary, metadata));
+  }
+
+  getRecordImpl(
+    name: string,
+    params: dehydrated.HydrateParameters
+  ): RecordImpl {
+    let { dictionary, metadata } = this.getRecord(name, params);
+    return new RecordImpl(dictionary, metadata, name);
   }
 
   getRecord(

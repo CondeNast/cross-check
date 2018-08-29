@@ -14,3 +14,8 @@ export { types };
 export * from "./descriptors";
 export { DEBUG_LOG } from "./debug";
 export { Registry, REGISTRY } from "./registry";
+export {
+  Std,
+  Formatters as StdFormatters,
+  RecordFormatters as StdRecordFormatters
+} from "./std";

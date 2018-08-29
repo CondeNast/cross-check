@@ -1,10 +1,9 @@
 import { module } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 const mod = module("[schema] formatting - toJSON");
 
-mod.test("simple - published", (assert, { toJSON }) => {
-  assert.deepEqual(toJSON(SimpleArticle), {
+mod.test("simple - published", (assert, { format }) => {
+  assert.deepEqual(format.published.toJSON("SimpleArticle"), {
     fields: {
       hed: { type: "SingleLine", required: true },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -18,8 +17,8 @@ mod.test("simple - published", (assert, { toJSON }) => {
   });
 });
 
-mod.test("simple - draft", (assert, { registry, toJSON }) => {
-  assert.deepEqual(toJSON(SimpleArticle.with({ draft: true, registry })), {
+mod.test("simple - draft", (assert, { format }) => {
+  assert.deepEqual(format.draft.toJSON("SimpleArticle"), {
     fields: {
       hed: { type: "Text", required: false, args: { allowEmpty: true } },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -32,8 +31,8 @@ mod.test("simple - draft", (assert, { registry, toJSON }) => {
   });
 });
 
-mod.test("detailed - published", (assert, { toJSON }) => {
-  let actual = toJSON(MediumArticle);
+mod.test("detailed - published", (assert, { format }) => {
+  let actual = format.published.toJSON("MediumArticle");
   let fields = {
     hed: { type: "SingleLine", required: true },
     dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -116,8 +115,8 @@ mod.test("detailed - published", (assert, { toJSON }) => {
   assert.deepEqual(actual, expected);
 });
 
-mod.test("detailed - draft", (assert, { registry, toJSON }) => {
-  let actual = toJSON(MediumArticle.with({ draft: true, registry }));
+mod.test("detailed - draft", (assert, { format }) => {
+  let actual = format.draft.toJSON("MediumArticle");
   let fields = {
     hed: { type: "Text", required: true },
     dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -185,9 +184,9 @@ mod.test("detailed - draft", (assert, { registry, toJSON }) => {
   assert.deepEqual(actual, expected);
 });
 
-mod.test("relationships - published", (assert, { toJSON }) => {
+mod.test("relationships - published", (assert, { format }) => {
   assert.deepEqual(
-    toJSON(Related),
+    format.published.toJSON("Related"),
     {
       fields: {
         first: {
@@ -224,9 +223,9 @@ mod.test("relationships - published", (assert, { toJSON }) => {
   );
 });
 
-mod.test("relationships - draft", (assert, { registry, toJSON }) => {
+mod.test("relationships - draft", (assert, { format }) => {
   assert.deepEqual(
-    toJSON(Related.with({ draft: true, registry })),
+    format.draft.toJSON("Related"),
 
     {
       fields: {

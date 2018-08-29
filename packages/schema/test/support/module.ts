@@ -1,17 +1,12 @@
 import { ValidationError } from "@cross-check/core";
 import {
   FormattableRecord,
-  GraphqlOptions,
-  JSONRecord,
   REGISTRY,
   RecordBuilder,
   Registry,
-  TypescriptOptions,
-  describe,
-  graphql,
-  schemaFormat,
-  toJSON,
-  typescript
+  Std,
+  StdFormatters,
+  StdRecordFormatters
 } from "@cross-check/schema";
 import Task from "no-show";
 import { Dict } from "ts-std";
@@ -36,19 +31,51 @@ export type StringFormatFunction<O = void> = O extends void
 export type SubjectStringFormatFunction<O = void> = O extends void
   ? (() => string)
   : ((options: O) => string);
+
 export type RecursiveFormatFunction<T> = (record: FormattableRecord) => T;
 export type SubjectRecursiveFormatFunction<T> = () => T;
+
+export type Validate = (name: string, value: Dict) => Task<ValidationError[]>;
+export type SubjectValidate = (value: Dict) => Task<ValidationError[]>;
+
+export interface TestStd {
+  published: Std;
+  draft: Std;
+  sloppy: Std;
+}
+
+export interface TestStdFormatters {
+  published: StdFormatters;
+  draft: StdFormatters;
+  sloppy: StdFormatters;
+}
+
+export interface TestStdValidate {
+  published: Validate;
+  draft: Validate;
+  sloppy: Validate;
+}
+
+export interface SubjectTestStdFormatters {
+  published: StdRecordFormatters;
+  draft: StdRecordFormatters;
+  sloppy: StdRecordFormatters;
+}
+
+export interface SubjectTestStdValidate {
+  published: SubjectValidate;
+  draft: SubjectValidate;
+  sloppy: SubjectValidate;
+}
 
 export interface TestState {
   registry: Registry;
   validateDraft: ValidateFunction;
   validateSloppy: ValidateFunction;
   validatePublished: ValidateFunction;
-  describe: StringFormatFunction;
-  schemaFormat: StringFormatFunction;
-  typescript: StringFormatFunction<TypescriptOptions>;
-  graphql: StringFormatFunction<GraphqlOptions>;
-  toJSON: RecursiveFormatFunction<JSONRecord>;
+  validate: TestStdValidate;
+  std: TestStd;
+  format: TestStdFormatters;
 }
 
 export interface SubjectTestState {
@@ -56,11 +83,9 @@ export interface SubjectTestState {
   validateDraft: SubjectValidateFunction;
   validateSloppy: SubjectValidateFunction;
   validatePublished: SubjectValidateFunction;
-  describe: SubjectStringFormatFunction;
-  schemaFormat: SubjectStringFormatFunction;
-  typescript: SubjectStringFormatFunction<TypescriptOptions>;
-  graphql: SubjectStringFormatFunction<GraphqlOptions>;
-  toJSON: SubjectRecursiveFormatFunction<JSONRecord>;
+  validate: SubjectTestStdValidate;
+  std: TestStd;
+  format: SubjectTestStdFormatters;
 }
 
 export interface ModuleState {
@@ -172,6 +197,14 @@ export function module(
     description: string,
     callback: (assert: typeof QUnit.assert, state: TestState) => void
   ): void {
+    let draft = new Std(registry, { registry, draft: true }, ENV);
+    let published = new Std(registry, { registry }, ENV);
+    let sloppy = new Std(
+      registry,
+      { registry, draft: true, strictKeys: false },
+      ENV
+    );
+
     QUnit.test(description, assert =>
       callback(assert, {
         registry,
@@ -187,24 +220,22 @@ export function module(
           return validateSloppy(builder, obj, registry);
         },
 
-        describe(builder) {
-          return describe(registry, builder);
+        validate: {
+          draft: draft.validation,
+          published: published.validation,
+          sloppy: sloppy.validation
         },
 
-        schemaFormat(builder) {
-          return schemaFormat(registry, builder);
+        std: {
+          draft,
+          published,
+          sloppy
         },
 
-        typescript(builder, options) {
-          return typescript(registry, builder, options);
-        },
-
-        graphql(builder, options) {
-          return graphql(registry, builder, options);
-        },
-
-        toJSON(builder) {
-          return toJSON(builder, registry);
+        format: {
+          draft: draft.formatters,
+          published: published.formatters,
+          sloppy: sloppy.formatters
         }
       })
     );
@@ -215,6 +246,14 @@ export function module(
       description: string,
       callback: (assert: typeof QUnit.assert, state: SubjectTestState) => void
     ) => {
+      let draft = new Std(registry, { registry, draft: true }, ENV);
+      let published = new Std(registry, { registry }, ENV);
+      let sloppy = new Std(
+        registry,
+        { registry, draft: true, strictKeys: false },
+        ENV
+      );
+
       QUnit.test(description, assert =>
         callback(assert, {
           registry,
@@ -230,24 +269,22 @@ export function module(
             return validateSloppy(subject, obj, registry);
           },
 
-          describe() {
-            return describe(registry, subject);
+          validate: {
+            draft: draft.validator(subject.name),
+            published: published.validator(subject.name),
+            sloppy: sloppy.validator(subject.name)
           },
 
-          schemaFormat() {
-            return schemaFormat(registry, subject);
+          std: {
+            draft,
+            published,
+            sloppy
           },
 
-          typescript(options) {
-            return typescript(registry, subject, options);
-          },
-
-          graphql(options) {
-            return graphql(registry, subject, options);
-          },
-
-          toJSON() {
-            return toJSON(subject, registry);
+          format: {
+            draft: draft.format(subject.name),
+            published: published.format(subject.name),
+            sloppy: sloppy.format(subject.name)
           }
         })
       );

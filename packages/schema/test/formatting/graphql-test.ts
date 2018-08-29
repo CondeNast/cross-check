@@ -1,11 +1,13 @@
 import { GRAPHQL_SCALAR_MAP, module, strip } from "../support";
-import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
 let mod = module("[schema] formatting - graphql");
 
-mod.test("simple", (assert, { registry, graphql }) => {
+mod.test("simple", (assert, { format }) => {
   assert.equal(
-    graphql(SimpleArticle, { name: "Simple", scalarMap: GRAPHQL_SCALAR_MAP }),
+    format.published.graphql("SimpleArticle", {
+      name: "Simple",
+      scalarMap: GRAPHQL_SCALAR_MAP
+    }),
     strip`
       type Simple {
         hed: SingleLine!
@@ -16,7 +18,7 @@ mod.test("simple", (assert, { registry, graphql }) => {
   );
 
   assert.equal(
-    graphql(SimpleArticle.with({ draft: true, registry }), {
+    format.draft.graphql("SimpleArticle", {
       name: "Simple",
       scalarMap: GRAPHQL_SCALAR_MAP
     }),
@@ -30,9 +32,9 @@ mod.test("simple", (assert, { registry, graphql }) => {
   );
 });
 
-mod.test("detailed", (assert, { graphql }) => {
+mod.test("detailed", (assert, { format }) => {
   assert.equal(
-    graphql(MediumArticle, {
+    format.published.graphql("MediumArticle", {
       name: "MediumArticle",
       scalarMap: GRAPHQL_SCALAR_MAP
     }),
@@ -69,9 +71,12 @@ mod.test("detailed", (assert, { graphql }) => {
   );
 });
 
-mod.test("relationships", (assert, { graphql }) => {
+mod.test("relationships", (assert, { format }) => {
   assert.equal(
-    graphql(Related, { name: "Related", scalarMap: GRAPHQL_SCALAR_MAP }),
+    format.published.graphql("Related", {
+      name: "Related",
+      scalarMap: GRAPHQL_SCALAR_MAP
+    }),
 
     strip`
       type Related {
