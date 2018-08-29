@@ -104,6 +104,9 @@ export interface ObjectModel {
   asList(object: unknown): Option<Iterable<unknown> | Array<unknown>>;
 }
 
+/** @deprecated */
+export type Environment = ObjectModel;
+
 /**
  * @api primitive
  *
