@@ -1,9 +1,9 @@
-import { toJSON } from "@cross-check/schema";
+import { module } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("[schema] formatting - toJSON");
+const mod = module("[schema] formatting - toJSON");
 
-QUnit.test("simple - published", assert => {
+mod.test("simple - published", (assert, { toJSON }) => {
   assert.deepEqual(toJSON(SimpleArticle), {
     fields: {
       hed: { type: "SingleLine", required: true },
@@ -18,8 +18,8 @@ QUnit.test("simple - published", assert => {
   });
 });
 
-QUnit.test("simple - draft", assert => {
-  assert.deepEqual(toJSON(SimpleArticle.with({ draft: true })), {
+mod.test("simple - draft", (assert, { registry, toJSON }) => {
+  assert.deepEqual(toJSON(SimpleArticle.with({ draft: true, registry })), {
     fields: {
       hed: { type: "Text", required: false, args: { allowEmpty: true } },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -32,7 +32,7 @@ QUnit.test("simple - draft", assert => {
   });
 });
 
-QUnit.test("detailed - published", assert => {
+mod.test("detailed - published", (assert, { toJSON }) => {
   let actual = toJSON(MediumArticle);
   let fields = {
     hed: { type: "SingleLine", required: true },
@@ -116,8 +116,8 @@ QUnit.test("detailed - published", assert => {
   assert.deepEqual(actual, expected);
 });
 
-QUnit.test("detailed - draft", assert => {
-  let actual = toJSON(MediumArticle.with({ draft: true }));
+mod.test("detailed - draft", (assert, { registry, toJSON }) => {
+  let actual = toJSON(MediumArticle.with({ draft: true, registry }));
   let fields = {
     hed: { type: "Text", required: true },
     dek: { type: "Text", required: false, args: { allowEmpty: true } },
@@ -185,7 +185,7 @@ QUnit.test("detailed - draft", assert => {
   assert.deepEqual(actual, expected);
 });
 
-QUnit.test("relationships - published", assert => {
+mod.test("relationships - published", (assert, { toJSON }) => {
   assert.deepEqual(
     toJSON(Related),
     {
@@ -224,9 +224,9 @@ QUnit.test("relationships - published", assert => {
   );
 });
 
-QUnit.test("relationships - draft", assert => {
+mod.test("relationships - draft", (assert, { registry, toJSON }) => {
   assert.deepEqual(
-    toJSON(Related.with({ draft: true })),
+    toJSON(Related.with({ draft: true, registry })),
 
     {
       fields: {

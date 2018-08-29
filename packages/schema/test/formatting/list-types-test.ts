@@ -1,14 +1,15 @@
 import { listTypes } from "@cross-check/schema";
+import { module } from "../support";
 import { MediumArticle, SimpleArticle } from "../support/records";
 
-QUnit.module("[schema] formatting - listTypes");
+const mod = module("[schema] formatting - listTypes");
 
-QUnit.test("simple", assert => {
-  assert.deepEqual(listTypes(SimpleArticle), ["SingleLine", "Text"]);
+mod.test("simple", (assert, { registry }) => {
+  assert.deepEqual(listTypes(SimpleArticle, registry), ["SingleLine", "Text"]);
 });
 
-QUnit.test("detailed", assert => {
-  assert.deepEqual(listTypes(MediumArticle), [
+mod.test("detailed", (assert, { registry }) => {
+  assert.deepEqual(listTypes(MediumArticle, registry), [
     "Dictionary",
     "ISODate",
     "Integer",

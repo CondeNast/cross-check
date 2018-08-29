@@ -1,5 +1,6 @@
 import { Dict, JSONObject, entries } from "ts-std";
 import { Record } from "../record";
+import { REGISTRY } from "../registry";
 import * as visitor from "../types/describe/visitor";
 import { JSONValue, mapDict } from "../utils";
 
@@ -182,5 +183,5 @@ function pad(size: number): string {
 }
 
 export function formatDescriptor(type: Record): string {
-  return formatDescriptorJSON(descToJSON(type.descriptor), 0);
+  return formatDescriptorJSON(descToJSON(type.descriptor(REGISTRY)), 0);
 }

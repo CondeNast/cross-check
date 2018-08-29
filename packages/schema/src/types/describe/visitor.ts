@@ -2,7 +2,7 @@ import { Dict, JSONObject } from "ts-std";
 import { builders } from "../../descriptors";
 import { visitorDescriptor } from "../../descriptors/dehydrated";
 import { FormattableRecord } from "../../record";
-import { REGISTRY, Registry, RegistryName } from "../../registry";
+import { Registry, RegistryName } from "../../registry";
 import { JSONValue } from "../../utils";
 import { ListArgs } from "../fundamental";
 import {
@@ -70,7 +70,7 @@ export interface VisitorDescriptors {
 }
 
 export class Visitor {
-  constructor(private delegate: VisitorDelegate, _registry: Registry) {}
+  constructor(private delegate: VisitorDelegate) {}
 
   visit(descriptor: Descriptor, pos: Pos): unknown {
     let t = target(descriptor, this.delegate) as Mapping<typeof descriptor>;
@@ -215,8 +215,8 @@ export interface RecursiveDelegate<
 
 export function recursive<T extends RecursiveDelegateTypes>(Class: {
   new (): RecursiveDelegate<T>;
-}): (record: FormattableRecord, registry?: Registry) => T["record"] {
-  return (record: FormattableRecord, registry: Registry = REGISTRY) => {
+}): (record: FormattableRecord, registry: Registry) => T["record"] {
+  return (record: FormattableRecord, registry: Registry) => {
     return RecursiveVisitor.visit<T>(new Class(), record, registry);
   };
 }
@@ -226,10 +226,10 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   static visit<T extends RecursiveDelegateTypes>(
     delegate: RecursiveDelegate<T>,
     record: FormattableRecord,
-    registry: Registry = REGISTRY
+    registry: Registry
   ): T["record"] {
-    let recursiveVisitor = new RecursiveVisitor<T>(delegate, registry);
-    let v = new Visitor(recursiveVisitor, registry);
+    let recursiveVisitor = new RecursiveVisitor<T>(delegate);
+    let v = new Visitor(recursiveVisitor);
     recursiveVisitor.visitor = v;
     return recursiveVisitor.record(
       record.name,
@@ -240,21 +240,17 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   }
 
   static build<T extends RecursiveDelegateTypes>(
-    delegate: RecursiveDelegate<T>,
-    registry: Registry = REGISTRY
+    delegate: RecursiveDelegate<T>
   ): RecursiveVisitor<T> {
-    let recursiveVisitor = new RecursiveVisitor<T>(delegate, registry);
-    let v = new Visitor(recursiveVisitor, registry);
+    let recursiveVisitor = new RecursiveVisitor<T>(delegate);
+    let v = new Visitor(recursiveVisitor);
     recursiveVisitor.visitor = v;
     return recursiveVisitor;
   }
 
   private visitor!: Visitor;
 
-  private constructor(
-    private recursiveDelegate: RecursiveDelegate<T>,
-    readonly registry: Registry
-  ) {}
+  private constructor(private recursiveDelegate: RecursiveDelegate<T>) {}
 
   alias(descriptor: Alias, pos: Pos): unknown {
     return this.recursiveDelegate.alias(descriptor, pos);
@@ -314,21 +310,17 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
 export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
   implements VisitorDelegate {
   static build<Buffer extends Accumulator<Inner>, Inner, Options>(
-    reporter: Reporter<Buffer, Inner, Options>,
-    registry: Registry = REGISTRY
+    reporter: Reporter<Buffer, Inner, Options>
   ): StringVisitor<Buffer, Inner, Options> {
-    let stringVisitor = new StringVisitor(reporter, registry);
-    let v = new Visitor(stringVisitor, registry);
+    let stringVisitor = new StringVisitor(reporter);
+    let v = new Visitor(stringVisitor);
     stringVisitor.visitor = v;
     return stringVisitor;
   }
 
   private visitor!: Visitor;
 
-  private constructor(
-    private reporter: Reporter<Buffer, Inner, Options>,
-    readonly registry: Registry
-  ) {}
+  private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
   alias(descriptor: Alias, position: Pos): unknown {
     this.reporter.startAlias(position, descriptor);

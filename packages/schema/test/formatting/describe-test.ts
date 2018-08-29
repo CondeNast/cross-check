@@ -1,5 +1,4 @@
-import { describe } from "@cross-check/schema";
-import { strip } from "../support";
+import { module, strip } from "../support";
 import {
   MediumArticle,
   Nesting,
@@ -7,9 +6,9 @@ import {
   SimpleArticle
 } from "../support/records";
 
-QUnit.module("[schema] formatting - describe");
+const mod = module("[schema] formatting - describe");
 
-QUnit.test("simple", assert => {
+mod.test("simple", (assert, { describe }) => {
   assert.equal(
     describe(SimpleArticle),
 
@@ -35,7 +34,7 @@ QUnit.test("simple", assert => {
   // );
 });
 
-QUnit.test("detailed", assert => {
+mod.test("detailed", (assert, { describe }) => {
   assert.equal(
     describe(MediumArticle),
 
@@ -93,7 +92,7 @@ QUnit.test("detailed", assert => {
   // );
 });
 
-QUnit.test("relationships", assert => {
+mod.test("relationships", (assert, { describe }) => {
   assert.equal(
     describe(Related),
 
@@ -121,7 +120,7 @@ QUnit.test("relationships", assert => {
   // );
 });
 
-QUnit.test("nested", assert => {
+mod.test("nested", (assert, { describe }) => {
   assert.equal(
     describe(Nesting),
 

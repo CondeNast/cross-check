@@ -1,4 +1,10 @@
-export { Record, RecordBuilder, RecordImpl, RecordOptions } from "./record";
+export {
+  FormattableRecord,
+  Record,
+  RecordBuilder,
+  RecordImpl,
+  RecordOptions
+} from "./record";
 export { Dictionary, List, Scalar, describe, scalar } from "./types";
 export * from "./types/fundamental";
 export * from "./types/describe";

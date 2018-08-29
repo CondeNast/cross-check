@@ -6,19 +6,25 @@ import {
   dehydrated,
   types
 } from "@cross-check/schema";
-import { ENV, keysError, missingError, typeError, validate } from "./support";
+import {
+  ENV,
+  keysError,
+  missingError,
+  module,
+  typeError,
+  validate
+} from "./support";
 import { Features } from "./support/records";
 
-QUnit.dump.maxDepth = 100;
+const mod = module("[schema] - record with feature flags");
 
-QUnit.module("[schema] - record with feature flags");
-
-QUnit.test(
+mod.test(
   "all feature-flagged fields are optional in draft mode",
-  async assert => {
+  async (assert, { registry }) => {
     assert.deepEqual(
       await validate(
         Features.with({
+          registry,
           features: ["category-picker", "description", "map"],
           draft: true
         }),
@@ -36,12 +42,13 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+mod.test(
   "all feature-flagged fields are present in published mode if present",
-  async assert => {
+  async (assert, { registry }) => {
     assert.deepEqual(
       await validate(
         Features.with({
+          registry,
           features: ["category-picker", "description", "map"],
           draft: true
         }),
@@ -242,15 +249,17 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
 
     type = type.features(["flag"]);
 
+    const registry = REGISTRY.clone();
+
     const FeaturesRecordBuilder = Record("Flag", {
       fields: {
         field: type
-      },
-
-      registry: REGISTRY.clone()
+      }
     });
 
-    let hydrateParams: dehydrated.HydrateParameters = {};
+    registry.register(FeaturesRecordBuilder);
+
+    let hydrateParams: dehydrated.HydrateParameters = { registry };
 
     if (draft) {
       hydrateParams.draft = true;
@@ -581,7 +590,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
   matcher.exhaustiveCheck();
 }
 
-QUnit.test("feature flag matrix", async assert => {
+mod.test("feature flag matrix", async assert => {
   await testType(assert, {
     type: types.SingleLine(),
     success: "hello world",
@@ -617,11 +626,11 @@ QUnit.test("feature flag matrix", async assert => {
   });
 });
 
-QUnit.test(
+mod.test(
   "when features flags are disabled, the fields aren't present in publish mode",
-  async assert => {
+  async (assert, { registry }) => {
     assert.deepEqual(
-      await validate(Features.with({ features: [] }), {
+      await validate(Features.with({ registry, features: [] }), {
         hed: "Hello world",
         dek: "Hello, the cool world!"
       }),
@@ -631,11 +640,11 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+mod.test(
   "when features flags are disabled, the fields aren't present in draft mode",
-  async assert => {
+  async (assert, { registry }) => {
     assert.deepEqual(
-      await validate(Features.with({ features: [], draft: true }), {
+      await validate(Features.with({ registry, features: [], draft: true }), {
         hed: null,
         dek: null
       }),

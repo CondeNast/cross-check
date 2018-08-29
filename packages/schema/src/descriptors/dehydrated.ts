@@ -127,6 +127,7 @@ export function mutabilityMode(
 }
 
 export interface HydrateParameters {
+  registry: Registry;
   features?: string[];
   draft?: boolean;
   strictKeys?: boolean;
@@ -497,7 +498,8 @@ function builderForDescriptor(
 
     case "Named": {
       if (desc.target === "Record") {
-        return new RecordBuilder(desc as Record, registry);
+        let { dictionary, metadata } = registry.getRawRecord(desc.name);
+        return new RecordBuilder(desc.name, dictionary, metadata);
       }
 
       return new builders.NamedBuilder({

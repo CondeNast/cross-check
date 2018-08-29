@@ -1,5 +1,4 @@
 import { Dict, Option } from "ts-std";
-import { RecordBuilder, RecordImpl } from "../../../record";
 import { titleize } from "../../../utils";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate, isRequiredPosition } from "../reporter";
@@ -150,7 +149,4 @@ export interface GraphqlOptions {
   scalarMap: Dict;
 }
 
-export const graphql: ((
-  record: RecordBuilder | RecordImpl,
-  options: GraphqlOptions
-) => string) = formatter(delegate, BufferStack);
+export const graphql = formatter(delegate, BufferStack);

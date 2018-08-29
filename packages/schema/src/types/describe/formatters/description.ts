@@ -1,5 +1,5 @@
 import { Buffer } from "../buffer";
-import formatter, { Formatter } from "../formatter";
+import formatter from "../formatter";
 import { ReporterDelegate, isLast, isRequiredPosition } from "../reporter";
 
 const delegate: ReporterDelegate<Buffer, string, void> = {
@@ -65,4 +65,4 @@ function pad(size: number): string {
   return " ".repeat(size);
 }
 
-export const describe: Formatter = formatter(delegate, Buffer);
+export const describe = formatter(delegate, Buffer);

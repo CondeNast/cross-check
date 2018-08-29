@@ -1,10 +1,9 @@
-import { schemaFormat } from "@cross-check/schema";
-import { strip } from "../support";
+import { module, strip } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("[schema] formatting - schemaFormat");
+const mod = module("[schema] formatting - schemaFormat");
 
-QUnit.test("simple", assert => {
+mod.test("simple", (assert, { schemaFormat }) => {
   assert.equal(
     schemaFormat(SimpleArticle),
 
@@ -21,7 +20,7 @@ QUnit.test("simple", assert => {
   );
 });
 
-QUnit.test("detailed - published", assert => {
+mod.test("detailed - published", (assert, { schemaFormat }) => {
   assert.equal(
     schemaFormat(MediumArticle),
 
@@ -54,7 +53,7 @@ QUnit.test("detailed - published", assert => {
   );
 });
 
-QUnit.test("relationships", assert => {
+mod.test("relationships", (assert, { schemaFormat }) => {
   assert.equal(
     schemaFormat(Related),
 

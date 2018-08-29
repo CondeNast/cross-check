@@ -10,7 +10,7 @@ import { Dict, JSONObject } from "ts-std";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { visitorDescriptor } from "./descriptors/dehydrated";
-import { REGISTRY, Registry } from "./registry";
+import { Registry } from "./registry";
 import { Type } from "./type";
 import * as visitor from "./types/describe/visitor";
 import { DictionaryImpl } from "./types/fundamental";
@@ -26,65 +26,54 @@ export interface FormattableRecord {
   metadata: JSONObject | null;
 }
 
+export interface RecordDetails {}
+
 export class RecordBuilder
   implements builders.TypeBuilderMember, FormattableRecord {
   constructor(
-    readonly serialized: dehydrated.Record,
-    readonly registry: Registry
+    readonly name: string,
+    readonly members: dehydrated.Dictionary,
+    readonly metadata: JSONObject | null
   ) {}
-
-  get name(): string {
-    return this.serialized.name;
-  }
-
-  get members(): dehydrated.Dictionary {
-    let { dictionary } = this.registry.getRawRecord(this.serialized.name);
-    return dictionary;
-  }
-
-  get metadata(): JSONObject | null {
-    return this.registry.getRawRecord(this.serialized.name).metadata;
-  }
 
   get builder(): builders.NamedBuilder {
     return new builders.NamedBuilder({
       target: "Record",
-      name: this.serialized.name
+      name: this.name
     });
   }
 
   dehydrate(): dehydrated.Record {
-    return this.serialized;
+    return {
+      type: "Named",
+      target: "Record",
+      name: this.name,
+      required: "always"
+    };
   }
 
-  get descriptor(): visitor.Record {
-    let { dictionary, metadata } = this.registry.getRawRecord(
-      this.serialized.name
-    );
+  descriptor(registry: Registry): visitor.Record {
+    let { dictionary, metadata } = registry.getRawRecord(this.name);
 
     return {
       type: "Record",
-      name: this.serialized.name,
+      name: this.name,
       members: mapDict(dictionary.members, member => {
         return {
-          descriptor: visitorDescriptor(member.descriptor, this.registry),
+          descriptor: visitorDescriptor(member.descriptor, registry),
           meta: member.meta
         };
       }),
       metadata,
       required:
-        this.serialized.required === "always" ||
-        this.serialized.required === "published"
+        this.members.required === "always" ||
+        this.members.required === "published"
     };
   }
 
-  with(params: dehydrated.HydrateParameters = {}): RecordImpl {
-    let { dictionary, metadata } = this.registry.getRecord(
-      this.serialized.name,
-      params
-    );
-
-    return new RecordImpl(dictionary, metadata, this.serialized.name);
+  with(params: dehydrated.HydrateParameters): RecordImpl {
+    let dictionary = dehydrated.hydrate(this.members, params.registry, params);
+    return new RecordImpl(dictionary, this.metadata, this.name);
   }
 }
 
@@ -96,7 +85,7 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
   ) {}
 
   get members(): dehydrated.Dictionary {
-    return this.dictionary.dehydrate();
+    return this.dehydrate();
   }
 
   dehydrate(): dehydrated.Dictionary {
@@ -129,12 +118,11 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
 export interface RecordOptions {
   fields: Dict<builders.TypeBuilder>;
   metadata?: JSONObject | null;
-  registry?: Registry;
 }
 
 export function Record(
   name: string,
-  { fields, metadata = null, registry = REGISTRY }: RecordOptions
+  { fields, metadata }: RecordOptions
 ): RecordBuilder {
   let dictionary: dehydrated.Dictionary = {
     type: "Dictionary",
@@ -147,11 +135,7 @@ export function Record(
     required: "always"
   };
 
-  registry.setRecord(name, dictionary, metadata);
-  return new RecordBuilder(
-    { type: "Named", target: "Record", name, required: "always" },
-    registry
-  );
+  return new RecordBuilder(name, dictionary, metadata || null);
 }
 
 export type Record = RecordBuilder;

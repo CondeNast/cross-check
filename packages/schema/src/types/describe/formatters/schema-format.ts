@@ -1,6 +1,6 @@
 import { JSONValue } from "../../../utils";
 import { Buffer } from "../buffer";
-import formatter, { Formatter } from "../formatter";
+import formatter from "../formatter";
 import {
   Pos,
   ReporterDelegate,
@@ -137,4 +137,4 @@ function pad(size: number): string {
   return " ".repeat(size);
 }
 
-export const schemaFormat: Formatter<void> = formatter(delegate, Buffer);
+export const schemaFormat = formatter(delegate, Buffer);

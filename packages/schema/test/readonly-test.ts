@@ -1,17 +1,17 @@
 import { REGISTRY, Record, builders } from "@cross-check/schema";
-import { ENV, keysError } from "./support";
+import { ENV, keysError, module } from "./support";
 import { ISODate } from "./support/date";
 
-QUnit.module("[schema] readonly");
+const mod = module("[schema] readonly");
 
-QUnit.test(
+mod.test(
   "readonly() means read: true, create: false, update: false",
   async assert => {
     await testMode(assert, ISODate().readonly(), { read: true });
   }
 );
 
-QUnit.test(
+mod.test(
   `writable({ on: "create" }) means read: true, create: true, update: false`,
   async assert => {
     await testMode(assert, ISODate().writable({ on: "create" }), {
@@ -21,7 +21,7 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+mod.test(
   `writable({ on: "update" }) means read: true, create: false, update: true`,
   async assert => {
     await testMode(assert, ISODate().writable({ on: "update" }), {
@@ -31,7 +31,7 @@ QUnit.test(
   }
 );
 
-QUnit.test("no readonly() means always required", async assert => {
+mod.test("no readonly() means always required", async assert => {
   await testMode(assert, ISODate(), { create: true, read: true, update: true });
 });
 
@@ -45,12 +45,12 @@ async function testMode(
   const Article = Record("Article", {
     fields: {
       createdAt: type
-    },
-    registry: REGISTRY.clone()
+    }
   });
 
   for (let mode of modes) {
-    let recordWithMode = Article.with({ mode });
+    let registry = REGISTRY.clone();
+    let recordWithMode = Article.with({ mode, registry });
     let result = await recordWithMode.validate({}, ENV);
 
     if (options[mode]) {

@@ -1,10 +1,9 @@
-import { graphql } from "@cross-check/schema";
-import { GRAPHQL_SCALAR_MAP, strip } from "../support";
+import { GRAPHQL_SCALAR_MAP, module, strip } from "../support";
 import { MediumArticle, Related, SimpleArticle } from "../support/records";
 
-QUnit.module("[schema] formatting - graphql");
+let mod = module("[schema] formatting - graphql");
 
-QUnit.test("simple", assert => {
+mod.test("simple", (assert, { registry, graphql }) => {
   assert.equal(
     graphql(SimpleArticle, { name: "Simple", scalarMap: GRAPHQL_SCALAR_MAP }),
     strip`
@@ -17,7 +16,7 @@ QUnit.test("simple", assert => {
   );
 
   assert.equal(
-    graphql(SimpleArticle.with({ draft: true }), {
+    graphql(SimpleArticle.with({ draft: true, registry }), {
       name: "Simple",
       scalarMap: GRAPHQL_SCALAR_MAP
     }),
@@ -31,7 +30,7 @@ QUnit.test("simple", assert => {
   );
 });
 
-QUnit.test("detailed", assert => {
+mod.test("detailed", (assert, { graphql }) => {
   assert.equal(
     graphql(MediumArticle, {
       name: "MediumArticle",
@@ -70,7 +69,7 @@ QUnit.test("detailed", assert => {
   );
 });
 
-QUnit.test("relationships", assert => {
+mod.test("relationships", (assert, { graphql }) => {
   assert.equal(
     graphql(Related, { name: "Related", scalarMap: GRAPHQL_SCALAR_MAP }),
 

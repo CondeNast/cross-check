@@ -1,5 +1,10 @@
 import { ValidationError } from "@cross-check/core";
-import { Record, RecordBuilder, RecordImpl } from "@cross-check/schema";
+import {
+  Record,
+  RecordBuilder,
+  RecordImpl,
+  Registry
+} from "@cross-check/schema";
 import { Task } from "no-show";
 import { Dict, Option } from "ts-std";
 
@@ -40,16 +45,18 @@ export function validate(
 
 export function validateDraft(
   record: RecordBuilder,
+  registry: Registry,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.with({ draft: true }).validate(obj, ENV);
+  return record.with({ draft: true, registry }).validate(obj, ENV);
 }
 
 export function validatePublished(
   record: Record,
+  registry: Registry,
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
-  return record.with().validate(obj, ENV);
+  return record.with({ registry }).validate(obj, ENV);
 }
 
 export function typeError(

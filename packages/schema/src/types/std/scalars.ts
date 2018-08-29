@@ -1,5 +1,10 @@
 import { ErrorMessage } from "@cross-check/core";
-import { ValidationBuilder, ValueValidator, builderFor, validators } from "@cross-check/dsl";
+import {
+  ValidationBuilder,
+  ValueValidator,
+  builderFor,
+  validators
+} from "@cross-check/dsl";
 import { JSONObject } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
@@ -9,7 +14,7 @@ import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args extends JSONValue | undefined>
   implements type.Type {
-  constructor(protected readonly args: Args, readonly name: string) { }
+  constructor(protected readonly args: Args, readonly name: string) {}
 
   abstract validation(): ValidationBuilder<unknown>;
 
@@ -188,8 +193,8 @@ export interface RegisterOptionsWithoutArgs extends RegisterOptions {
 
 interface AllRegisterOptions<Args> extends RegisterOptions {
   validation:
-  | ValidationBuilder<unknown>
-  | ((args: Args) => ValidationBuilder<unknown>);
+    | ValidationBuilder<unknown>
+    | ((args: Args) => ValidationBuilder<unknown>);
   buildArgs?(args: any, required: boolean): any;
   serialize?(input: unknown): unknown;
   parse?(input: unknown): unknown;

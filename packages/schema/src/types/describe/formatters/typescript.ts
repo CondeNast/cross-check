@@ -1,5 +1,5 @@
 import { Buffer } from "../buffer";
-import formatter, { Formatter } from "../formatter";
+import formatter from "../formatter";
 import { ReporterDelegate, isRequiredPosition } from "../reporter";
 
 export interface TypescriptOptions {
@@ -72,7 +72,4 @@ function pad(size: number): string {
   return " ".repeat(size);
 }
 
-export const typescript: Formatter<TypescriptOptions> = formatter(
-  delegate,
-  Buffer
-);
+export const typescript = formatter(delegate, Buffer);

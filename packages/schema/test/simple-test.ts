@@ -1,6 +1,7 @@
 import {
   keysError,
   missingError,
+  module,
   typeError,
   validate,
   validateDraft,
@@ -8,41 +9,47 @@ import {
 } from "./support";
 import { SimpleArticle } from "./support/records";
 
-QUnit.module("[schema] - simple schema");
+const mod = module("[schema] - simple schema");
 
-QUnit.test("all fields are optional in draft mode", async assert => {
-  assert.deepEqual(
-    await validateDraft(SimpleArticle, {
-      hed: null,
-      dek: null,
-      body: null
-    }),
-    [],
-    "all fields can be null in drafts"
-  );
-});
-
-QUnit.test(
-  "extra fields are permitted when strictKeys is false in draft mode",
-  async assert => {
+mod.test(
+  "all fields are optional in draft mode",
+  async (assert, { registry }) => {
     assert.deepEqual(
-      await validate(SimpleArticle.with({ strictKeys: false, draft: true }), {
+      await validateDraft(SimpleArticle, registry, {
         hed: null,
         dek: null,
-        body: null,
-        other: null
+        body: null
       }),
+      [],
+      "all fields can be null in drafts"
+    );
+  }
+);
+
+mod.test(
+  "extra fields are permitted when strictKeys is false in draft mode",
+  async (assert, { registry }) => {
+    assert.deepEqual(
+      await validate(
+        SimpleArticle.with({ strictKeys: false, draft: true, registry }),
+        {
+          hed: null,
+          dek: null,
+          body: null,
+          other: null
+        }
+      ),
       [],
       "extra fields are permitted when strictKeys is false in draft mode"
     );
   }
 );
 
-QUnit.test(
+mod.test(
   "extra fields are permitted when strictKeys is false in publish mode",
-  async assert => {
+  async (assert, { registry }) => {
     assert.deepEqual(
-      await validate(SimpleArticle.with({ strictKeys: false }), {
+      await validate(SimpleArticle.with({ strictKeys: false, registry }), {
         hed: "hello world",
         dek: "this is the dek",
         body: "the body goes here",
@@ -54,21 +61,24 @@ QUnit.test(
   }
 );
 
-QUnit.test("draft mode can accept the widened type", async assert => {
-  assert.deepEqual(
-    await validateDraft(SimpleArticle, {
-      hed: "Hello world\nMultiline strings are allowed in SingleLine",
-      dek: "Hello, the cool world!",
-      body: null
-    }),
-    [],
-    "draft mode can accept the widened type"
-  );
-});
+mod.test(
+  "draft mode can accept the widened type",
+  async (assert, { registry }) => {
+    assert.deepEqual(
+      await validateDraft(SimpleArticle, registry, {
+        hed: "Hello world\nMultiline strings are allowed in SingleLine",
+        dek: "Hello, the cool world!",
+        body: null
+      }),
+      [],
+      "draft mode can accept the widened type"
+    );
+  }
+);
 
-QUnit.test("published drafts must be narrow", async assert => {
+mod.test("published drafts must be narrow", async (assert, { registry }) => {
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {
+    await validatePublished(SimpleArticle, registry, {
       hed: "Hello world\nProblem here!",
       dek: "Hello, the cool world!",
       body: null
@@ -78,40 +88,41 @@ QUnit.test("published drafts must be narrow", async assert => {
   );
 });
 
-QUnit.test("empty strings are not allowed by default", async assert => {
-  assert.deepEqual(
-    await validatePublished(SimpleArticle, {
-      hed: "",
+mod.test(
+  "empty strings are not allowed by default",
+  async (assert, { registry }) => {
+    assert.deepEqual(
+      await validatePublished(SimpleArticle, registry, {
+        hed: "",
 
-      // dek is allowed to be an empty string, because its type is not required
-      dek: "",
-      body: ""
-    }),
-    [{
-      "message": {
-        "details": null,
-        "name": "blank"
-      },
-      "path": [
-        "hed"
-      ]
-    },
-    {
-      "message": {
-        "details": null,
-        "name": "blank"
-      },
-      "path": [
-        "body"
-      ]
-    }],
-    "published records must not be missing fields or have the widened type"
-  );
-});
+        // dek is allowed to be an empty string, because its type is not required
+        dek: "",
+        body: ""
+      }),
+      [
+        {
+          message: {
+            details: null,
+            name: "blank"
+          },
+          path: ["hed"]
+        },
+        {
+          message: {
+            details: null,
+            name: "blank"
+          },
+          path: ["body"]
+        }
+      ],
+      "published records must not be missing fields or have the widened type"
+    );
+  }
+);
 
-QUnit.test("parsing", assert => {
+mod.test("parsing", (assert, { registry }) => {
   assert.deepEqual(
-    SimpleArticle.with().parse({
+    SimpleArticle.with({ registry }).parse({
       hed: "Hello world",
       body: "The body"
     }),
@@ -123,7 +134,7 @@ QUnit.test("parsing", assert => {
   );
 
   assert.deepEqual(
-    SimpleArticle.with().parse({
+    SimpleArticle.with({ registry }).parse({
       hed: "Hello world",
       dek: "Hello. Hello world.",
       body: "The body"
@@ -136,9 +147,9 @@ QUnit.test("parsing", assert => {
   );
 });
 
-QUnit.test("serialize", assert => {
+mod.test("serialize", (assert, { registry }) => {
   assert.deepEqual(
-    SimpleArticle.with().serialize({
+    SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: null,
       body: "The body"
@@ -150,7 +161,7 @@ QUnit.test("serialize", assert => {
   );
 
   assert.deepEqual(
-    SimpleArticle.with().serialize({
+    SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: "Hello. Hello world.",
       body: "The body"
@@ -163,9 +174,9 @@ QUnit.test("serialize", assert => {
   );
 });
 
-QUnit.test("a valid published draft", async assert => {
+mod.test("a valid published draft", async (assert, { registry }) => {
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {
+    await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!\nMultiline allowed here",
       body: "Hello world.\nThis text is permitted.\nTotally fine."
@@ -175,29 +186,27 @@ QUnit.test("a valid published draft", async assert => {
   );
 });
 
-QUnit.test("Invalid shape with strictKeys", async assert => {
+mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
   assert.deepEqual(
-    await validatePublished(SimpleArticle, false as any),
+    await validatePublished(SimpleArticle, registry, false as any),
     [typeError("object", null)],
     "false is not an object"
   );
 
   assert.deepEqual(
-    await validatePublished(SimpleArticle, [] as any),
+    await validatePublished(SimpleArticle, registry, [] as any),
     [typeError("object", null)],
     "[] is not an object"
   );
 
   assert.deepEqual(
-    await validatePublished(SimpleArticle, (() => null) as any),
+    await validatePublished(SimpleArticle, registry, (() => null) as any),
     [typeError("object", null)],
     "function is not an object"
   );
 
-  QUnit.dump.maxDepth = 10;
-
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {}),
+    await validatePublished(SimpleArticle, registry, {}),
     [
       keysError({
         missing: ["hed", "dek", "body"]
@@ -207,7 +216,7 @@ QUnit.test("Invalid shape with strictKeys", async assert => {
   );
 
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {
+    await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!"
     }),
@@ -220,7 +229,7 @@ QUnit.test("Invalid shape with strictKeys", async assert => {
   );
 
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {
+    await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!",
       body: "Hello!!!",
@@ -235,7 +244,7 @@ QUnit.test("Invalid shape with strictKeys", async assert => {
   );
 
   assert.deepEqual(
-    await validatePublished(SimpleArticle, {
+    await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!",
       wat: "dis"
@@ -250,10 +259,10 @@ QUnit.test("Invalid shape with strictKeys", async assert => {
   );
 });
 
-QUnit.test(
+mod.test(
   "Shape restrictions are relaxed with strictKeys: false",
-  async assert => {
-    let sloppy = SimpleArticle.with({ strictKeys: false });
+  async (assert, { registry }) => {
+    let sloppy = SimpleArticle.with({ registry, strictKeys: false });
 
     assert.deepEqual(
       await validate(sloppy, false as any),

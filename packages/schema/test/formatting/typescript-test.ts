@@ -1,10 +1,9 @@
-import { typescript } from "@cross-check/schema";
-import { strip } from "../support";
+import { module, strip } from "../support";
 import { MediumArticle, SimpleArticle } from "../support/records";
 
-QUnit.module("[schema] formatting - typescript");
+const mod = module("[schema] formatting - typescript");
 
-QUnit.test("simple - published", assert => {
+mod.test("simple - published", (assert, { typescript }) => {
   assert.equal(
     typescript(SimpleArticle, { name: "SimpleArticle" }),
 
@@ -18,9 +17,9 @@ QUnit.test("simple - published", assert => {
   );
 });
 
-QUnit.test("simple - draft", assert => {
+mod.test("simple - draft", (assert, { registry, typescript }) => {
   assert.equal(
-    typescript(SimpleArticle.with({ draft: true }), {
+    typescript(SimpleArticle.with({ draft: true, registry }), {
       name: "SimpleArticleDraft"
     }),
 
@@ -34,7 +33,7 @@ QUnit.test("simple - draft", assert => {
   );
 });
 
-QUnit.test("detailed - published", assert => {
+mod.test("detailed - published", (assert, { typescript }) => {
   assert.equal(
     typescript(MediumArticle, { name: "MediumArticle" }),
 
@@ -64,9 +63,9 @@ QUnit.test("detailed - published", assert => {
   );
 });
 
-QUnit.test("detailed - draft", assert => {
+mod.test("detailed - draft", (assert, { registry, typescript }) => {
   assert.equal(
-    typescript(MediumArticle.with({ draft: true }), {
+    typescript(MediumArticle.with({ draft: true, registry }), {
       name: "MediumArticleDraft"
     }),
 

@@ -1,6 +1,7 @@
 import {
   DEBUG_LOG,
   Record,
+  Registry,
   formatDescriptor,
   types
 } from "@cross-check/schema";
@@ -119,6 +120,14 @@ if (DEBUG_LOG === "debug") {
   // @ts-ignore
   // tslint:disable-next-line
   console.log(formatDescriptor(Nesting.descriptor));
+}
+
+export function register(registry: Registry) {
+  registry.register(SimpleArticle);
+  registry.register(MediumArticle);
+  registry.register(Related);
+  registry.register(Features);
+  registry.register(Nesting);
 }
 
 // export const Cursor: () => Type = opaque(

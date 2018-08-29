@@ -1,3 +1,4 @@
+import { RecordBuilder } from "@cross-check/schema/src/record";
 import { Dict, JSONObject, Option, assert, dict, expect } from "ts-std";
 import { dehydrated } from "./descriptors";
 import * as type from "./type";
@@ -140,11 +141,15 @@ export class Registry {
     return new Registry(types, this.base.copy());
   }
 
+  register(record: RecordBuilder): void {
+    this.setRecord(record.name, record.members, record.metadata);
+  }
+
   setRecord(
     name: string,
     dictionary: dehydrated.Dictionary,
     metadata: JSONObject | null
-  ) {
+  ): void {
     assert(
       this.types.Record.get(name) === null,
       `record:${name} was already registered. You should only register a record once.`
