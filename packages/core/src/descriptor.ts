@@ -36,6 +36,72 @@ export interface ValidationError {
  */
 export interface Environment {
   get(object: unknown, key: string | number): unknown;
+
+  /**
+   * This function takes any object, and returns `null` if the object
+   * should not be treated as an array by the built-in validators, and
+   * an iterable if the object should be treated as an array.
+   *
+   * If the underlying object is a simple array, it's fine to return it.
+   *
+   * You can also return an iterable, which will only be called if the
+   * internals need to iterate over the values. This can save work if
+   * the process of turning your value into an Array is expensive.
+   *
+   * For example, if you have an Immutable.js list that you want the
+   * built-in validators to treat as a list, you could write:
+   *
+   * ```ts
+   * const ENV = {
+   *   asList(object) {
+   *     if (List.isList(object) || Array.isArray(object)) {
+   *       return object[Symbol.iterator]();
+   *     } else {
+   *       return null;
+   *     }
+   *   }
+   * };
+   * ```
+   *
+   * If you are working with a collection that doesn't already support
+   * `Symbol.iterator`, you can easily adapt it. For example, say you're
+   * working with an array-like structure that has a `toArray` method on
+   * it.
+   *
+   * Cross Check might invoke asList multiple times, but will only invoke
+   * the generator if it wants to validate the contents of the list.
+   *
+   * ```ts
+   * import { isArray } from "@ember/array";
+   *
+   * const ENV = {
+   *   asList(object) {
+   *     // support built-in Arrays
+   *     if (Array.isArray(object)) {
+   *       return object;
+   *     } else if (isArray(object)) {
+   *       return iterable(object);
+   *     } else {
+   *       return null;
+   *     }
+   *   }
+   * };
+   *
+   * function* iterable(object) {
+   *   // This will only run if cross-check attempts to iterate,
+   *   // so we don't need to worry about the cost of coercing into
+   *   // an array.
+   *   let array = object.toArray();
+   *
+   *   for (let item of array) {
+   *     yield item;
+   *   }
+   * }
+   * ```
+   *
+   * @param object
+   */
+  asList(object: unknown): Option<Iterable<unknown> | Array<unknown>>;
 }
 
 /**

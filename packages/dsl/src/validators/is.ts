@@ -1,7 +1,8 @@
-import { ErrorMessage } from "@cross-check/core";
+import { ErrorMessage, ValidationError } from "@cross-check/core";
 import { Absent, Present, isIndexable as indexable } from "ts-std";
 import { ValidationBuilder, validates } from "../builders";
-import { factoryFor } from "./abstract";
+import { builderFor, factoryFor } from "./abstract";
+import { BasicValidator } from "./basic";
 import { ValueValidator } from "./value";
 
 export type Checker<From, To extends From> = (value: From) => value is To;
@@ -66,7 +67,17 @@ export const isObject = is(
     value !== null && typeof value === "object" && !Array.isArray(value),
   "object"
 );
-export const isArray = is(
-  (value: unknown): value is Array<unknown> => Array.isArray(value),
-  "array"
-);
+
+export class IsArrayValidator extends BasicValidator<unknown> {
+  static validatorName = "is-array";
+
+  validate(value: unknown): ValidationError[] {
+    if (this.env.asList(value) !== null) {
+      return [];
+    } else {
+      return [{ path: [], message: { name: "type", details: "array" } }];
+    }
+  }
+}
+
+export const isArray = builderFor(IsArrayValidator);

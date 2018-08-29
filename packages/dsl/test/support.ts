@@ -1,5 +1,5 @@
 import Task from "no-show";
-import { dict, isIndexable } from "ts-std";
+import { Option, dict, isIndexable } from "ts-std";
 
 import {
   Environment,
@@ -43,18 +43,35 @@ export class Env implements Environment {
   get(object: unknown, key: string): unknown {
     return isIndexable(object) ? object[key] : undefined;
   }
+
+  asList(object: unknown): Option<Array<unknown>> {
+    if (Array.isArray(object)) {
+      return object;
+    } else {
+      return null;
+    }
+  }
+}
+
+export function defaultRun<T>(
+  b: ValidationBuildable<T>,
+  value: T
+): Task<ValidationError[]> {
+  return run(build(b), value, new Env());
 }
 
 export function buildAndRun<T>(
   b: ValidationBuildable<T>,
-  value: T
+  value: T,
+  env: Environment = new Env()
 ): Task<ValidationError[]> {
-  return run(build(b), value);
+  return run(build(b), value, env);
 }
 
 export function run<T>(
   descriptor: ValidationDescriptor<T>,
-  value: T
+  value: T,
+  env: Environment = new Env()
 ): Task<ValidationError[]> {
-  return validate(value, descriptor, null, new Env());
+  return validate(value, descriptor, null, env);
 }
