@@ -1,19 +1,19 @@
-import { Environment, ErrorMessage, Validator } from "@cross-check/core";
+import { ErrorMessage, ObjectModel, Validator } from "@cross-check/core";
 import { Task } from "no-show";
 
 export type ValidationResult = ErrorMessage | void;
 export type ValidationCallback<T> = (
   value: T,
-  env: Environment
+  objectModel: ObjectModel
 ) => ValidationResult | PromiseLike<ValidationResult>;
 
 export function factoryForCallback<T>(
   cb: ValidationCallback<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return value => {
     return new Task(async run => {
-      let message = await run(cb(value, env));
+      let message = await run(cb(value, objectModel));
 
       if (message) {
         return [{ path: [], message }];

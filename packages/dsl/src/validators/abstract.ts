@@ -1,5 +1,5 @@
 import {
-  Environment,
+  ObjectModel,
   ValidationError,
   Validator,
   ValidatorFactory
@@ -19,7 +19,7 @@ import { ValidationBuilder, validates } from "../builders";
  */
 export interface ValidatorClass<T, Options> {
   validatorName: string;
-  new (env: Environment, options: Options): ValidatorInstance<T>;
+  new (env: ObjectModel, options: Options): ValidatorInstance<T>;
 }
 
 /**
@@ -47,8 +47,8 @@ export interface ValidatorInstance<T> {
 export function factoryFor<T, Options>(
   Class: ValidatorClass<T, Options>
 ): ValidatorFactory<T, Options> {
-  return (options: Options, env: Environment): Validator<T> => {
-    let validator = new Class(env, options);
+  return (options: Options, objectModel: ObjectModel): Validator<T> => {
+    let validator = new Class(objectModel, options);
     return (value, context) => validator.run(value, context);
   };
 }

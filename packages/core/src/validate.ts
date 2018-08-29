@@ -1,12 +1,12 @@
 import { Task } from "no-show";
 import { Indexable, Option } from "ts-std";
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError
 } from "./descriptor";
 
-const DEFAULT_ENVIRONMENT: Environment = {
+const DEFAULT_OBJECT_MODEL: ObjectModel = {
   get(object: unknown, key: string | number): unknown {
     if (object !== null && object !== undefined) {
       return (object as Indexable)[key];
@@ -27,7 +27,7 @@ const DEFAULT_ENVIRONMENT: Environment = {
 /**
  * @api public
  *
- * A function that takes an environment, value, descriptor and context, and (asynchronously)
+ * A function that takes an object model, value, descriptor and context, and (asynchronously)
  * produces an array of validation errors. If this function produces an empty array, the
  * validation succeeded.
  *
@@ -36,7 +36,7 @@ const DEFAULT_ENVIRONMENT: Environment = {
  * must pass when publishing an article. If a validation descriptor does not specify
  * the context passed in to `validate`, the validation passes.
  *
- * @param env The host environment
+ * @param objectModel The host object model
  * @param value The value to validate; it need not be an object
  * @param descriptor A validation descriptor to use to validate the value; a single validation
  *  descriptor can represent multiple composed validations
@@ -46,7 +46,7 @@ export function validate<T, Options>(
   value: T,
   descriptor: ValidationDescriptor<T, Options>,
   context: Option<string> = null,
-  env: Environment = DEFAULT_ENVIRONMENT
+  objectModel: ObjectModel = DEFAULT_OBJECT_MODEL
 ): Task<ValidationError[]> {
   return new Task(async run => {
     let { validator, options, contexts } = descriptor;
@@ -55,7 +55,7 @@ export function validate<T, Options>(
       if (contexts.indexOf(context) === -1) return [];
     }
 
-    let validateFunction = validator(options, env);
+    let validateFunction = validator(options, objectModel);
 
     return await run(validateFunction(value, context));
   });

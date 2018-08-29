@@ -2,7 +2,7 @@ export {
   ErrorPath,
   ErrorMessage,
   ValidationError,
-  Environment,
+  ObjectModel,
   ValidatorFactory,
   Validator,
   ValidationDescriptor

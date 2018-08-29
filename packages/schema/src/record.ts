@@ -1,5 +1,5 @@
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   validate
@@ -53,18 +53,16 @@ export class RecordBuilder
   }
 
   descriptor(registry: Registry): visitor.Record {
-    let { dictionary, metadata } = registry.getRawRecord(this.name);
-
     return {
       type: "Record",
       name: this.name,
-      members: mapDict(dictionary.members, member => {
+      members: mapDict(this.members.members, member => {
         return {
           descriptor: visitorDescriptor(member.descriptor, registry),
           meta: member.meta
         };
       }),
-      metadata,
+      metadata: this.metadata,
       required:
         this.members.required === "always" ||
         this.members.required === "published"
@@ -92,10 +90,10 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.dehydrate();
   }
 
-  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
+  validate(obj: Dict, objectModel: ObjectModel): Task<ValidationError[]> {
     let validation = this.dictionary.validation();
 
-    return validate(obj, build(validation), null, env);
+    return validate(obj, build(validation), null, objectModel);
   }
 
   validation(): ValidationBuilder<unknown> {

@@ -31,10 +31,10 @@ export interface ValidationError {
  * @api host
  *
  * An object that provides host-specific behavior for validators. It is passed in to
- * all `ValidatorFactory`s, so hosts can also extend Environment to communicate with
- * validators written to be used in that environment.
+ * all `ValidatorFactory`s, so hosts can also extend ObjectModel to communicate with
+ * validators written to be used in that object model.
  */
-export interface Environment {
+export interface ObjectModel {
   get(object: unknown, key: string | number): unknown;
 
   /**
@@ -107,12 +107,12 @@ export interface Environment {
 /**
  * @api primitive
  *
- * A function that takes an environment and validator options and produces a new
- * Validator function. In other words, it curries the environment and options.
+ * A function that takes an object model and validator options and produces a new
+ * Validator function. In other words, it curries the object model and options.
  */
 export type ValidatorFactory<T, Options> = (
   options: Options,
-  env: Environment
+  objectModel: ObjectModel
 ) => Validator<T>;
 
 /**

@@ -1,4 +1,4 @@
-import { Environment, ValidationError, validate } from "@cross-check/core";
+import { ObjectModel, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import Task from "no-show";
 import { Dict } from "ts-std";
@@ -17,17 +17,22 @@ import {
   typescript
 } from "./types";
 
-export class Std {
+export class Environment {
   constructor(
     readonly registry: Registry,
     readonly params: dehydrated.HydrateParameters,
-    readonly env: Environment
+    readonly objectModel: ObjectModel
   ) {}
 
   validate(name: string, obj: Dict): Task<ValidationError[]> {
     let { dictionary } = this.registry.getRecord(name, this.params);
 
-    return validate(obj, build(dictionary.validation()), null, this.env);
+    return validate(
+      obj,
+      build(dictionary.validation()),
+      null,
+      this.objectModel
+    );
   }
 
   hydrate(name: string): RecordImpl {
@@ -45,20 +50,25 @@ export class Std {
   get validation(): (name: string, value: Dict) => Task<ValidationError[]> {
     return (name: string, value: Dict) => {
       let impl = this.hydrate(name);
-      return impl.validate(value, this.env);
+      return impl.validate(value, this.objectModel);
     };
   }
 
   validator(name: string): (value: Dict) => Task<ValidationError[]> {
     return (value: Dict) => {
       let impl = this.hydrate(name);
-      return impl.validate(value, this.env);
+      return impl.validate(value, this.objectModel);
     };
   }
 
   format(name: string): RecordFormatters {
     return new RecordFormatters(this.registry, this.params, name);
   }
+}
+
+export function env(registry: Registry, objectModel: ObjectModel) {
+  return (params: dehydrated.HydrateParameters) =>
+    new Environment(registry, params, objectModel);
 }
 
 export class Formatters {

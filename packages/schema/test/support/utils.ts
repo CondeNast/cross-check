@@ -1,4 +1,4 @@
-import { Environment, ValidationError } from "@cross-check/core";
+import { ObjectModel, ValidationError } from "@cross-check/core";
 import {
   Record,
   RecordBuilder,
@@ -8,7 +8,7 @@ import {
 import { Task } from "no-show";
 import { Dict, Option } from "ts-std";
 
-export const ENV: Environment = {
+export const ENV: ObjectModel = {
   get(object: unknown, key: string): unknown {
     if (object === null || object === undefined) return;
     return (object as Dict<unknown>)[key];

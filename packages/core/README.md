@@ -44,9 +44,9 @@ In practice, this means that integrations can expose things like a configuration
 
 Second, it should be possible to write a validator that looks up properties on an object, agnostic to how those properties should be looked up. For example, looking up a property in an [Immutable.js Map](https://facebook.github.io/immutable-js/docs/#/Map) requires the user to use `.get()`. Knockout turns computed getters into functions (to look up `firstName` on a `Person` object, you say `person.firstName()`).
 
-In the case of both of these issues (services and getters), the philosophy of cross-check is to expose hooks on an "Environment" (see below) that framework integrators can use to abstract these distinctions. Validators receive this environment as a parameter, and if validator definitions work through the Environment (e.g. looking up properties by using `environment.get` rather than direct indexing), they will be reusable in more environments and with more kinds of data structures.
+In the case of both of these issues (services and getters), the philosophy of cross-check is to expose hooks on an "ObjectModel" (see below) that framework integrators can use to abstract these distinctions. Validators receive this object model as a parameter, and if validator definitions work through the `ObjectModel` (e.g. looking up properties by using `objectModel.get` rather than direct indexing), they will be reusable in more environments and with more kinds of data structures.
 
-Because it can be difficult to remember to work through the environment all the time, the `@cross-check/dsl` library provides a number of abstractions that do the work for you. For example, the `object()` validator provided by `@cross-check/dsl` automatically looks up sub-properties by using `environment.get`.
+Because it can be difficult to remember to work through the object model all the time, the `@cross-check/dsl` library provides a number of abstractions that do the work for you. For example, the `object()` validator provided by `@cross-check/dsl` automatically looks up sub-properties by using `objectModel.get`.
 
 ### Values, Not Models
 
@@ -101,20 +101,25 @@ The `validate` function takes a context as a parameter, and the core validation 
 
 Validators themselves don't need to know about these contexts, the `validate` loop is responsible for ignoring rules that don't apply to the requested context.
 
-## The Environment
+## The Object Model
 
-Once you have constructed a validation descriptor, you validate a value by calling `validate(environment, value, descriptor, context)`.
+Once you have constructed a validation descriptor, you validate a value by calling `validate(objectModel, value, descriptor, context)`.
 
-The first parameter, `environment`, is an object that gets passed into each validation function.
+The first parameter, `objectModel`, is an object that gets passed into each validation function.
+
+The `ObjectModel` has two mandatory methods:
+
+- `get`
+- `asList`
 
 ### The `get` Function
 
-The `Environment`'s only mandatory method is `get`. It takes an object and key and returns another value.
+The `get` function takes an object and key and returns another value.
 
-The simplest environment is therefore:
+A simple implementation of the get function is:
 
 ```ts
-const SimpleEnvironment = {
+const SimpleObjectModel = {
   get(obj, key) {
     return obj && obj[key];
   }
@@ -125,17 +130,37 @@ As described above, this allows users of frameworks like Ember and Knockout, as 
 
 Validators implemented using `@cross-check/dsl` automatically use this interface to look up sub-properties, which means that normally-written validators will work just fine in many environments.
 
+### The `asList` Function
+
+The simplest implementation of an object model is:
+
+```ts
+const SimpleObjectModel = {
+  get(obj, key) {
+    return obj && obj[key];
+  },
+
+  asList(obj) {
+    return Array.isArray(obj) ? obj : null;
+  }
+}
+```
+
 ### Service Functions
 
 It is sometimes desirable to pass additional context into validators. For example, your application might have a configuration service that defines how strict a validation needs to be.
 
-You can implement a specialized `Environment`:
+You can implement a specialized `ObjectModel`:
 
 ```ts
-const AppEnvironment {
+const AppObjectModel {
   get(obj, key) {
     return obj && obj[key];
-  }
+  },
+
+  asList(obj) {
+    return Array.isArray(obj) ? obj : null;
+  },
 
   config = {
     strict: true
@@ -143,10 +168,10 @@ const AppEnvironment {
 }
 ```
 
-Then, a validator that wants to use that service simply depends on the specialized environment. If you're using TypeScript, the type signature tells the whole story:
+Then, a validator that wants to use that service simply depends on the specialized object model. If you're using TypeScript, the type signature tells the whole story:
 
 ```ts
-function format(env: AppEnvironment, options: RegExp) {
+function format(env: AppObjectModel, options: RegExp) {
   return value => {
     return new Task(async run => {
       if (env.config.strict && options.test(value)) return;
@@ -158,13 +183,13 @@ function format(env: AppEnvironment, options: RegExp) {
 }
 ```
 
-### Specialized Environments, Philosophy
+### Specialized Object Models, Philosophy
 
-By looking at the definition of this validator factory, you can tell that it can only be used with an implementation of `AppEnvironment`.
+By looking at the definition of this validator factory, you can tell that it can only be used with an implementation of `AppObjectModel`.
 
-General-purpose validators should avoid relying on specialized environments, but applications should use them to be explicit about validator dependencies.
+General-purpose validators should avoid relying on specialized object models, but applications should use them to be explicit about validator dependencies.
 
-If an application wants to reuse some validator definitions in another implementation (such as a native app), the specialized environment definition will fully describe what the other implementation needs to do in order to use validator definitions built for the application.
+If an application wants to reuse some validator definitions in another implementation (such as a native app), the specialized object model definition will fully describe what the other implementation needs to do in order to use validator definitions built for the application.
 
 ## Basic Usage
 

@@ -1,4 +1,4 @@
-import { Environment, ValidationError } from "@cross-check/core";
+import { ObjectModel, ValidationError } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidatorInstance } from "./abstract";
@@ -17,7 +17,7 @@ import { ValidationResult } from "./callback";
  */
 export abstract class ValueValidator<T, Options = void>
   implements ValidatorInstance<T> {
-  constructor(protected env: Environment, protected options: Options) {}
+  constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
   abstract validate(
     value: T,

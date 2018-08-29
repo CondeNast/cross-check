@@ -1,10 +1,11 @@
 import {
   DEBUG_LOG,
   Record,
-  Registry,
+  RecordBuilder,
   formatDescriptor,
   types
 } from "@cross-check/schema";
+import { Dict } from "ts-std";
 import { ISODate, Url } from "../support";
 
 export const SimpleArticle: Record = Record("SimpleArticle", {
@@ -122,12 +123,23 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(Nesting.descriptor));
 }
 
-export function register(registry: Registry) {
-  registry.register(SimpleArticle);
-  registry.register(MediumArticle);
-  registry.register(Related);
-  registry.register(Features);
-  registry.register(Nesting);
+const Records: Dict<RecordBuilder> = {
+  SimpleArticle,
+  MediumArticle,
+  Related,
+  Features,
+  Nesting
+};
+
+export function resolve(name: string) {
+  let record = Records[name];
+
+  if (!record) return null;
+
+  return {
+    dictionary: record.members,
+    metadata: record.metadata
+  };
 }
 
 // export const Cursor: () => Type = opaque(

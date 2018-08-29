@@ -58,7 +58,7 @@ QUnit.test("custom asList", async assert => {
     },
 
     asList(value: unknown): Option<Iterable<unknown>> {
-      if (isIndexable(value) && value["toArray"]) {
+      if (isIndexable(value) && value.toArray) {
         return iterable(value as { toArray(): Array<unknown> });
       } else {
         return null;
