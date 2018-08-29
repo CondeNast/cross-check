@@ -2,19 +2,19 @@ import { module } from "../support";
 
 const mod = module("[schema] formatting - listTypes");
 
-mod.test("simple", (assert, { std }) => {
-  assert.deepEqual(std.published.listTypes("SimpleArticle"), [
+mod.test("simple", (assert, { env }) => {
+  assert.deepEqual(env.published.listTypes("SimpleArticle"), [
     "SingleLine",
     "Text"
   ]);
 });
 
-mod.test("simple - draft", (assert, { std }) => {
-  assert.deepEqual(std.draft.listTypes("SimpleArticle"), ["Text"]);
+mod.test("simple - draft", (assert, { env }) => {
+  assert.deepEqual(env.draft.listTypes("SimpleArticle"), ["Text"]);
 });
 
-mod.test("detailed", (assert, { std }) => {
-  assert.deepEqual(std.published.listTypes("MediumArticle"), [
+mod.test("detailed", (assert, { env }) => {
+  assert.deepEqual(env.published.listTypes("MediumArticle"), [
     "Dictionary",
     "ISODate",
     "Integer",
@@ -26,8 +26,8 @@ mod.test("detailed", (assert, { std }) => {
   ]);
 });
 
-mod.test("detailed - draft", (assert, { std }) => {
-  assert.deepEqual(std.draft.listTypes("MediumArticle"), [
+mod.test("detailed - draft", (assert, { env }) => {
+  assert.deepEqual(env.draft.listTypes("MediumArticle"), [
     "Dictionary",
     "ISODate",
     "Integer",

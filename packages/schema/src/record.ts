@@ -1,5 +1,5 @@
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   validate
@@ -90,10 +90,10 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.dehydrate();
   }
 
-  validate(obj: Dict, env: Environment): Task<ValidationError[]> {
+  validate(obj: Dict, objectModel: ObjectModel): Task<ValidationError[]> {
     let validation = this.dictionary.validation();
 
-    return validate(obj, build(validation), null, env);
+    return validate(obj, build(validation), null, objectModel);
   }
 
   validation(): ValidationBuilder<unknown> {

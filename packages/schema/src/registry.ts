@@ -186,6 +186,23 @@ export class Registry {
     }
   }
 
+  alias<K extends RegistryName, V extends RegistryValue>(
+    id: TypeID<K>,
+    value: V,
+    options: { default: true } | { override: true } = { default: true }
+  ): void {
+    let types: Type<Aliased<RegistryValue>>;
+
+    if ("default" in options) {
+      types = this.defaults[id.type];
+    } else {
+      types = this.types[id.type];
+    }
+
+    types.set(id.name, new Aliased(value));
+  }
+
+  /** @internal */
   getPrimitive(name: string): PrimitiveRegistration {
     let override = this.types.PrimitiveFactory.get(name);
     if (override) return override.registration;
@@ -201,6 +218,7 @@ export class Registry {
     ).registration;
   }
 
+  /** @internal */
   setRecord(
     name: string,
     dictionary: dehydrated.Dictionary,
@@ -222,6 +240,7 @@ export class Registry {
     this.types.Record.set(name, new Record(name, dictionary, metadata));
   }
 
+  /** @internal */
   getRecordImpl(
     name: string,
     params: dehydrated.HydrateParameters
@@ -230,6 +249,7 @@ export class Registry {
     return new RecordImpl(dictionary, metadata, name);
   }
 
+  /** @internal */
   getRecord(
     name: string,
     params: dehydrated.HydrateParameters
@@ -245,6 +265,7 @@ export class Registry {
     };
   }
 
+  /** @internal */
   getRawRecord(
     name: string
   ): { dictionary: dehydrated.Dictionary; metadata: JSONObject | null } {
@@ -262,10 +283,7 @@ export class Registry {
     return expect(defaultRecord, `record:${name} wasn't found`);
   }
 
-  setBase(refined: string, base: string, args: JSONValue | undefined): void {
-    this.base.set(refined, new Base(base, args));
-  }
-
+  /** @internal */
   getBase(name: string): PrimitiveRegistration {
     let base = this.base.get(name);
 
@@ -276,14 +294,7 @@ export class Registry {
     }
   }
 
-  set<K extends RegistryName, V extends RegistryValue>(
-    id: TypeID<K>,
-    value: V
-  ): void {
-    let types: Type<Aliased<RegistryValue>> = this.types[id.type];
-    types.set(id.name, new Aliased(value));
-  }
-
+  /** @internal */
   get<K extends RegistryName>(id: TypeID<K>): RegistryValue {
     let types = this.types[id.type];
     return expect(

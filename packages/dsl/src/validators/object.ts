@@ -1,5 +1,5 @@
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   validate
@@ -29,7 +29,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
   static validatorName = "fields";
 
   constructor(
-    protected env: Environment,
+    protected objectModel: ObjectModel,
     protected descriptors: Dict<ValidationDescriptor<T>>
   ) {}
 
@@ -40,10 +40,10 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
       for (let [key, descriptor] of entries(this.descriptors)) {
         let suberrors = await run(
           validate(
-            this.env.get(value, key) as T,
+            this.objectModel.get(value, key) as T,
             descriptor!,
             context,
-            this.env
+            this.objectModel
           )
         );
         errors.push(...suberrors.map(error => mapError(error, key)));
@@ -65,7 +65,10 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
 export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
   static validatorName = "keys";
 
-  constructor(protected env: Environment, protected descriptorKeys: string[]) {}
+  constructor(
+    protected objectModel: ObjectModel,
+    protected descriptorKeys: string[]
+  ) {}
 
   run(value: Indexable<T>): Task<ValidationError[]> {
     return new Task(async () => {

@@ -1,12 +1,12 @@
 import { ValidationError } from "@cross-check/core";
 import {
+  EnvFormatters,
+  EnvRecordFormatters,
+  Environment,
   FormattableRecord,
   REGISTRY,
   RecordBuilder,
-  Registry,
-  Std,
-  StdFormatters,
-  StdRecordFormatters
+  Registry
 } from "@cross-check/schema";
 import Task from "no-show";
 import { Dict } from "ts-std";
@@ -38,31 +38,31 @@ export type SubjectRecursiveFormatFunction<T> = () => T;
 export type Validate = (name: string, value: Dict) => Task<ValidationError[]>;
 export type SubjectValidate = (value: Dict) => Task<ValidationError[]>;
 
-export interface TestStd {
-  published: Std;
-  draft: Std;
-  sloppy: Std;
+export interface TestEnv {
+  published: Environment;
+  draft: Environment;
+  sloppy: Environment;
 }
 
-export interface TestStdFormatters {
-  published: StdFormatters;
-  draft: StdFormatters;
-  sloppy: StdFormatters;
+export interface TestEnvFormatters {
+  published: EnvFormatters;
+  draft: EnvFormatters;
+  sloppy: EnvFormatters;
 }
 
-export interface TestStdValidate {
+export interface TestEnvValidate {
   published: Validate;
   draft: Validate;
   sloppy: Validate;
 }
 
-export interface SubjectTestStdFormatters {
-  published: StdRecordFormatters;
-  draft: StdRecordFormatters;
-  sloppy: StdRecordFormatters;
+export interface SubjectTestEnvFormatters {
+  published: EnvRecordFormatters;
+  draft: EnvRecordFormatters;
+  sloppy: EnvRecordFormatters;
 }
 
-export interface SubjectTestStdValidate {
+export interface SubjectTestEnvValidate {
   published: SubjectValidate;
   draft: SubjectValidate;
   sloppy: SubjectValidate;
@@ -70,16 +70,16 @@ export interface SubjectTestStdValidate {
 
 export interface TestState {
   registry: Registry;
-  validate: TestStdValidate;
-  std: TestStd;
-  format: TestStdFormatters;
+  validate: TestEnvValidate;
+  env: TestEnv;
+  format: TestEnvFormatters;
 }
 
 export interface SubjectTestState {
   registry: Registry;
-  validate: SubjectTestStdValidate;
-  std: TestStd;
-  format: SubjectTestStdFormatters;
+  validate: SubjectTestEnvValidate;
+  env: TestEnv;
+  format: SubjectTestEnvFormatters;
 }
 
 export interface ModuleState {
@@ -194,9 +194,9 @@ export function module(
     description: string,
     callback: (assert: typeof QUnit.assert, state: TestState) => void
   ): void {
-    let draft = new Std(registry, { registry, draft: true }, ENV);
-    let published = new Std(registry, { registry }, ENV);
-    let sloppy = new Std(
+    let draft = new Environment(registry, { registry, draft: true }, ENV);
+    let published = new Environment(registry, { registry }, ENV);
+    let sloppy = new Environment(
       registry,
       { registry, draft: true, strictKeys: false },
       ENV
@@ -212,7 +212,7 @@ export function module(
           sloppy: sloppy.validation
         },
 
-        std: {
+        env: {
           draft,
           published,
           sloppy
@@ -232,9 +232,9 @@ export function module(
       description: string,
       callback: (assert: typeof QUnit.assert, state: SubjectTestState) => void
     ) => {
-      let draft = new Std(registry, { registry, draft: true }, ENV);
-      let published = new Std(registry, { registry }, ENV);
-      let sloppy = new Std(
+      let draft = new Environment(registry, { registry, draft: true }, ENV);
+      let published = new Environment(registry, { registry }, ENV);
+      let sloppy = new Environment(
         registry,
         { registry, draft: true, strictKeys: false },
         ENV
@@ -250,7 +250,7 @@ export function module(
             sloppy: sloppy.validator(subject.name)
           },
 
-          std: {
+          env: {
             draft,
             published,
             sloppy

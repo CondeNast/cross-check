@@ -2,7 +2,7 @@ import Task from "no-show";
 import { Option, dict, isIndexable } from "ts-std";
 
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   ValidatorFactory,
@@ -39,7 +39,7 @@ function builder(name: string): (options: any) => ValidationBuilder<unknown> {
   return (options: any) => validates(name, factory(name), options);
 }
 
-export class Env implements Environment {
+export class Obj implements ObjectModel {
   get(object: unknown, key: string): unknown {
     return isIndexable(object) ? object[key] : undefined;
   }
@@ -57,13 +57,13 @@ export function defaultRun<T>(
   b: ValidationBuildable<T>,
   value: T
 ): Task<ValidationError[]> {
-  return run(build(b), value, new Env());
+  return run(build(b), value, new Obj());
 }
 
 export function buildAndRun<T>(
   b: ValidationBuildable<T>,
   value: T,
-  env: Environment = new Env()
+  env: ObjectModel = new Obj()
 ): Task<ValidationError[]> {
   return run(build(b), value, env);
 }
@@ -71,7 +71,7 @@ export function buildAndRun<T>(
 export function run<T>(
   descriptor: ValidationDescriptor<T>,
   value: T,
-  env: Environment = new Env()
+  env: ObjectModel = new Obj()
 ): Task<ValidationError[]> {
   return validate(value, descriptor, null, env);
 }

@@ -1,5 +1,5 @@
 import {
-  Environment,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   validate
@@ -29,7 +29,7 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
   static validatorName = "array-items";
 
   constructor(
-    protected env: Environment,
+    protected env: ObjectModel,
     protected descriptor: ValidationDescriptor<unknown>
   ) {}
 

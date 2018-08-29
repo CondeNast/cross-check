@@ -1,6 +1,6 @@
 import {
-  Environment,
   ErrorPath,
+  ObjectModel,
   ValidationDescriptor,
   ValidationError,
   Validator,
@@ -20,16 +20,18 @@ export type CombinatorFactory<T> = ValidatorFactory<
  * done't execute the remaining descriptors.
  *
  * @param descriptors
- * @param env
+ * @param objectModel
  */
 export function chain<T>(
   descriptors: ValidationDescriptors<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       for (let descriptor of descriptors) {
-        let errors = await run(validate(value, descriptor, context, env));
+        let errors = await run(
+          validate(value, descriptor, context, objectModel)
+        );
         if (errors.length) return errors;
       }
 
@@ -43,11 +45,11 @@ export function chain<T>(
  * failures, merged together. Dedupe identical errors.
  *
  * @param descriptors
- * @param env
+ * @param objectModel
  */
 export function and<T>(
   descriptors: ValidationDescriptors<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
@@ -56,7 +58,7 @@ export function and<T>(
       for (let descriptor of descriptors) {
         mergeErrors(
           result,
-          await run(validate(value, descriptor, context, env))
+          await run(validate(value, descriptor, context, objectModel))
         );
       }
 
@@ -71,18 +73,20 @@ export function and<T>(
  * validation failure.
  *
  * @param descriptors
- * @param env
+ * @param objectModel
  */
 export function or<T>(
   descriptors: ValidationDescriptors<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
       let result: ValidationError[][] = [];
 
       for (let descriptor of descriptors) {
-        let errors = await run(validate(value, descriptor, context, env));
+        let errors = await run(
+          validate(value, descriptor, context, objectModel)
+        );
 
         if (errors.length === 0) {
           return [];
@@ -107,11 +111,11 @@ export function or<T>(
  * flag is disabled, the remaining validations aren't important).
  *
  * @param descriptors
- * @param env
+ * @param objectModel
  */
 export function ifValid<T>(
   descriptors: ValidationDescriptors<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
@@ -119,7 +123,9 @@ export function ifValid<T>(
       let tail = descriptors.slice(-1)[0];
 
       for (let descriptor of head) {
-        let errors = await run(validate(value, descriptor, context, env));
+        let errors = await run(
+          validate(value, descriptor, context, objectModel)
+        );
 
         if (errors.length === 0) {
           continue;
@@ -128,7 +134,7 @@ export function ifValid<T>(
         }
       }
 
-      return run(validate(value, tail, context, env));
+      return run(validate(value, tail, context, objectModel));
     });
   };
 }
@@ -144,11 +150,11 @@ export interface MapErrorOptions<T> {
 
 export function mapError<T>(
   options: MapErrorOptions<T>,
-  env: Environment
+  objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async run => {
-      let errors = await run(validate(value, options.do, context, env));
+      let errors = await run(validate(value, options.do, context, objectModel));
 
       if (errors.length) {
         return options.catch(errors);

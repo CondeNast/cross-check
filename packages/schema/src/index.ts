@@ -13,9 +13,14 @@ export * from "./type";
 export { types };
 export * from "./descriptors";
 export { DEBUG_LOG } from "./debug";
-export { Registry, REGISTRY } from "./registry";
 export {
-  Std,
-  Formatters as StdFormatters,
-  RecordFormatters as StdRecordFormatters
-} from "./std";
+  PrimitiveRegistration,
+  RecordRegistration,
+  Registry,
+  REGISTRY
+} from "./registry";
+export {
+  Environment,
+  Formatters as EnvFormatters,
+  RecordFormatters as EnvRecordFormatters
+} from "./environment";

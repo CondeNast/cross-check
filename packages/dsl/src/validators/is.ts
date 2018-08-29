@@ -72,7 +72,7 @@ export class IsArrayValidator extends BasicValidator<unknown> {
   static validatorName = "is-array";
 
   validate(value: unknown): ValidationError[] {
-    if (this.env.asList(value) !== null) {
+    if (this.objectModel.asList(value) !== null) {
       return [];
     } else {
       return [{ path: [], message: { name: "type", details: "array" } }];

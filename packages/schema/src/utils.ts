@@ -27,7 +27,7 @@ export type MapDict<
 
 export function mapDict<T, U>(
   input: Dict<T>,
-  callback: (value: T, key?: keyof typeof input) => U
+  callback: (value: T, key: keyof typeof input) => U
 ): MapDict<typeof input, typeof callback> {
   let out = dict();
 
