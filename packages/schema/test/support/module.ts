@@ -70,9 +70,6 @@ export interface SubjectTestStdValidate {
 
 export interface TestState {
   registry: Registry;
-  validateDraft: ValidateFunction;
-  validateSloppy: ValidateFunction;
-  validatePublished: ValidateFunction;
   validate: TestStdValidate;
   std: TestStd;
   format: TestStdFormatters;
@@ -80,9 +77,6 @@ export interface TestState {
 
 export interface SubjectTestState {
   registry: Registry;
-  validateDraft: SubjectValidateFunction;
-  validateSloppy: SubjectValidateFunction;
-  validatePublished: SubjectValidateFunction;
   validate: SubjectTestStdValidate;
   std: TestStd;
   format: SubjectTestStdFormatters;
@@ -208,17 +202,6 @@ export function module(
     QUnit.test(description, assert =>
       callback(assert, {
         registry,
-        validateDraft(builder, obj) {
-          return validateDraft(builder, obj, registry);
-        },
-
-        validatePublished(builder, obj) {
-          return validatePublished(builder, obj, registry);
-        },
-
-        validateSloppy(builder, obj) {
-          return validateSloppy(builder, obj, registry);
-        },
 
         validate: {
           draft: draft.validation,
@@ -257,17 +240,6 @@ export function module(
       QUnit.test(description, assert =>
         callback(assert, {
           registry,
-          validateDraft(obj) {
-            return validateDraft(subject, obj, registry);
-          },
-
-          validatePublished(obj) {
-            return validatePublished(subject, obj, registry);
-          },
-
-          validateSloppy(obj) {
-            return validateSloppy(subject, obj, registry);
-          },
 
           validate: {
             draft: draft.validator(subject.name),
@@ -301,45 +273,4 @@ export function module(
       nestedCallback(testFunction);
     });
   }
-}
-
-export type ValidateFunction = (
-  record: RecordBuilder,
-  obj: Dict
-) => Task<ValidationError[]>;
-
-export type SubjectValidateFunction = (obj: Dict) => Task<ValidationError[]>;
-
-function validate(
-  record: RecordBuilder,
-  obj: Dict<unknown>,
-  registry: Registry
-): Task<ValidationError[]> {
-  return record.with({ registry }).validate(obj, ENV);
-}
-
-function validateDraft(
-  record: RecordBuilder,
-  obj: Dict<unknown>,
-  registry: Registry
-): Task<ValidationError[]> {
-  return record.with({ registry, draft: true }).validate(obj, ENV);
-}
-
-function validateSloppy(
-  record: RecordBuilder,
-  obj: Dict<unknown>,
-  registry: Registry
-): Task<ValidationError[]> {
-  return record
-    .with({ registry, draft: true, strictKeys: false })
-    .validate(obj, ENV);
-}
-
-function validatePublished(
-  record: RecordBuilder,
-  obj: Dict<unknown>,
-  registry: Registry
-): Task<ValidationError[]> {
-  return validate(record, obj, registry);
 }

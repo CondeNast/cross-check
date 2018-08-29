@@ -129,12 +129,7 @@ class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
     };
   }
 
-  record(
-    descriptor: visitor.Record | visitor.Dictionary
-  ): {
-    fields: Dict<Item>;
-    metadata?: Option<JSONValue>;
-  } {
+  record(descriptor: visitor.Record | visitor.Dictionary): JSONRecord {
     return {
       fields: this.dictionaryOrRecord(descriptor),
       metadata: "metadata" in descriptor ? descriptor.metadata : undefined
