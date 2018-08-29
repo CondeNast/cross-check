@@ -13,6 +13,14 @@ const DEFAULT_ENVIRONMENT: Environment = {
     } else {
       return object;
     }
+  },
+
+  asList(object: unknown): Option<Array<unknown>> {
+    if (Array.isArray(object)) {
+      return object;
+    } else {
+      return null;
+    }
   }
 };
 

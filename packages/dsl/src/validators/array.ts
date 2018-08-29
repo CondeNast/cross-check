@@ -30,18 +30,22 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
 
   constructor(
     protected env: Environment,
-    protected descriptor: ValidationDescriptor<T>
+    protected descriptor: ValidationDescriptor<unknown>
   ) {}
 
-  run(value: T[], context: Option<string>): Task<ValidationError[]> {
+  run(value: unknown, context: Option<string>): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
-      for (let i = 0; i < value.length; i++) {
+      let list = this.env.asList(value)!;
+      let index = 0;
+
+      for (let item of list) {
         let suberrors = await run(
-          validate(value[i], this.descriptor, context, this.env)
+          validate(item, this.descriptor, context, this.env)
         );
-        errors.push(...suberrors.map(error => mapError(error, i)));
+        errors.push(...suberrors.map(error => mapError(error, index)));
+        index++;
       }
 
       return errors;

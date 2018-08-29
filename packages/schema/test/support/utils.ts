@@ -1,4 +1,4 @@
-import { ValidationError } from "@cross-check/core";
+import { Environment, ValidationError } from "@cross-check/core";
 import {
   Record,
   RecordBuilder,
@@ -8,10 +8,18 @@ import {
 import { Task } from "no-show";
 import { Dict, Option } from "ts-std";
 
-export const ENV = {
+export const ENV: Environment = {
   get(object: unknown, key: string): unknown {
     if (object === null || object === undefined) return;
     return (object as Dict<unknown>)[key];
+  },
+
+  asList(object: unknown): Option<Array<unknown>> {
+    if (Array.isArray(object)) {
+      return object;
+    } else {
+      return null;
+    }
   }
 };
 
