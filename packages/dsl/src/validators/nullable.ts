@@ -1,4 +1,5 @@
 import { ValidationError } from "@cross-check/core";
+import { FIXME } from "@cross-check/dsl/src/utils";
 import { assert } from "ts-std";
 import { ValidationBuilder } from "../builders";
 import { isAbsent, isNull } from "./is";
@@ -15,12 +16,12 @@ function unwrapErrors(errors: ValidationError[]) {
   return result[1];
 }
 
-export function nullable<T>(
-  builder: ValidationBuilder<T>
-): ValidationBuilder<T | null> {
+export function nullable<T, U extends T>(
+  builder: ValidationBuilder<T, U>
+): ValidationBuilder<T | null, U | null> {
   return isNull()
     .or(builder)
-    .catch(unwrapErrors);
+    .catch(unwrapErrors) as FIXME<ValidationBuilder<T | null>>;
 }
 
 export function maybe<T>(
@@ -28,5 +29,7 @@ export function maybe<T>(
 ): ValidationBuilder<T | null | undefined | void> {
   return isAbsent()
     .or(builder)
-    .catch(unwrapErrors);
+    .catch(unwrapErrors) as FIXME<
+    ValidationBuilder<T | null | undefined | void>
+  >;
 }

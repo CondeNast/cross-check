@@ -11,7 +11,7 @@ export function is<From, To extends From>(
   checker: Checker<From, To>,
   type: string
 ): () => ValidationBuilder<From> {
-  class Validator extends ValueValidator<From, void> {
+  class Validator extends ValueValidator<From, To, void> {
     static validatorName = `is-${type}`;
 
     validate(value: From): ErrorMessage | void {
@@ -68,7 +68,7 @@ export const isObject = is(
   "object"
 );
 
-export class IsArrayValidator extends BasicValidator<unknown> {
+export class IsArrayValidator extends BasicValidator<unknown, unknown> {
   static validatorName = "is-array";
 
   validate(value: unknown): ValidationError[] {

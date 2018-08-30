@@ -27,6 +27,58 @@ export interface ValidationError {
   message: ErrorMessage;
 }
 
+export interface Valid<T> {
+  valid: true;
+  value: T;
+}
+
+export interface Invalid<T> {
+  valid: false;
+  value: T;
+  errors: ValidationError[];
+}
+
+export type Validity<T, U> = Valid<T> | Invalid<U>;
+
+export function valid<T, U extends T>(value: U): Validity<T, U> {
+  return {
+    valid: true,
+    value
+  };
+}
+
+export function invalid<T, U extends T>(
+  value: T,
+  errors: ValidationError[]
+): Validity<T, U> {
+  return {
+    valid: false,
+    value,
+    errors
+  } as Validity<T, U>;
+}
+
+export function cast<T, U extends T>(
+  value: T,
+  errors: ValidationError[]
+): Validity<T, U> {
+  if (errors.length === 0) {
+    return valid(value as U);
+  } else {
+    return invalid(value, errors);
+  }
+}
+
+export function toErrors(
+  validity: Validity<unknown, unknown>
+): ValidationError[] {
+  if (validity.valid) {
+    return [];
+  } else {
+    return validity.errors;
+  }
+}
+
 /**
  * @api host
  *
@@ -113,10 +165,15 @@ export type Environment = ObjectModel;
  * A function that takes an object model and validator options and produces a new
  * Validator function. In other words, it curries the object model and options.
  */
-export type ValidatorFactory<T, Options> = (
+export type ValidatorFactory<T, U extends T = T> = (
+  options: unknown,
+  objectModel: ObjectModel
+) => Validator<T, U>;
+
+export type KnownValidatorFactory<T, U extends T, Options> = (
   options: Options,
   objectModel: ObjectModel
-) => Validator<T>;
+) => Validator<T, U>;
 
 /**
  * @api primitive
@@ -128,19 +185,19 @@ export type ValidatorFactory<T, Options> = (
  *
  * Primitive validations must use no-show Tasks (which can be cancelled) to manage asynchrony.
  */
-export type Validator<T = unknown> = (
+export type Validator<T = unknown, U extends T = T> = (
   value: T,
   context: Option<string>
-) => Task<ValidationError[]>;
+) => Task<Validity<T, U>>;
 
 /**
  * @api primitive
  *
  * A low-level representation of a validation.
  */
-export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
+export type ValidationDescriptor<T = unknown, U extends T = U> = Readonly<{
   name: string;
-  validator: ValidatorFactory<T, Options>;
-  options: Options;
+  validator: ValidatorFactory<T, U>;
+  options: unknown;
   contexts?: ReadonlyArray<string>;
 }>;

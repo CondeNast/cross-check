@@ -1,4 +1,9 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
+import {
+  ObjectModel,
+  ValidationError,
+  Validity,
+  cast
+} from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidatorInstance } from "./abstract";
@@ -12,7 +17,7 @@ import { ValidatorInstance } from "./abstract";
  * errors. If you only need to return a single error, use `ValueValidator`
  * instead.
  */
-export abstract class BasicValidator<T, Options = void>
+export abstract class BasicValidator<T, U extends T, Options = void>
   implements ValidatorInstance<T> {
   constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
@@ -21,7 +26,9 @@ export abstract class BasicValidator<T, Options = void>
     context: Option<string>
   ): ValidationError[] | PromiseLike<ValidationError[]>;
 
-  run(value: T, context: Option<string>): Task<ValidationError[]> {
-    return new Task(async run => run(this.validate(value, context)));
+  run(value: T, context: Option<string>): Task<Validity<T, U>> {
+    return new Task(async run =>
+      cast(value, await run(this.validate(value, context)))
+    );
   }
 }

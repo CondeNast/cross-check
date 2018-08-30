@@ -1,4 +1,10 @@
-import { ErrorMessage, ObjectModel, Validator } from "@cross-check/core";
+import {
+  ErrorMessage,
+  ObjectModel,
+  Validator,
+  invalid,
+  valid
+} from "@cross-check/core";
 import { Task } from "no-show";
 
 export type ValidationResult = ErrorMessage | void;
@@ -7,18 +13,18 @@ export type ValidationCallback<T> = (
   objectModel: ObjectModel
 ) => ValidationResult | PromiseLike<ValidationResult>;
 
-export function factoryForCallback<T>(
+export function factoryForCallback<T, U extends T>(
   cb: ValidationCallback<T>,
   objectModel: ObjectModel
-): Validator<T> {
+): Validator<T, U> {
   return value => {
     return new Task(async run => {
       let message = await run(cb(value, objectModel));
 
       if (message) {
-        return [{ path: [], message }];
+        return invalid(value, [{ path: [], message }]);
       } else {
-        return [];
+        return valid(value as U);
       }
     });
   };

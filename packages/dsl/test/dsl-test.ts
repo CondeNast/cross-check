@@ -1,6 +1,9 @@
 import { format } from "@cross-check/core";
 import validates, {
+  Buildable,
   MapErrorTransform,
+  ValidationBuildable,
+  ValidationBuilder,
   and,
   chain,
   extend,

@@ -5,7 +5,7 @@ import { buildAndRun as run } from "../support";
 QUnit.module("Validators (value)");
 
 QUnit.test("FormatValidator", async assert => {
-  class FormatValidator extends ValueValidator<string, RegExp> {
+  class FormatValidator extends ValueValidator<string, string, RegExp> {
     static validatorName = "format";
 
     validate(value: string): ErrorMessage | void {

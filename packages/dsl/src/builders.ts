@@ -10,6 +10,7 @@ import {
   or
 } from "./combinators";
 import { descriptor } from "./internal";
+import { FIXME } from "./utils";
 import { ValidationCallback, factoryForCallback } from "./validators/callback";
 
 /**
@@ -20,15 +21,15 @@ import { ValidationCallback, factoryForCallback } from "./validators/callback";
  * It's either another ValidationBuilder or a callback, which allows a more inline
  * style of composing validation chains.
  */
-export type ValidationBuildable<T = unknown> =
+export type ValidationBuildable<T = unknown, U extends T = T> =
   | ValidationCallback<T>
-  | Buildable<T>
-  | ValidationDescriptor<T>;
+  | Buildable<T, U>
+  | ValidationDescriptor<T, U>;
 
 export const BUILD = Symbol("BUILD");
 
-export interface Buildable<T = unknown> {
-  [BUILD](): ValidationDescriptor<T>;
+export interface Buildable<T = unknown, U extends T = T> {
+  [BUILD](): ValidationDescriptor<T, U>;
 }
 
 /**
@@ -37,7 +38,8 @@ export interface Buildable<T = unknown> {
  * The main API for building validations. In general, always depend on this interface,
  * rather than concrete implementations of the interface.
  */
-export interface ValidationBuilder<T> {
+export interface ValidationBuilder<T, Out extends T = T>
+  extends Buildable<T, Out> {
   name: string;
 
   /**
@@ -139,7 +141,7 @@ export interface ValidationBuilder<T> {
    */
   on(...contexts: string[]): ValidationBuilder<T>;
 
-  [BUILD](): ValidationDescriptor<T>;
+  [BUILD](): ValidationDescriptor<T, FIXME<any>, Out>;
 }
 
 /**
@@ -155,24 +157,29 @@ export interface ValidationBuilder<T> {
  * constructing validation descriptors, which can then be used directly by
  * the core validation library.
  */
-export function build<T>(
-  builder: ValidationCallback<T>,
-  name?: string
-): ValidationDescriptor<T>;
-export function build<T>(
-  builder: ValidationBuildable<T>
-): ValidationDescriptor<T>;
 
-export function build<T>(
-  buildable: ValidationBuildable<T>,
+export function build<T, U extends T = T>(
+  builder: ValidationBuilder<T, U> | ValidationDescriptor<T, U>,
   name?: string
-): ValidationDescriptor<T> {
+): ValidationDescriptor<T, U>;
+export function build<T>(
+  buildable: ValidationCallback<T>,
+  name?: string
+): ValidationDescriptor<T, T>;
+export function build<T, U extends T = T>(
+  buildable: ValidationBuildable<T, U>,
+  name?: string
+): ValidationDescriptor<T, U> {
   if (isCallback(buildable)) {
     name = name || buildable.name || "anonymous";
 
     return {
       name,
-      validator: factoryForCallback as ValidatorFactory<T, unknown>,
+      validator: (factoryForCallback as FIXME<any>) as ValidatorFactory<
+        T,
+        Options,
+        U
+      >,
       options: buildable,
       contexts: []
     };
@@ -183,12 +190,14 @@ export function build<T>(
   }
 }
 
-export function validates<T, Options>(
+export function validates<T, U extends T, Options>(
   name: string,
-  factory: ValidatorFactory<T, Options>,
+  factory: ValidatorFactory<T, Options, U>,
   options: Options
 ): ValidationBuilder<T> {
-  return new BaseValidationBuilder(name, factory, options);
+  return new BaseValidationBuilder(name, factory, options) as FIXME<
+    ValidationBuilder<T>
+  >;
 }
 
 /**
@@ -225,12 +234,12 @@ export function validates<T, Options>(
  * In other words, `extend()` turns a validation descriptor back into a builder that can be modified
  * again.
  */
-export function extend<T>({
+export function extend<T, U extends T = T>({
   name,
   validator,
   options,
   contexts
-}: ValidationDescriptor<T, any>): ValidationBuilder<T> {
+}: ValidationDescriptor<T, any, U>): ValidationBuilder<T> {
   if (validator === and) {
     return new AndBuilder("all", validator, options, contexts);
   } else if (validator === or) {

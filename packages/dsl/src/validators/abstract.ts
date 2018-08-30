@@ -1,12 +1,13 @@
 import {
   ObjectModel,
-  ValidationError,
   Validator,
-  ValidatorFactory
+  ValidatorFactory,
+  Validity
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidationBuilder, validates } from "../builders";
+import { FIXME } from "../utils";
 
 /**
  * @api primitive
@@ -34,8 +35,8 @@ export interface ValidatorClass<T, Options> {
  *
  * @typeparam T  a valid input value for this validator instance.
  */
-export interface ValidatorInstance<T> {
-  run(value: T, context: Option<string>): Task<ValidationError[]>;
+export interface ValidatorInstance<T, U extends T = T> {
+  run(value: T, context: Option<string>): Task<Validity<T, U>>;
 }
 
 /**
@@ -44,11 +45,13 @@ export interface ValidatorInstance<T> {
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
  *
  */
-export function factoryFor<T, Options>(
+export function factoryFor<T, U extends T, Options>(
   Class: ValidatorClass<T, Options>
-): ValidatorFactory<T, Options> {
-  return (options: Options, objectModel: ObjectModel): Validator<T> => {
-    let validator = new Class(objectModel, options);
+): ValidatorFactory<T, Options, U> {
+  return (options: Options, objectModel: ObjectModel): Validator<T, U> => {
+    let validator = new Class(objectModel, options) as FIXME<
+      ValidatorInstance<T, U>
+    >;
     return (value, context) => validator.run(value, context);
   };
 }

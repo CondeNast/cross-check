@@ -1,4 +1,4 @@
-import { ObjectModel, ValidationError, validate } from "@cross-check/core";
+import { ObjectModel, Validity, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import Task from "no-show";
 import { Dict } from "ts-std";
@@ -24,7 +24,7 @@ export class Environment {
     readonly objectModel: ObjectModel
   ) {}
 
-  validate(name: string, obj: Dict): Task<ValidationError[]> {
+  validate(name: string, obj: Dict): Task<Validity<unknown, Dict>> {
     let { dictionary } = this.registry.getRecord(name, this.params);
 
     return validate(
@@ -47,14 +47,17 @@ export class Environment {
     return new Formatters(this.registry, this.params);
   }
 
-  get validation(): (name: string, value: Dict) => Task<ValidationError[]> {
+  get validation(): (
+    name: string,
+    value: Dict
+  ) => Task<Validity<unknown, Dict>> {
     return (name: string, value: Dict) => {
       let impl = this.hydrate(name);
       return impl.validate(value, this.objectModel);
     };
   }
 
-  validator(name: string): (value: Dict) => Task<ValidationError[]> {
+  validator(name: string): (value: Dict) => Task<Validity<unknown, Dict>> {
     return (value: Dict) => {
       let impl = this.hydrate(name);
       return impl.validate(value, this.objectModel);

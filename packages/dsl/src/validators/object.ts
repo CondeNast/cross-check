@@ -2,11 +2,14 @@ import {
   ObjectModel,
   ValidationDescriptor,
   ValidationError,
+  Validity,
+  cast,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Dict, Indexable, Option, Present, dict, entries } from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
+import { FIXME } from "../utils";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject } from "./is";
 
@@ -25,31 +28,38 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `fields()`.
  */
-export class FieldsValidator<T> implements ValidatorInstance<Present> {
+export class FieldsValidator<T, U extends T>
+  implements ValidatorInstance<Present> {
   static validatorName = "fields";
 
   constructor(
     protected objectModel: ObjectModel,
-    protected descriptors: Dict<ValidationDescriptor<T>>
+    protected descriptors: Dict<ValidationDescriptor<T, U>>
   ) {}
 
-  run(value: Present, context: Option<string>): Task<ValidationError[]> {
+  run(
+    value: Present,
+    context: Option<string>
+  ): Task<Validity<Present, Dict<U>>> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of entries(this.descriptors)) {
-        let suberrors = await run(
+        let validity = await run(
           validate(
             this.objectModel.get(value, key) as T,
-            descriptor!,
+            descriptor! as FIXME<any>,
             context,
             this.objectModel
           )
         );
-        errors.push(...suberrors.map(error => mapError(error, key)));
+
+        if (validity.valid === false) {
+          errors.push(...validity.errors.map(error => mapError(error, key)));
+        }
       }
 
-      return errors;
+      return cast(value, errors);
     });
   }
 }
@@ -70,7 +80,7 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
     protected descriptorKeys: string[]
   ) {}
 
-  run(value: Indexable<T>): Task<ValidationError[]> {
+  run(value: Indexable<T>): Task<Validity<Indexable<T>, Indexable<T>>> {
     return new Task(async () => {
       let errors: ValidationError[] = [];
       let valueKeys = Object.keys(value);
@@ -96,11 +106,7 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
         }))
       );
 
-      if (errors.length) {
-        return [{ path: [], message: { name: "keys", details: errors } }];
-      } else {
-        return [];
-      }
+      return cast(value, errors);
     });
   }
 }

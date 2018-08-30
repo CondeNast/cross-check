@@ -3,8 +3,9 @@ import { validate, validator } from "@cross-check/core";
 QUnit.module("validator()");
 
 QUnit.test("void options using the synchronous API", async assert => {
-  let isAllCaps = validator("is-all-caps", () => (input: string) =>
-    input.toUpperCase() === input
+  let isAllCaps = validator(
+    "is-all-caps",
+    () => (input: string): input is string => input.toUpperCase() === input
   );
 
   assert.deepEqual(await validate("hello", isAllCaps()), [
@@ -31,8 +32,10 @@ QUnit.test("void options using the synchronous API", async assert => {
 });
 
 QUnit.test("with options using the synchronous API", async assert => {
-  let lt = validator("lt", (upperBound: number) => (input: number) =>
-    input < upperBound
+  let lt = validator(
+    "lt",
+    (upperBound: number) => (input: number): input is number =>
+      input < upperBound
   );
 
   assert.deepEqual(await validate(5, lt(5)), [

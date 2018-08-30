@@ -1,4 +1,10 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
+import {
+  ObjectModel,
+  ValidationError,
+  Validity,
+  invalid,
+  valid
+} from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidatorInstance } from "./abstract";
@@ -15,8 +21,8 @@ import { ValidationResult } from "./callback";
  * If you need to return multiple errors from `validate()`, use the primitive
  * `BasicValidator` superclass instead.
  */
-export abstract class ValueValidator<T, Options = void>
-  implements ValidatorInstance<T> {
+export abstract class ValueValidator<T, U extends T = T, Options = void>
+  implements ValidatorInstance<T, U> {
   constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
   abstract validate(
@@ -24,14 +30,14 @@ export abstract class ValueValidator<T, Options = void>
     context: Option<string>
   ): ValidationResult | PromiseLike<ValidationResult>;
 
-  run(value: T, context: Option<string>): Task<ValidationError[]> {
+  run(value: T, context: Option<string>): Task<Validity<T, U>> {
     return new Task(async run => {
       let message = await run(this.validate(value, context));
 
       if (message) {
-        return [{ path: [], message }];
+        return invalid(value, [{ path: [], message }]);
       } else {
-        return [];
+        return valid(value as U);
       }
     });
   }

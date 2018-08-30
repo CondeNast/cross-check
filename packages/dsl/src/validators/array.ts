@@ -2,11 +2,14 @@ import {
   ObjectModel,
   ValidationDescriptor,
   ValidationError,
+  Validity,
+  cast,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
 import { ValidationBuilder, build } from "../builders";
+import { FIXME } from "../utils";
 import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
 
@@ -25,15 +28,16 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `items()`.
  */
-export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
+export class ItemsValidator<T = unknown, U extends T = T>
+  implements ValidatorInstance<T[], U[]> {
   static validatorName = "array-items";
 
   constructor(
     protected env: ObjectModel,
-    protected descriptor: ValidationDescriptor<unknown>
+    protected descriptor: ValidationDescriptor<T, U>
   ) {}
 
-  run(value: unknown, context: Option<string>): Task<ValidationError[]> {
+  run(value: T[], context: Option<string>): Task<Validity<T[], U[]>> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
@@ -41,14 +45,17 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
       let index = 0;
 
       for (let item of list) {
-        let suberrors = await run(
-          validate(item, this.descriptor, context, this.env)
+        let validity = await run(
+          validate(item, this.descriptor as FIXME<any>, context, this.env)
         );
-        errors.push(...suberrors.map(error => mapError(error, index)));
+
+        if (validity.valid === false) {
+          errors.push(...validity.errors.map(error => mapError(error, index)));
+        }
         index++;
       }
 
-      return errors;
+      return cast(value, errors);
     });
   }
 }

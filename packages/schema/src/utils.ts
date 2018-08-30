@@ -74,3 +74,5 @@ export function maybe<T>(validator: ValidationBuilder<T>) {
 export function titleize(s: string): string {
   return `${s[0].toUpperCase()}${s.slice(1)}`;
 }
+
+export type FIXME<T> = T;

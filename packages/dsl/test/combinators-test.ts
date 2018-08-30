@@ -3,10 +3,12 @@ import {
   ValidationDescriptor,
   ValidationError,
   Validator,
-  ValidatorFactory
+  ValidatorFactory,
+  invalid,
+  toErrors,
+  valid
 } from "@cross-check/core";
 import {
-  MapErrorOptions,
   MapErrorTransform,
   and,
   chain,
@@ -18,12 +20,12 @@ import {
   or
 } from "@cross-check/dsl";
 import Task from "no-show";
-import { run } from "./support";
+import { run as validate } from "./support";
 
 QUnit.module("Combinators");
 
-const Success: ValidatorFactory<unknown, void> = (): Validator<unknown> => {
-  return () => new Task(async () => []);
+const Success: ValidatorFactory<unknown> = (): Validator<unknown> => {
+  return () => new Task(async () => valid(undefined));
 };
 
 interface FailOptions {
@@ -31,28 +33,28 @@ interface FailOptions {
   path: ErrorPath;
 }
 
-const Fail: ValidatorFactory<unknown, FailOptions> = ({
+const Fail: ValidatorFactory<unknown, unknown> = ({
   reason,
   path
 }: FailOptions) => {
   return () =>
-    new Task<ValidationError[]>(async () => [error(reason, null, path)]);
+    new Task(async () => invalid(undefined, [error(reason, null, path)]));
 };
 
-function descriptorFor<T>(
+function descriptorFor<T, U extends T>(
   name: string,
-  factory: ValidatorFactory<T, void>
-): ValidationDescriptor<T>;
-function descriptorFor<T, Options>(
+  factory: ValidatorFactory<T, U>
+): ValidationDescriptor<T, U>;
+function descriptorFor<T, U extends T, Options>(
   name: string,
-  factory: ValidatorFactory<T, Options>,
+  factory: ValidatorFactory<T, U>,
   options: Options
-): ValidationDescriptor<T>;
-function descriptorFor<T>(
+): ValidationDescriptor<T, U>;
+function descriptorFor<T, U extends T>(
   name: string,
-  validator: ValidatorFactory<T, any>,
+  validator: ValidatorFactory<T, U>,
   options?: any
-): ValidationDescriptor<T> {
+): ValidationDescriptor<T, U> {
   return {
     name,
     validator,
@@ -83,7 +85,12 @@ function runMulti(
   factory: ValidatorFactory<unknown, ValidationDescriptor[]>,
   descriptors: ValidationDescriptor[]
 ): Task<ValidationError[]> {
-  return run(descriptorFor("multi", factory, descriptors), null);
+  return new Task(async run => {
+    let result = await run(
+      validate(descriptorFor("multi", factory, descriptors), null)
+    );
+    return toErrors(result);
+  });
 }
 
 QUnit.test("and", async assert => {
@@ -189,18 +196,26 @@ QUnit.test("chain", async assert => {
   );
 });
 
+export type FIXME<T> = T;
+
 QUnit.test("mapError", async assert => {
   function map(
     descriptor: ValidationDescriptor,
     transform: MapErrorTransform
   ): Task<ValidationError[]> {
-    return run(
-      descriptorFor<unknown, MapErrorOptions<unknown>>("mapError", mapError, {
-        do: descriptor,
-        catch: transform
-      }),
-      null
-    );
+    return new Task(async run => {
+      let result = await run(
+        validate(
+          descriptorFor("mapError", mapError as FIXME<any>, {
+            do: descriptor,
+            catch: transform
+          }) as FIXME<any>,
+          null
+        )
+      );
+
+      return toErrors(result);
+    });
   }
 
   function cast(descriptor: ValidationDescriptor): Task<ValidationError[]> {

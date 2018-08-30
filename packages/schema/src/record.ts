@@ -1,7 +1,7 @@
 import {
   ObjectModel,
   ValidationDescriptor,
-  ValidationError,
+  Validity,
   validate
 } from "@cross-check/core";
 import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
@@ -90,7 +90,7 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.dehydrate();
   }
 
-  validate(obj: Dict, objectModel: ObjectModel): Task<ValidationError[]> {
+  validate(obj: Dict, objectModel: ObjectModel): Task<Validity<unknown, Dict>> {
     let validation = this.dictionary.validation();
 
     return validate(obj, build(validation), null, objectModel);

@@ -5,9 +5,14 @@ import {
   ValidationError,
   Validator,
   ValidatorFactory,
+  Validity,
+  cast,
+  invalid,
+  valid,
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
+import { FIXME } from "./utils";
 
 export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
 export type CombinatorFactory<T> = ValidatorFactory<
@@ -22,20 +27,20 @@ export type CombinatorFactory<T> = ValidatorFactory<
  * @param descriptors
  * @param objectModel
  */
-export function chain<T>(
+export function chain<T, U extends T>(
   descriptors: ValidationDescriptors<T>,
   objectModel: ObjectModel
 ): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+  return (value, context): Task<Validity<T, U>> => {
     return new Task(async run => {
       for (let descriptor of descriptors) {
-        let errors = await run(
-          validate(value, descriptor, context, objectModel)
+        let validity = await run(
+          validate(value, descriptor as FIXME<any>, context, objectModel)
         );
-        if (errors.length) return errors;
+        if (validity.valid === false) return validity as Validity<T, U>;
       }
 
-      return [];
+      return valid(value as U);
     });
   };
 }
@@ -47,22 +52,28 @@ export function chain<T>(
  * @param descriptors
  * @param objectModel
  */
-export function and<T>(
+export function and<T, U extends T>(
   descriptors: ValidationDescriptors<T>,
   objectModel: ObjectModel
 ): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+  return (value, context): Task<Validity<T, U>> => {
     return new Task(async run => {
-      let result: ValidationError[] = [];
+      let errors: ValidationError[] = [];
 
       for (let descriptor of descriptors) {
         mergeErrors(
-          result,
-          await run(validate(value, descriptor, context, objectModel))
+          errors,
+          await run(
+            validate(value, descriptor as FIXME<any>, context, objectModel)
+          )
         );
       }
 
-      return result;
+      if (errors.length === 0) {
+        return valid(value as U);
+      } else {
+        return invalid(value, errors);
+      }
     });
   };
 }
@@ -75,27 +86,29 @@ export function and<T>(
  * @param descriptors
  * @param objectModel
  */
-export function or<T>(
+export function or<T, U extends T>(
   descriptors: ValidationDescriptors<T>,
   objectModel: ObjectModel
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context) => {
     return new Task(async run => {
       let result: ValidationError[][] = [];
 
       for (let descriptor of descriptors) {
-        let errors = await run(
-          validate(value, descriptor, context, objectModel)
+        let validity = await run(
+          validate(value, descriptor as FIXME<any>, context, objectModel)
         );
 
-        if (errors.length === 0) {
-          return [];
+        if (validity.valid === true) {
+          return validity;
         } else {
-          result.push(errors);
+          result.push(validity.errors);
         }
       }
 
-      return [{ path: [], message: { name: "multiple", details: result } }];
+      return invalid(value, [
+        { path: [], message: { name: "multiple", details: result } }
+      ]);
     });
   };
 }
@@ -113,28 +126,30 @@ export function or<T>(
  * @param descriptors
  * @param objectModel
  */
-export function ifValid<T>(
+export function ifValid<T, U extends T>(
   descriptors: ValidationDescriptors<T>,
   objectModel: ObjectModel
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context) => {
     return new Task(async run => {
       let head = descriptors.slice(0, -1);
       let tail = descriptors.slice(-1)[0];
 
       for (let descriptor of head) {
-        let errors = await run(
-          validate(value, descriptor, context, objectModel)
+        let validity = await run(
+          validate(value, descriptor as FIXME<any>, context, objectModel)
         );
 
-        if (errors.length === 0) {
+        if (validity.valid === true) {
           continue;
         } else {
-          return [];
+          return valid(value as U);
         }
       }
 
-      return run(validate(value, tail, context, objectModel));
+      return (await run(
+        validate(value, tail as FIXME<any>, context, objectModel)
+      )) as FIXME<Validity<T, U>>;
     });
   };
 }
@@ -148,18 +163,20 @@ export interface MapErrorOptions<T> {
   catch: MapErrorTransform;
 }
 
-export function mapError<T>(
+export function mapError<T, U extends T>(
   options: MapErrorOptions<T>,
   objectModel: ObjectModel
-): Validator<T> {
-  return (value, context): Task<ValidationError[]> => {
+): Validator<T, U> {
+  return (value, context) => {
     return new Task(async run => {
-      let errors = await run(validate(value, options.do, context, objectModel));
+      let validity = await run(
+        validate(value, options.do as FIXME<any>, context, objectModel)
+      );
 
-      if (errors.length) {
-        return options.catch(errors);
+      if (validity.valid === false) {
+        return cast(value, options.catch(validity.errors));
       } else {
-        return errors;
+        return validity;
       }
     });
   };
@@ -177,11 +194,13 @@ export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
   return errors => errors.filter(error => !matchPath(path, error.path, exact));
 }
 
-function mergeErrors(
+function mergeErrors<T, U extends T>(
   base: ValidationError[],
-  additions: ValidationError[]
+  additions: Validity<T, U>
 ): void {
-  additions.forEach(addition => {
+  if (additions.valid === true) return;
+
+  additions.errors.forEach(addition => {
     if (base.every(error => !matchError(error, addition))) {
       base.push(addition);
     }

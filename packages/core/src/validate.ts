@@ -3,7 +3,10 @@ import { Indexable, Option } from "ts-std";
 import {
   ObjectModel,
   ValidationDescriptor,
-  ValidationError
+  ValidationError,
+  Validity,
+  toErrors,
+  valid
 } from "./descriptor";
 
 const DEFAULT_OBJECT_MODEL: ObjectModel = {
@@ -42,17 +45,31 @@ const DEFAULT_OBJECT_MODEL: ObjectModel = {
  *  descriptor can represent multiple composed validations
  * @param context Optionally, a string that represents the saving context
  */
-export function validate<T, Options>(
+export function validate<T, U extends T = T>(
   value: T,
-  descriptor: ValidationDescriptor<T, Options>,
+  descriptor: ValidationDescriptor<T, U>,
   context: Option<string> = null,
   objectModel: ObjectModel = DEFAULT_OBJECT_MODEL
 ): Task<ValidationError[]> {
   return new Task(async run => {
+    let validity = await run(
+      internalValidate(value, descriptor, context, objectModel)
+    );
+    return toErrors(validity);
+  });
+}
+
+export function internalValidate<T, U extends T = T>(
+  value: T,
+  descriptor: ValidationDescriptor<T, U>,
+  context: Option<string> = null,
+  objectModel: ObjectModel = DEFAULT_OBJECT_MODEL
+): Task<Validity<T, U>> {
+  return new Task(async run => {
     let { validator, options, contexts } = descriptor;
 
     if (context !== null && contexts && contexts.length) {
-      if (contexts.indexOf(context) === -1) return [];
+      if (contexts.indexOf(context) === -1) return valid(value as U);
     }
 
     let validateFunction = validator(options, objectModel);

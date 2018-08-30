@@ -4,9 +4,14 @@ export {
   ValidationError,
   ObjectModel,
   Environment,
+  ValidationDescriptor,
   ValidatorFactory,
   Validator,
-  ValidationDescriptor
+  Validity,
+  cast,
+  invalid,
+  toErrors,
+  valid
 } from "./descriptor";
 export * from "./validate";
 export * from "./format";

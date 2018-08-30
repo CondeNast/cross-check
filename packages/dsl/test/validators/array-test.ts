@@ -1,4 +1,4 @@
-import { ValidationError, format } from "@cross-check/core";
+import { ValidationError, Validity, format } from "@cross-check/core";
 import validates, {
   ValidationBuildable,
   ValidationBuilder,
@@ -90,11 +90,11 @@ QUnit.test("arrayItems", async assert => {
   itemTests(isStringArray, assert, Array, defaultRun);
 });
 
-async function itemTests<T>(
+async function itemTests<T, U extends T>(
   builder: ValidationBuilder<T>,
   assert: typeof QUnit.assert,
   arr: (...args: Array<unknown>) => T,
-  run: (b: ValidationBuildable<T>, value: T) => Task<ValidationError[]>
+  run: (b: ValidationBuildable<T>, value: T) => Task<Validity<T, U>>
 ) {
   assert.deepEqual(await run(builder, arr()), success(), "empty");
   assert.deepEqual(
