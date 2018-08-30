@@ -1,4 +1,8 @@
-import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
+import {
+  KnownValidatorFactory,
+  ValidationDescriptor,
+  ValidatorFactory
+} from "@cross-check/core";
 import { assert } from "ts-std";
 import {
   MapErrorOptions,
@@ -38,8 +42,8 @@ export interface Buildable<T = unknown, U extends T = T> {
  * The main API for building validations. In general, always depend on this interface,
  * rather than concrete implementations of the interface.
  */
-export interface ValidationBuilder<T, Out extends T = T>
-  extends Buildable<T, Out> {
+export interface ValidationBuilder<In, Out extends In = In>
+  extends Buildable<In, Out> {
   name: string;
 
   /**
@@ -51,7 +55,9 @@ export interface ValidationBuilder<T, Out extends T = T>
    *
    * @param validation
    */
-  andAlso(validation: ValidationBuildable<T>): ValidationBuilder<T>;
+  andAlso<NewIn, NewOut extends NewIn>(
+    validation: ValidationBuildable<NewIn, NewOut>
+  ): ValidationBuilder<In & NewIn, Out & NewOut>;
 
   /**
    * @api public
@@ -60,12 +66,21 @@ export interface ValidationBuilder<T, Out extends T = T>
    * validations succeed, the composed validation produces no errors. Otherwise, produce
    * a "multi" validation that includes the errors for any validation that failed.
    */
-  or<U extends T>(validation: ValidationBuildable<U>): ValidationBuilder<T>;
+  or<NewIn, NewOut extends NewIn>(
+    validation: ValidationBuildable<NewIn, NewOut>
+  ): ValidationBuilder<In & NewIn, In & NewIn & (Out | NewOut)>;
 
   /**
+   * Runs the left-hand validation only if the right-hand validation succeeds. If the
+   * right-hand validation fails, the whole validation succeeds.
+   *
+   * TODO: Explain why
+   *
    * @api public
    */
-  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U>;
+  if<NewIn, NewOut extends NewIn>(
+    validation: ValidationBuildable<NewIn, NewOut>
+  ): ValidationBuilder<NewIn, Out>;
 
   /**
    * @api public
@@ -80,9 +95,9 @@ export interface ValidationBuilder<T, Out extends T = T>
    * can validate specific characteristics of the string ("it's an email") and assume
    * that the string validation has already been taken care of.
    */
-  andThen<U extends T>(
-    validation: ValidationBuildable<U>
-  ): ValidationBuilder<T>;
+  andThen<NewIn extends In, NewOut extends NewIn>(
+    validation: ValidationBuilder<NewIn, Out & NewOut>
+  ): ValidationBuilder<In, Out & NewOut>;
 
   /**
    * @api public
@@ -109,7 +124,7 @@ export interface ValidationBuilder<T, Out extends T = T>
    * Note that the `.catch` transformer will only run if there is at least
    * one validation error.
    */
-  catch(transform: MapErrorTransform): ValidationBuilder<T>;
+  catch(transform: MapErrorTransform): ValidationBuilder<In>;
 
   /**
    * @api public
@@ -139,9 +154,9 @@ export interface ValidationBuilder<T, Out extends T = T>
    *   validation), but which only needs to pass validation when
    *   finally publishing the article.
    */
-  on(...contexts: string[]): ValidationBuilder<T>;
+  on(...contexts: string[]): ValidationBuilder<In>;
 
-  [BUILD](): ValidationDescriptor<T, FIXME<any>, Out>;
+  [BUILD](): ValidationDescriptor<In, Out>;
 }
 
 /**
@@ -175,11 +190,7 @@ export function build<T, U extends T = T>(
 
     return {
       name,
-      validator: (factoryForCallback as FIXME<any>) as ValidatorFactory<
-        T,
-        Options,
-        U
-      >,
+      validator: (factoryForCallback as FIXME<any>) as ValidatorFactory<T, U>,
       options: buildable,
       contexts: []
     };
@@ -192,7 +203,7 @@ export function build<T, U extends T = T>(
 
 export function validates<T, U extends T, Options>(
   name: string,
-  factory: ValidatorFactory<T, Options, U>,
+  factory: KnownValidatorFactory<T, U, Options>,
   options: Options
 ): ValidationBuilder<T> {
   return new BaseValidationBuilder(name, factory, options) as FIXME<
@@ -266,9 +277,9 @@ function isBuilder<T>(buildable: any): buildable is Buildable<T> {
   return typeof buildable[BUILD] === "function";
 }
 
-export function builderForDescriptor<T>(
-  desc: ValidationDescriptor<T>
-): ValidationBuilder<T> {
+export function builderForDescriptor<T, U extends T>(
+  desc: ValidationDescriptor<T, U>
+): ValidationBuilder<T, U> {
   return new BaseValidationBuilder(
     desc.name,
     desc.validator,
@@ -277,15 +288,16 @@ export function builderForDescriptor<T>(
   );
 }
 
-class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
+class BaseValidationBuilder<T, U extends T, Options>
+  implements ValidationBuilder<T, U> {
   constructor(
     public name: string,
-    protected factory: ValidatorFactory<T, Options>,
+    protected factory: KnownValidatorFactory<T, U, Options>,
     protected options: Options,
     protected contexts: ReadonlyArray<string> = []
   ) {}
 
-  andAlso(validation: ValidationBuildable<T>): ValidationBuilder<T> {
+  andAlso(validation: ValidationBuildable<T, U>): ValidationBuilder<T, U> {
     return new AndBuilder(
       "all",
       and,
@@ -297,7 +309,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  or(validation: ValidationBuildable<T>): ValidationBuilder<T> {
+  or(validation: ValidationBuildable<T, U>): ValidationBuilder<T, U> {
     return new OrBuilder(
       "any",
       or,
@@ -309,7 +321,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U> {
+  if<U>(validation: ValidationBuildable<U>): ValidationBuilder<U, U> {
     return new IfValidBuilder(
       "if",
       ifValid,
@@ -321,9 +333,9 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  andThen<U extends T>(
-    validation: ValidationBuildable<U>
-  ): ValidationBuilder<T> {
+  andThen<U extends T, V extends U>(
+    validation: ValidationBuildable<U, V>
+  ): ValidationBuilder<T, V> {
     return new ChainBuilder(
       "pipe",
       chain,
@@ -335,7 +347,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  catch(onError: MapErrorTransform): ValidationBuilder<T> {
+  catch(onError: MapErrorTransform): ValidationBuilder<T, U> {
     return new BaseValidationBuilder<T, MapErrorOptions<T>>(
       "try",
       mapError,
@@ -344,7 +356,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  on(...contexts: string[]): BaseValidationBuilder<T, Options> {
+  on(...contexts: string[]): BaseValidationBuilder<T, U, Options> {
     assert(
       !!contexts.length,
       "You must provide at least one validation context"
@@ -353,13 +365,8 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     return new OnBuilder(this.name, this.factory, this.options, contexts);
   }
 
-  [BUILD](): ValidationDescriptor<T> {
-    return descriptor(
-      this.name,
-      this.factory as ValidatorFactory<T, unknown>,
-      this.options,
-      this.contexts
-    );
+  [BUILD](): ValidationDescriptor<T, U> {
+    return descriptor(this.name, this.factory, this.options, this.contexts);
   }
 }
 
@@ -405,11 +412,14 @@ class OrBuilder<T> extends BaseValidationBuilder<
   }
 }
 
-class ChainBuilder<T> extends BaseValidationBuilder<
+class ChainBuilder<T, U extends T> extends BaseValidationBuilder<
   T,
+  U,
   ReadonlyArray<ValidationDescriptor>
 > {
-  andThen<U extends T>(validation: ValidationBuilder<U>): ValidationBuilder<T> {
+  andThen<V extends T, W extends V>(
+    validation: ValidationBuilder<V, U & W>
+  ): ValidationBuilder<T, U & W> {
     return new ChainBuilder(
       "pipe",
       this.factory,
@@ -419,10 +429,14 @@ class ChainBuilder<T> extends BaseValidationBuilder<
   }
 }
 
-class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
+class OnBuilder<T, U extends T, Options> extends BaseValidationBuilder<
+  T,
+  U,
+  Options
+> {
   constructor(
     name: string,
-    factory: ValidatorFactory<T, Options>,
+    factory: KnownValidatorFactory<T, U, Options>,
     options: Options,
     contexts: ReadonlyArray<string>
   ) {
@@ -433,8 +447,8 @@ class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
     super(name, factory, options, contexts);
   }
 
-  on(...contexts: string[]): BaseValidationBuilder<T, Options> {
-    return new OnBuilder<T, Options>(
+  on(...contexts: string[]): BaseValidationBuilder<T, U, Options> {
+    return new OnBuilder<T, U, Options>(
       this.name,
       this.factory,
       this.options,

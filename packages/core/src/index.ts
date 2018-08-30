@@ -6,6 +6,7 @@ export {
   Environment,
   ValidationDescriptor,
   ValidatorFactory,
+  KnownValidatorFactory,
   Validator,
   Validity,
   cast,

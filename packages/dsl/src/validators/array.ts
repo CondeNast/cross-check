@@ -4,7 +4,7 @@ import {
   ValidationError,
   Validity,
   cast,
-  validate
+  internalValidate
 } from "@cross-check/core";
 import { Task } from "no-show";
 import { Option } from "ts-std";
@@ -46,7 +46,12 @@ export class ItemsValidator<T = unknown, U extends T = T>
 
       for (let item of list) {
         let validity = await run(
-          validate(item, this.descriptor as FIXME<any>, context, this.env)
+          internalValidate(
+            item,
+            this.descriptor as FIXME<any>,
+            context,
+            this.env
+          )
         );
 
         if (validity.valid === false) {

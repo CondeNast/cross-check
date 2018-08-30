@@ -18,9 +18,9 @@ import { FIXME } from "../utils";
  * @typeparam T        a valid input value for instances of this validator class
  * @typeparam Options  the options passed to the constructor of this validator class
  */
-export interface ValidatorClass<T, Options> {
+export interface ValidatorClass<T, U extends T, Options> {
   validatorName: string;
-  new (env: ObjectModel, options: Options): ValidatorInstance<T>;
+  new (env: ObjectModel, options: Options): ValidatorInstance<T, U>;
 }
 
 /**
@@ -46,8 +46,8 @@ export interface ValidatorInstance<T, U extends T = T> {
  *
  */
 export function factoryFor<T, U extends T, Options>(
-  Class: ValidatorClass<T, Options>
-): ValidatorFactory<T, Options, U> {
+  Class: ValidatorClass<T, U, Options>
+): ValidatorFactory<T, U> {
   return (options: Options, objectModel: ObjectModel): Validator<T, U> => {
     let validator = new Class(objectModel, options) as FIXME<
       ValidatorInstance<T, U>

@@ -37,7 +37,7 @@
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
 
     "paths": {
-      "@cross-check/*": ["packages/*/src"]
+      "@cross-check/*": ["packages/*/src/index.ts"]
     },
 
     /* Module Resolution Options */

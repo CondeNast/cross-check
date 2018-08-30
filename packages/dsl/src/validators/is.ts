@@ -10,7 +10,7 @@ export type Checker<From, To extends From> = (value: From) => value is To;
 export function is<From, To extends From>(
   checker: Checker<From, To>,
   type: string
-): () => ValidationBuilder<From> {
+): () => ValidationBuilder<From, To> {
   class Validator extends ValueValidator<From, To, void> {
     static validatorName = `is-${type}`;
 
