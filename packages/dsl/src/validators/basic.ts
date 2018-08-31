@@ -14,7 +14,11 @@ import { ValidatorInstance } from "./abstract";
  */
 export abstract class BasicValidator<T, Options = void>
   implements ValidatorInstance<T> {
-  constructor(protected objectModel: ObjectModel, protected options: Options) {}
+  constructor(protected objectModel: ObjectModel, protected options: Options) { }
+
+  get env(): ObjectModel {
+    return this.objectModel;
+  }
 
   abstract validate(
     value: T,
