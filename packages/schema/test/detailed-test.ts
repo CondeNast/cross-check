@@ -14,6 +14,7 @@ function create(object: Dict = {}) {
     categories: null,
     geo: null,
     contributors: null,
+    relatedArticles: null,
     ...object
   };
 }
