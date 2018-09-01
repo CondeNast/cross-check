@@ -45,7 +45,8 @@ export const MediumArticle: Record = Record("MediumArticle", {
     }),
     contributors: types.List(
       types.Dictionary({ first: types.SingleLine(), last: types.SingleLine() })
-    )
+    ),
+    relatedArticles: types.hasMany("MediumArticle")
   },
   metadata: {
     collectionName: "medium-articles",
