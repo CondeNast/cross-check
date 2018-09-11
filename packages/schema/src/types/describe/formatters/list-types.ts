@@ -26,8 +26,12 @@ class ListTypes implements visitor.RecursiveDelegate<ListTypesTypes> {
 
   generic(of: Dict, descriptor: visitor.Container): Dict {
     let kind = descriptor.type;
-    let name = `${kind[0].toUpperCase()}${kind.slice(1)}`;
-    return { ...of, [name]: true };
+
+    if (kind === "List") {
+      return { ...of, List: true };
+    } else {
+      return of;
+    }
   }
 
   dictionary(descriptor: visitor.Dictionary): Dict {

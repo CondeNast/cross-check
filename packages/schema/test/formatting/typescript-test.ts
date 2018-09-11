@@ -57,6 +57,7 @@ mod.test("detailed - published", (assert, { format }) => {
           first?: string;
           last?: string;
         }>;
+        relatedArticles?: Array<MediumArticle>;
       }
     `
   );
@@ -89,6 +90,7 @@ mod.test("detailed - draft", (assert, { format }) => {
           first?: string;
           last?: string;
         }>;
+        relatedArticles?: Array<MediumArticle>;
       }
     `
   );

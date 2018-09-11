@@ -1,8 +1,8 @@
 import { Dict, JSONObject, Option, assert, dict, expect } from "ts-std";
-import { dehydrated } from "./descriptors";
+import { HydrateParameters, Hydrator, dehydrated } from "./descriptors";
 import { RecordBuilder, RecordImpl } from "./record";
 import * as type from "./type";
-import { DictionaryImpl } from "./types/fundamental";
+import { DictionaryType } from "./types";
 import { JSONValue, mapDict } from "./utils";
 
 export interface BasePrimitiveRegistration {
@@ -145,6 +145,12 @@ export type RegistryCallback = (
   registry: Registry
 ) => Option<{ dictionary: dehydrated.Dictionary; metadata: JSONObject | null }>;
 
+export interface RegistryRecord {
+  name: string;
+  dictionary: DictionaryType;
+  metadata: JSONObject | null;
+}
+
 export class Registry {
   static create(): Registry {
     return new Registry();
@@ -243,20 +249,26 @@ export class Registry {
   /** @internal */
   getRecordImpl(
     name: string,
-    params: dehydrated.HydrateParameters
+    hydrator: Hydrator | HydrateParameters
   ): RecordImpl {
-    let { dictionary, metadata } = this.getRecord(name, params);
+    let { dictionary, metadata } = this.getRecord(name, hydrator);
     return new RecordImpl(dictionary, metadata, name);
   }
 
   /** @internal */
   getRecord(
     name: string,
-    params: dehydrated.HydrateParameters
-  ): { name: string; dictionary: DictionaryImpl; metadata: JSONObject | null } {
+    hydrator: Hydrator | HydrateParameters
+  ): RegistryRecord {
     let { dictionary: raw, metadata } = this.getRawRecord(name);
 
-    let dictionary = dehydrated.hydrate(raw, this, params);
+    let dictionary;
+    if (hydrator instanceof Hydrator) {
+      dictionary = hydrator.hydrate(raw);
+    } else {
+      let instance = new Hydrator(this, hydrator);
+      dictionary = instance.hydrate(raw);
+    }
 
     return {
       name,

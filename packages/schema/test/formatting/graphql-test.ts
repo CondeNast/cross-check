@@ -66,6 +66,7 @@ mod.test("detailed", (assert, { format }) => {
       categories: [SingleLine!]!
       geo: MediumArticleGeo
       contributors: [MediumArticleContributors!]
+      relatedArticles: [MediumArticle!]
     }
     `
   );

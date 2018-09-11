@@ -13,7 +13,6 @@ import { visitorDescriptor } from "./descriptors/dehydrated";
 import { Registry } from "./registry";
 import { Type } from "./type";
 import * as visitor from "./types/describe/visitor";
-import { DictionaryImpl } from "./types/fundamental";
 import { mapDict } from "./utils";
 
 export interface RecordState {
@@ -77,7 +76,7 @@ export class RecordBuilder
 
 export class RecordImpl implements Type, Buildable, FormattableRecord {
   constructor(
-    private dictionary: DictionaryImpl,
+    private dictionary: Type,
     readonly metadata: JSONObject | null,
     readonly name: string
   ) {}
@@ -87,7 +86,7 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
   }
 
   dehydrate(): dehydrated.Dictionary {
-    return this.dictionary.dehydrate();
+    return this.dictionary.dehydrate() as dehydrated.Dictionary;
   }
 
   validate(obj: Dict, objectModel: ObjectModel): Task<ValidationError[]> {

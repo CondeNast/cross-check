@@ -8,7 +8,11 @@ export interface DictionaryImplOptions {
   strictKeys: boolean;
 }
 
-export class DictionaryImpl implements Type {
+export interface DictionaryType extends Type {
+  readonly members: Dict<Type>;
+}
+
+export class DictionaryImpl implements DictionaryType {
   constructor(
     readonly members: Dict<Type>,
     private options: DictionaryImplOptions

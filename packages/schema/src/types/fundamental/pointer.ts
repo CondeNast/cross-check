@@ -1,8 +1,13 @@
 import { JSONObject, Option } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
+import { RegistryRecord } from "../../registry";
 import { ReferenceImpl } from "./reference";
 
 export class PointerImpl extends ReferenceImpl {
+  static for(inner: RegistryRecord, kind: string): PointerImpl {
+    return new PointerImpl(inner.dictionary, inner.name, kind, inner.metadata);
+  }
+
   dehydrate(): dehydrated.Pointer {
     return {
       type: "Pointer",

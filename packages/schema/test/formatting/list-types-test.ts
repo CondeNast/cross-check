@@ -19,6 +19,7 @@ mod.test("detailed", (assert, { env }) => {
     "ISODate",
     "Integer",
     "List",
+    "MediumArticle",
     "SingleLine",
     "SingleWord",
     "Text",
@@ -32,6 +33,7 @@ mod.test("detailed - draft", (assert, { env }) => {
     "ISODate",
     "Integer",
     "List",
+    "MediumArticle",
     "Text"
   ]);
 });
