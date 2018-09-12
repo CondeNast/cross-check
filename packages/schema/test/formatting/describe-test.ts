@@ -52,7 +52,8 @@ mod.test("detailed", (assert, { format }) => {
         contributors?: list of {
           first?: <single line string>,
           last?: <single line string>
-        }
+        },
+        relatedArticles?: has many MediumArticle
       }
     `
   );

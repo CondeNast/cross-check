@@ -1,6 +1,6 @@
 import { Dict, JSONObject, Option } from "ts-std";
 import { RegistryName } from "../registry";
-import { DictionaryImpl, ListArgs } from "../types";
+import { DictionaryType, ListArgs } from "../types";
 import { JSONValue, mapDict } from "../utils";
 import * as dehydrated from "./dehydrated";
 
@@ -258,7 +258,7 @@ export class PrimitiveBuilder extends AbstractTypeBuilder<
 export interface RecordState {
   name: string;
   metadata: JSONObject | null;
-  inner: DictionaryImpl;
+  inner: DictionaryType;
 }
 
 ///// Helper Functions /////

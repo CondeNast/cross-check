@@ -55,6 +55,15 @@ mod.test("detailed - published", (assert, { format }) => {
     },
 
     issueDate: { type: "ISODate", required: false },
+    relatedArticles: {
+      type: "Iterator",
+      kind: "hasMany",
+      of: {
+        alias: "MediumArticle",
+        required: true
+      },
+      required: false
+    },
     canonicalUrl: { type: "Url", args: [], required: false },
     tags: {
       type: "List",
@@ -131,6 +140,15 @@ mod.test("detailed - draft", (assert, { format }) => {
     },
 
     issueDate: { type: "ISODate", required: false },
+    relatedArticles: {
+      type: "Iterator",
+      kind: "hasMany",
+      of: {
+        alias: "MediumArticle",
+        required: true
+      },
+      required: false
+    },
     canonicalUrl: { type: "Text", required: false, args: { allowEmpty: true } },
     tags: {
       type: "List",

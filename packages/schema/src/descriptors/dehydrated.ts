@@ -1,9 +1,11 @@
+import { ValidationBuilder } from "@cross-check/dsl";
 import { Dict, JSONObject } from "ts-std";
 import { RecordBuilder } from "../record";
 import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
 import {
   DictionaryImpl,
+  DictionaryType,
   IteratorImpl,
   ListArgs,
   ListImpl,
@@ -134,12 +136,262 @@ export interface HydrateParameters {
   mode?: "create" | "read" | "update";
 }
 
+export class Keys {
+  private descriptorMap: Map<string, Map<boolean, Key>> = new Map();
+
+  key(descriptor: Descriptor, requiredType: boolean): Key {
+    debugger;
+    let normalized = JSON.stringify(descriptor);
+
+    let descriptorMap = this.descriptorMap.get(normalized);
+
+    if (!descriptorMap) {
+      descriptorMap = new Map();
+      this.descriptorMap.set(normalized, descriptorMap);
+    }
+
+    let key = descriptorMap.get(requiredType);
+
+    if (!key) {
+      key = new Key(descriptor, requiredType);
+      descriptorMap.set(requiredType, key);
+    }
+
+    return key;
+  }
+}
+
+export class Key {
+  constructor(
+    readonly descriptor: Descriptor,
+    readonly requiredType: boolean
+  ) {}
+}
+
+export class Placeholder implements Type {
+  constructor(private hydrator: Hydrator, private inner: Key) {}
+
+  protected get type(): Type {
+    return this.hydrator.get(this.inner);
+  }
+
+  validation(): ValidationBuilder<unknown> {
+    return this.type.validation();
+  }
+
+  serialize(input: unknown): unknown {
+    return this.type.serialize(input);
+  }
+
+  parse(input: unknown): unknown {
+    return this.type.parse(input);
+  }
+
+  dehydrate(): Descriptor {
+    return this.type.dehydrate();
+  }
+}
+
+export class PlaceholderDictionary extends Placeholder
+  implements DictionaryType {
+  readonly type!: DictionaryImpl;
+
+  get members(): Dict<Type> {
+    return this.type.members;
+  }
+}
+
+export class Hydrator {
+  private readonly parameters: HydrateParameters;
+  private keys = new Keys();
+  private types = new Map<Key, Type | Placeholder>();
+
+  constructor(
+    private readonly registry: Registry,
+    parameters: HydrateParameters
+  ) {
+    parameters.mode = parameters.mode || "read";
+    this.parameters = parameters;
+  }
+
+  hydrate(descriptor: Dictionary, forceIsRequired?: boolean): DictionaryType;
+  hydrate(
+    descriptor: Descriptor,
+    forceIsRequired?: boolean
+  ): Type | Placeholder;
+  hydrate(
+    descriptor: Descriptor,
+    forceIsRequired?: boolean
+  ): Type | Placeholder {
+    let computedRequired: boolean;
+
+    if (forceIsRequired !== undefined) {
+      computedRequired = forceIsRequired;
+    } else {
+      computedRequired = isRequired(
+        descriptor.required,
+        this.parameters.draft === true
+      );
+    }
+
+    let type = this.getType(descriptor, computedRequired);
+
+    return required(type, computedRequired);
+  }
+
+  get(key: Key): Type {
+    return this.types.get(key) as Type;
+  }
+
+  private get currentMode(): "create" | "read" | "update" {
+    return this.parameters.mode || "read";
+  }
+
+  private get featureList(): string[] | undefined {
+    return this.parameters.features;
+  }
+
+  private get strictKeys(): boolean {
+    return this.parameters.strictKeys !== false;
+  }
+
+  private getType(
+    descriptor: Descriptor,
+    computedRequired: boolean
+  ): Type | Placeholder {
+    let key = this.keys.key(descriptor, computedRequired);
+
+    let type = this.types.get(key);
+
+    if (!type) {
+      this.types.set(key, new Placeholder(this, key));
+      type = this.buildType(descriptor, computedRequired);
+      this.types.set(key, type);
+    }
+
+    return type;
+  }
+
+  private inMutabilityModeFor(member: Member): boolean {
+    let requiredMode = member.meta && member.meta.mutabilityMode;
+
+    if (requiredMode === undefined) {
+      return true;
+    } else {
+      return requiredMode[this.currentMode] === true;
+    }
+  }
+
+  private hasFeaturesFor(member: Member): boolean {
+    let featureList = this.featureList;
+    let neededFeatures = member.meta && member.meta.features;
+
+    if (featureList === undefined || neededFeatures === undefined) {
+      return true;
+    }
+
+    for (let feature of neededFeatures) {
+      if (featureList.indexOf(feature) === -1) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private buildType(
+    descriptor: Dictionary,
+    computedRequired: boolean
+  ): DictionaryType;
+  private buildType(descriptor: Descriptor, computedRequired: boolean): Type;
+  private buildType(descriptor: Descriptor, computedRequired: boolean): Type {
+    switch (descriptor.type) {
+      case "Named": {
+        if (descriptor.target === "Record") {
+          let dictionary = this.registry.getRawRecord(descriptor.name)
+            .dictionary;
+          return this.hydrate(dictionary);
+        }
+
+        let desc = this.registry.get({
+          type: descriptor.target,
+          name: descriptor.name
+        });
+
+        return this.hydrate(desc);
+      }
+
+      case "Dictionary": {
+        return new DictionaryImpl(
+          mapDict(descriptor.members, member => {
+            if (
+              this.hasFeaturesFor(member) &&
+              this.inMutabilityModeFor(member)
+            ) {
+              return this.hydrate(member.descriptor);
+            } else {
+              return undefined;
+            }
+          }),
+          { strictKeys: this.strictKeys }
+        );
+      }
+
+      case "Iterator": {
+        let inner = this.registry.getRecord(descriptor.inner, this);
+        return IteratorImpl.for(inner, descriptor.kind);
+      }
+
+      case "List": {
+        let args = descriptor.args || { allowEmpty: false };
+
+        if (!computedRequired) {
+          args = { allowEmpty: true };
+        }
+
+        let contents = this.hydrate(descriptor.inner, true);
+
+        return new ListImpl(contents, args);
+      }
+
+      case "Pointer": {
+        let inner = this.registry.getRecord(descriptor.inner, this);
+        return PointerImpl.for(inner, descriptor.kind);
+      }
+
+      case "Primitive": {
+        let primitive;
+
+        if (this.parameters.draft && descriptor.base) {
+          primitive = descriptor.base;
+        } else {
+          primitive = descriptor;
+        }
+
+        let { factory, buildArgs } = this.registry.getPrimitive(primitive.name);
+        let args;
+
+        if (buildArgs) {
+          args = buildArgs(primitive.args, computedRequired);
+        } else {
+          args = primitive.args;
+        }
+
+        return factory(args);
+      }
+
+      default:
+        return exhausted(descriptor);
+    }
+  }
+}
+
 export function hydrate(
   descriptor: Dictionary,
   registry: Registry,
   parameters: HydrateParameters,
   forceIsRequired?: boolean
-): DictionaryImpl;
+): DictionaryType;
 export function hydrate(
   descriptor: Descriptor,
   registry: Registry,
@@ -152,156 +404,14 @@ export function hydrate(
   parameters: HydrateParameters,
   forceIsRequired?: boolean
 ): Type {
-  parameters.mode = parameters.mode || "read";
-
-  let computedRequired: boolean;
-
-  if (forceIsRequired !== undefined) {
-    computedRequired = forceIsRequired;
-  } else {
-    computedRequired = isRequired(
-      descriptor.required,
-      parameters.draft === true
-    );
-  }
-
-  return required(
-    buildType(descriptor, registry, parameters, computedRequired),
-    computedRequired
+  return new Hydrator(registry, parameters).hydrate(
+    descriptor,
+    forceIsRequired
   );
 }
 
-function buildType(
-  descriptor: Descriptor,
-  registry: Registry,
-  parameters: HydrateParameters,
-  computedRequired: boolean
-): Type {
-  switch (descriptor.type) {
-    case "Named": {
-      if (descriptor.target === "Record") {
-        let dictionary = registry.getRawRecord(descriptor.name).dictionary;
-        return hydrate(dictionary, registry, parameters);
-      }
-
-      let desc = registry.get({
-        type: descriptor.target,
-        name: descriptor.name
-      });
-
-      return hydrate(desc, registry, parameters);
-    }
-
-    case "Dictionary": {
-      return new DictionaryImpl(
-        mapDict(descriptor.members, member => {
-          if (
-            hasFeatures(
-              parameters.features,
-              member.meta && member.meta.features
-            ) &&
-            inMutabilityMode(
-              parameters.mode,
-              member.meta && member.meta.mutabilityMode
-            )
-          ) {
-            return hydrate(member.descriptor, registry, parameters);
-          } else {
-            return undefined;
-          }
-        }),
-        { strictKeys: parameters.strictKeys !== false }
-      );
-    }
-
-    case "Iterator": {
-      let inner = registry.getRecord(descriptor.inner, parameters);
-      return new IteratorImpl(
-        inner.dictionary,
-        inner.name,
-        descriptor.kind,
-        descriptor.metadata
-      );
-    }
-
-    case "List": {
-      let args = descriptor.args || { allowEmpty: false };
-
-      if (!computedRequired) {
-        args = { allowEmpty: true };
-      }
-
-      let contents = hydrate(descriptor.inner, registry, parameters, true);
-
-      return new ListImpl(contents, args);
-    }
-
-    case "Pointer": {
-      let inner = registry.getRecord(descriptor.inner, parameters);
-      return new PointerImpl(
-        inner.dictionary,
-        inner.name,
-        descriptor.kind,
-        descriptor.metadata
-      );
-    }
-
-    case "Primitive": {
-      let primitive;
-
-      if (parameters.draft && descriptor.base) {
-        primitive = descriptor.base;
-      } else {
-        primitive = descriptor;
-      }
-
-      let { factory, buildArgs } = registry.getPrimitive(primitive.name);
-      let args;
-
-      if (buildArgs) {
-        args = buildArgs(primitive.args, computedRequired);
-      } else {
-        args = primitive.args;
-      }
-
-      return factory(args);
-    }
-
-    default:
-      return exhausted(descriptor);
-  }
-}
-
-function required(type: Type, computedRequired: boolean): Type {
+function required(type: Type | Placeholder, computedRequired: boolean): Type {
   return new OptionalityImpl(type, { isOptional: !computedRequired });
-}
-
-function hasFeatures(
-  featureList: string[] | undefined,
-  neededFeatures: string[] | undefined
-): boolean {
-  if (featureList === undefined || neededFeatures === undefined) {
-    return true;
-  }
-
-  for (let feature of neededFeatures) {
-    if (featureList.indexOf(feature) === -1) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function inMutabilityMode(
-  currentMode: "create" | "read" | "update" | undefined,
-  requiredMode: MutabilityMode | undefined
-): boolean {
-  if (requiredMode === undefined) {
-    return true;
-  } else {
-    return requiredMode[currentMode || "read"] === true;
-  }
 }
 
 /***** Visitor Descriptors *****/

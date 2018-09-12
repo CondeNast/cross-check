@@ -43,7 +43,8 @@ mod.test("detailed - published", (assert, { format }) => {
         contributors: List(Dictionary({
           first: SingleLine(),
           last: SingleLine()
-        }))
+        })),
+        relatedArticles: hasMany(MediumArticle)
       }).metadata({
         collectionName: "medium-articles",
         modelName: "medium-article"

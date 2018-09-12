@@ -14,6 +14,7 @@ function create(object: Dict = {}) {
     categories: null,
     geo: null,
     contributors: null,
+    relatedArticles: null,
     ...object
   };
 }
@@ -74,7 +75,8 @@ mod.test("published documents", async (assert, { validate }) => {
       tags: null,
       categories: null,
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [
       typeError("string:single-line", "hed"),
@@ -97,7 +99,8 @@ mod.test("published documents", async (assert, { validate }) => {
       issueDate: null,
       canonicalUrl: null,
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [typeError("string", "tags.0"), typeError("string", "tags.2")],
     "if an optional field is present, it must match the schema"
@@ -126,7 +129,8 @@ mod.test("dates (issueDate)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [typeError("iso-date", "issueDate")]
   );
@@ -160,7 +164,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       author: null,
       canonicalUrl: null,
       tags: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [missingError("geo.lat"), missingError("geo.long")],
     "published documents must include nested required fields if dictionary is present"
@@ -178,7 +183,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       geo: null,
       canonicalUrl: null,
       tags: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [],
     "published documents may leave out optional dictionaries"
@@ -196,7 +202,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       categories: null,
-      geo: null
+      geo: null,
+      relatedArticles: null
     }),
     [missingError("categories")],
     "published documents may not leave out required dictionaries"
@@ -231,7 +238,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       author: null,
       canonicalUrl: null,
       tags: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in published documents use the record type (but numbers aren't strings)"
@@ -249,7 +257,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       author: null,
       canonicalUrl: null,
       tags: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     [
       typeError("number:integer", "geo.lat"),
@@ -279,7 +288,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      geo: null
+      geo: null,
+      relatedArticles: null
     }),
     [typeError("string:single-line", "author.first")],
     "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
@@ -314,7 +324,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [missingError("geo.lat"), missingError("geo.long")],
     "published documents must include nested required fields if dictionary is present"
@@ -332,7 +343,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       geo: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [],
     "published documents may leave out optional dictionaries"
@@ -350,7 +362,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       contributors: null,
       geo: null,
       categories: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [missingError("categories")],
     "published documents may not leave out required dictionaries"
@@ -377,7 +390,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in published documents use the record type (but numbers aren't strings)"
@@ -404,7 +418,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      geo: null
+      geo: null,
+      relatedArticles: null
     }),
     [typeError("string:single-line", "author.first")],
     "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
@@ -424,7 +439,8 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [typeError("present-array", "categories")],
     "in published documents, required lists must have at least one element"
@@ -453,7 +469,8 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       author: null,
-      categories: null
+      categories: null,
+      relatedArticles: null
     }),
     [typeError("present", "categories")],
     "in published documents, required lists may not be missing"
@@ -483,7 +500,8 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       issueDate: null,
       canonicalUrl: null,
       contributors: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [],
     "in published documents, optional lists may be empty"
@@ -513,7 +531,8 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      author: null
+      author: null,
+      relatedArticles: null
     }),
     [],
     "in published documents, optional lists may be missing"
@@ -548,7 +567,8 @@ mod.test("parsing", (assert, { registry }) => {
       tags: null,
       categories: ["one category", "two categories"],
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }
   );
 
@@ -563,7 +583,8 @@ mod.test("parsing", (assert, { registry }) => {
       tags: null,
       categories: ["one category", "two categories"],
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }),
     {
       hed: "Hello world",
@@ -575,7 +596,8 @@ mod.test("parsing", (assert, { registry }) => {
       tags: null,
       categories: ["one category", "two categories"],
       geo: null,
-      contributors: null
+      contributors: null,
+      relatedArticles: null
     }
   );
 
@@ -603,7 +625,8 @@ mod.test("parsing", (assert, { registry }) => {
         { first: "Dan" },
         { last: "Ohara" },
         { first: "Godfrey", last: "Chan" }
-      ]
+      ],
+      relatedArticles: null
     }),
     {
       hed: "Hello world",
@@ -625,7 +648,8 @@ mod.test("parsing", (assert, { registry }) => {
         { first: "Dan", last: null },
         { first: null, last: "Ohara" },
         { first: "Godfrey", last: "Chan" }
-      ]
+      ],
+      relatedArticles: null
     }
   );
 });
