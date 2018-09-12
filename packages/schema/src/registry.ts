@@ -94,6 +94,24 @@ class Type<T extends Copy> implements Copy {
   }
 }
 
+class ReferenceType implements Copy {
+  constructor(readonly instances: Dict<unknown> = dict()) {}
+
+  set(name: string, value: unknown): void {
+    this.instances[name] = value;
+  }
+
+  get(name: string): Option<unknown> {
+    return this.instances[name] || null;
+  }
+
+  copy(): this {
+    let instances = mapDict(this.instances, instance => instance);
+
+    return new ReferenceType(instances) as this;
+  }
+}
+
 function TYPES(): RegisteredTypeMap {
   return {
     Record: new Type(),
@@ -160,6 +178,7 @@ export class Registry {
     private defaults: RegisteredTypeMap = TYPES(),
     private types: RegisteredTypeMap = TYPES(),
     private base: Type<Base> = new Type(),
+    private other: ReferenceType = new ReferenceType(),
     private options: RegistryOptions | null = null
   ) {}
 
@@ -168,6 +187,7 @@ export class Registry {
       copyTypes(this.defaults),
       copyTypes(this.types),
       this.base.copy(),
+      this.other.copy(),
       options || this.options
     );
   }
@@ -190,6 +210,10 @@ export class Registry {
     } else {
       this.types.PrimitiveFactory.set(name, new Primitive(primitive));
     }
+  }
+
+  registerOther(name: string, other: unknown): void {
+    this.setOther(name, other);
   }
 
   alias<K extends RegistryName, V extends RegistryValue>(
@@ -244,6 +268,11 @@ export class Registry {
     }
 
     this.types.Record.set(name, new Record(name, dictionary, metadata));
+  }
+
+  /** @internal */
+  setOther(name: string, other: unknown): void {
+    this.other.set(name, other);
   }
 
   /** @internal */
@@ -304,6 +333,13 @@ export class Registry {
     } else {
       return this.getPrimitive(name);
     }
+  }
+
+  /** @internal */
+  getOther(name: string): unknown {
+    let other = this.other.get(name);
+
+    return expect(other, `other:${name} wasn't found`);
   }
 
   /** @internal */

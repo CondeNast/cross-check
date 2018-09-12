@@ -140,7 +140,6 @@ export class Keys {
   private descriptorMap: Map<string, Map<boolean, Key>> = new Map();
 
   key(descriptor: Descriptor, requiredType: boolean): Key {
-    debugger;
     let normalized = JSON.stringify(descriptor);
 
     let descriptorMap = this.descriptorMap.get(normalized);
