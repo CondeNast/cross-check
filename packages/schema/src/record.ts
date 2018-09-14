@@ -72,6 +72,22 @@ export class RecordBuilder
     let dictionary = dehydrated.hydrate(this.members, params.registry, params);
     return new RecordImpl(dictionary, this.metadata, this.name);
   }
+
+  extend({
+    fields,
+    metadata,
+    name = this.name
+  }: RecordOptions & { name?: string }) {
+    let members = { ...this.members.members, ...dehydrate(fields) };
+
+    let dictionary: dehydrated.Dictionary = {
+      type: "Dictionary",
+      members,
+      required: "always"
+    };
+
+    return new RecordBuilder(name, dictionary, metadata || this.metadata);
+  }
 }
 
 export class RecordImpl implements Type, Buildable, FormattableRecord {
@@ -123,16 +139,22 @@ export function Record(
 ): RecordBuilder {
   let dictionary: dehydrated.Dictionary = {
     type: "Dictionary",
-    members: mapDict(fields, member => {
-      return {
-        descriptor: member.dehydrate("never"),
-        meta: finalizeMeta(member.meta)
-      };
-    }),
+    members: dehydrate(fields),
     required: "always"
   };
 
   return new RecordBuilder(name, dictionary, metadata || null);
+}
+
+function dehydrate(
+  fields: Dict<builders.TypeBuilder>
+): Dict<dehydrated.Member> {
+  return mapDict(fields, member => {
+    return {
+      descriptor: member.dehydrate("never"),
+      meta: finalizeMeta(member.meta)
+    };
+  });
 }
 
 export type Record = RecordBuilder;
