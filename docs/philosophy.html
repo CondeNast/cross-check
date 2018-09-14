@@ -9,28 +9,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
-        <base href="">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
 
-        <link rel="stylesheet" href="book.css">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
 
-        <link rel="shortcut icon" href="favicon.png">
-
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="_FontAwesome/css/font-awesome.css">
-
+        <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
         <link rel="stylesheet" href="tomorrow-night.css">
         <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
-
+        <link rel="stylesheet" href="theme/theme.css">
         
 
+        
     </head>
     <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">var path_to_root = "";</script>
+
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script type="text/javascript">
             try {
@@ -69,7 +74,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="schemas.html"><strong aria-hidden="true">2.</strong> Schema</a></li><li><a href="validations.html"><strong aria-hidden="true">3.</strong> Validations</a></li><li><a href="types.html"><strong aria-hidden="true">4.</strong> Custom Types</a></li><li><a href="formatters.html"><strong aria-hidden="true">5.</strong> Formatters</a></li><li><a href="philosophy.html" class="active"><strong aria-hidden="true">6.</strong> Philosophy</a></li></ol>
+            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="philosophy.html" class="active"><strong aria-hidden="true">2.</strong> Philosophy</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -133,13 +138,13 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="philosophy.html#philosophy" id="philosophy"><h1>Philosophy</h1></a>
+                        <a class="header" href="#philosophy" id="philosophy"><h1>Philosophy</h1></a>
 <p>CrossCheck's primary goal is to create a highly composable and ergonomic validation system.</p>
-<a class="header" href="philosophy.html#high-level-architecture" id="high-level-architecture"><h2>High Level Architecture</h2></a>
+<a class="header" href="#high-level-architecture" id="high-level-architecture"><h2>High Level Architecture</h2></a>
 <p>The data structures and core functions are found in <code>@cross-check/core</code> to create a small, well-defined composition boundary. The primary data structure in <code>@cross-check/core</code> is <code>ValidationDescriptor</code>.</p>
 <p>Higher level tools for building up validations are found in <code>@cross-check/dsl</code>. Validators written against the interfaces in <code>@cross-check/core</code> will compose reliably with validators created using the higher level abstractions (including the object oriented abstractions).</p>
 <p>Finally, while <code>@cross-check/core</code> and <code>@cross-check/dsl</code> validate values, <code>@cross-check/schema</code> validates entire records against a schema, with facilities optimized for that use case. The <code>@cross-check/schema</code> library also creates <code>ValidationDescriptor</code>, and the errors produced when validating a schema are the same <code>ValidationError</code>s in <code>@cross-check/core</code>.</p>
-<a class="header" href="philosophy.html#typescript-hardened" id="typescript-hardened"><h2>TypeScript Hardened</h2></a>
+<a class="header" href="#typescript-hardened" id="typescript-hardened"><h2>TypeScript Hardened</h2></a>
 <p>CrossCheck defines a handful of core, composable interfaces that are defined rigorously in TypeScript. Convenience abstractions are layered on top, sharing a stable core primitive.</p>
 <pre><code class="language-ts">// A validation descriptor is an instance of a validator including a descriptive
 // name and its options
@@ -163,9 +168,9 @@ interface ValidationError {
   }
 }
 </code></pre>
-<a class="header" href="philosophy.html#composition-at-the-core" id="composition-at-the-core"><h2>Composition at the Core</h2></a>
+<a class="header" href="#composition-at-the-core" id="composition-at-the-core"><h2>Composition at the Core</h2></a>
 <p>The CrossCheck core data structure is called <code>ValidationDescriptor</code>, and its goal is to provide a highly composable but relatively unopinionated primitive for building composed validators.</p>
-<a class="header" href="philosophy.html#validate-values" id="validate-values"><h3>Validate Values</h3></a>
+<a class="header" href="#validate-values" id="validate-values"><h3>Validate Values</h3></a>
 <p>At the core, CrossCheck validates individual values, not a bunch of fields on an object.</p>
 <p>This makes it possible to validate that a single string matches a particular format, or that a number is greater than some lower bound.</p>
 <p>To validate an object, CrossCheck validates the object as a &quot;value&quot; and uses composition to validate its constituent parts. Several design decisions of the core data structure make such composition possible:</p>
@@ -176,11 +181,11 @@ interface ValidationError {
 <p>These design decisions also make array validations relatively consistent: an array validator runs the same sub-validator on every element of the array, and produces an error whose path is the index into the array.</p>
 <p>This makes validating an array of objects containing members that are <strong>themselves arrays of objects</strong> a standard composition in CrossCheck.</p>
 <p><strong>There is no distinction between a &quot;single value&quot; and an object or array.</strong> A value is a value is a value. Composition takes care of the rest.</p>
-<a class="header" href="philosophy.html#no-exceptions-and-no-mutation" id="no-exceptions-and-no-mutation"><h3>No Exceptions and No Mutation</h3></a>
+<a class="header" href="#no-exceptions-and-no-mutation" id="no-exceptions-and-no-mutation"><h3>No Exceptions and No Mutation</h3></a>
 <p>CrossCheck validations are functional, not effectful.</p>
 <p>CrossCheck never mutates the underlying objects in order to validate them or report errors. It also does not throw exceptions in order to report validation errors like many schema validation libraries.</p>
 <p>The CrossCheck validation process <strong>reads data</strong> from objects and produces an array of error messages.</p>
-<a class="header" href="philosophy.html#localization-agnostic-but-formatting-friendly" id="localization-agnostic-but-formatting-friendly"><h3>Localization Agnostic, But Formatting Friendly</h3></a>
+<a class="header" href="#localization-agnostic-but-formatting-friendly" id="localization-agnostic-but-formatting-friendly"><h3>Localization Agnostic, But Formatting Friendly</h3></a>
 <p>Validation libraries usually make formatting a responsibility of individual validators.</p>
 <p>This forces a hard choice between bad options:</p>
 <ul>
@@ -199,7 +204,7 @@ interface ValidationError {
 </code></pre>
 <p>Validators themselves are responsible for producing these error message data structures, but not for formatting. This allows validators to remain compact and still relatively easy to write, while allowing for robust and high-quality localizations.</p>
 <p>In practice, higher-level libraries written on top of these primitives should expose integration with localization libraries, but validators themselves can remain agnostic to those questions.</p>
-<a class="header" href="philosophy.html#ui-friendly" id="ui-friendly"><h3>UI Friendly</h3></a>
+<a class="header" href="#ui-friendly" id="ui-friendly"><h3>UI Friendly</h3></a>
 <p>A good validation library provides rich error information to a human end-user, typically presented via an interactive UI.</p>
 <p>This means that attempting to validate an entire object must:</p>
 <ul>
@@ -214,7 +219,7 @@ interface ValidationError {
 <p>The accurate placement of errors in a form (a UI concern!) is a key requirement of a good validation library.</p>
 </blockquote>
 <p>This is still a good guiding principle for CrossCheck. <strong>A good validation library cannot avoid considering UI concerns in its core design.</strong></p>
-<a class="header" href="philosophy.html#framework-agnostic-but-framework-friendly" id="framework-agnostic-but-framework-friendly"><h3>Framework Agnostic, But Framework Friendly</h3></a>
+<a class="header" href="#framework-agnostic-but-framework-friendly" id="framework-agnostic-but-framework-friendly"><h3>Framework Agnostic, But Framework Friendly</h3></a>
 <p>CrossCheck was extracted from the requirements of a working validation system that powered Condé Nast's CMS, which is written in Ember.</p>
 <p>One of the main goals of the extraction was to allow people to define validation rules for their forms without needing to understand Ember or its object model.</p>
 <p>However, we wanted to make it possible to write validators that could be shared between vanilla environments and frameworks.</p>
@@ -230,7 +235,7 @@ interface ValidationError {
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="formatters.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
@@ -244,7 +249,7 @@ interface ValidationError {
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="formatters.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
@@ -255,7 +260,20 @@ interface ValidationError {
         </div>
 
         
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
 
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
         
 
         
@@ -269,9 +287,6 @@ interface ValidationError {
         
 
         
-        <script src="searchindex.js" type="text/javascript" charset="utf-8"></script>
-        
-        
         <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
@@ -282,6 +297,8 @@ interface ValidationError {
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
+        
+
         
 
     </body>

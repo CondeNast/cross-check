@@ -4,6 +4,9 @@ multilingual = false
 src = "src"
 title = "CrossCheck"
 
+[output.html]
+additional-css = ["theme/theme.css"]
+
 [output.html.playpen]
 editable = true
 

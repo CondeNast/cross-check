@@ -144,3 +144,14 @@ export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
   options: Options;
   contexts?: ReadonlyArray<string>;
 }>;
+
+export function valid(): Task<ValidationError[]> {
+  return new Task(async () => []);
+}
+
+export function invalid(
+  name: string,
+  details: unknown
+): Task<ValidationError[]> {
+  return new Task(async () => [{ path: [], message: { name, details } }]);
+}

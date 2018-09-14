@@ -9,27 +9,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
 
-        <link rel="stylesheet" href="book.css">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
 
-        <link rel="shortcut icon" href="favicon.png">
-
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="_FontAwesome/css/font-awesome.css">
-
+        <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
         <link rel="stylesheet" href="tomorrow-night.css">
         <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
-
+        <link rel="stylesheet" href="theme/theme.css">
         
 
+        
     </head>
     <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">var path_to_root = "";</script>
+
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script type="text/javascript">
             try {
@@ -68,7 +74,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="introduction.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="schemas.html"><strong aria-hidden="true">2.</strong> Schema</a></li><li><a href="validations.html"><strong aria-hidden="true">3.</strong> Validations</a></li><li><a href="types.html"><strong aria-hidden="true">4.</strong> Custom Types</a></li><li><a href="formatters.html"><strong aria-hidden="true">5.</strong> Formatters</a></li><li><a href="philosophy.html"><strong aria-hidden="true">6.</strong> Philosophy</a></li></ol>
+            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="philosophy.html"><strong aria-hidden="true">2.</strong> Philosophy</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -132,15 +138,129 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="introduction.html#introduction" id="introduction"><h1>Introduction</h1></a>
-<p>CrossCheck is a highly composable and ergonomic validation library.</p>
-<p>It was extracted from Conde Nast CMS system, which supports more than 100 brands with similar, but not always identical validation requirements. This environment gives rise to significant extensibility requirements, so CrossCheck's primitives are designed with extensibility in mind.</p>
+                        <a class="header" href="#introduction" id="introduction"><h1>Introduction</h1></a>
+<p>CrossCheck is a highly composable and ergonomic validation and schema library.</p>
+<p>It was extracted from Conde Nast CMS system, which supports more than 100 brands with similar, but not always identical validation and schema requirements. This environment gives rise to significant extensibility requirements, so CrossCheck's primitives are designed with extensibility in mind.</p>
 <p>All CrossCheck primitives produce well-typed, well-defined JSON objects. This is intended to allow applications to store schemas in a database or build UIs to generate them.</p>
-<a class="header" href="introduction.html#extensibility-first" id="extensibility-first"><h2>Extensibility First</h2></a>
+<a class="header" href="#architecture" id="architecture"><h1>Architecture</h1></a>
+<div class=diagram>
+  <img alt="CrossCheck Architecture" src="./diagrams/architecture.svg">
+</div>
+<p>CrossCheck is divided up into three libraries:</p>
+<ol>
+<li><code>@cross-check/core</code>, which defines the core data structures of CrossCheck validations and the core validation function. The core data structures are designed with composition in mind.</li>
+<li><code>@cross-check/dsl</code>, which provides additional conveniences on top of the core data structures. This library provides convenient composition functionality, building on top of the capabilities enabled by the core data structure.</li>
+<li><code>@cross-check/schema</code> is a schema library built on top of CrossCheck validations. It provides additional functionality such as the ability to serialize and deserialize data, the ability to have runtime modes such as &quot;draft mode&quot; or &quot;readonly mode&quot;. It also has a built-in mechanism for registering data types and serializing them into your database, and built-in formatters that can produce TypeScript and GraphQL output for your schemas, and can be extended to generate an adapter to any other data modelling library you use.</li>
+</ol>
+<p>Because of the way that <code>@cross-check/dsl</code> is layered on top of <code>@cross-check/core</code>, you can build validation descriptors (the core data type of CrossCheck) manually, and still use those descriptors in <code>@cross-check/schema</code>.</p>
+<p>This enables the creation of UIs for building and composing validators and schemas that can be stored in a database without requiring every new validation rule to be checked in to source control. This is a big win for extensible systems like the one at Conde Nast.</p>
+<a class="header" href="#validators" id="validators"><h3>Validators</h3></a>
+<p>At the lowest level, CrossCheck allows you to define validation rules that can be applied to any value.</p>
+<p>For example, let's say we want to define a validator that validates that a numeric input is greater than some value.</p>
+<p>CrossCheck's validation primitive is called a &quot;validation descriptor&quot;, and this is a descriptor for <code>gt(10)</code>:</p>
+<pre><code class="language-ts">const gt = {
+  name: &quot;gt&quot;,
+  options: 10
+  validator: (options) =&gt; (value) =&gt; (value &gt; options) ? valid() : invalid(&quot;gt&quot;, 10),
+};
+</code></pre>
+<p>Let's look more closely at the validator property, expanded out:</p>
+<pre><code class="language-ts">function validator(options: number) {
+  return (value: number) =&gt; {
+    if (value &gt; options) {
+      return valid();
+    } else {
+      return invalid(&quot;gt&quot;, 10);
+    }
+  }
+}
+</code></pre>
+<p>A validator is a function that takes options, and returns a new function that takes a value. That new function is responsible for validating the value in accordance with the options, and return <code>valid()</code> if the value matches or <code>invalid(name, details)</code> if the value does not match.</p>
+<p>Validators don't throw exceptions. Instead, they return an array of validation errors, which can be separately presented to the user as needed, and crucially, can be internationalized as needed.</p>
+<p>All together:</p>
+<pre><code class="language-ts">import { validate, valid, invalid } from &quot;@cross-check/core&quot;;
+
+// Define the validation descriptor
+const gt = {
+  name: &quot;gt&quot;,
+  options: 10
+  validator: (floor) =&gt; (value) =&gt; (value &gt; floor) ? valid() : invalid(&quot;gt&quot;, 10),
+};
+
+// Call validate() with the value and validation descriptor, which returns an async result.
+// The result will either be `[]` if there are no errors, or an array containing one or more
+// errors.
+await validate(5, gt);
+// [{ message: { name: &quot;gt&quot;, details: 10 }, path: [] }]
+
+await validate(15, gt);
+// []
+</code></pre>
+<p>When validating a single value, the <code>path</code> property is always empty. When we discuss schemas later, we'll see that the <code>path</code> property allows us to compose arbitrarily nested data structures conveniently.</p>
+<p>If you wanted to export <code>gt</code> as a validator in your own project using the core primitive, you would probably create a module:</p>
+<pre><code class="language-ts">import { valid, invalid } from &quot;@cross-check/core&quot;;
+
+export function gt(floor) {
+  return value =&gt; {
+    if (value &gt; floor) {
+      return valid();
+    } else {
+      return invalid(&quot;gt&quot;, floor);
+    }
+  }
+}
+</code></pre>
+<p>You could now import <code>gt</code> from another module and call <code>validate(value, gt)</code>, as we saw above. The core primitive is self-contained and easy to understand.
+The conveniences in <code>@cross-check/dsl</code> simply make it a little nicer to build and compose validators.</p>
+<p><a href="./validators.html">Learn more about @cross-check/core</a></p>
+<a class="header" href="#composing-validators" id="composing-validators"><h3>Composing Validators</h3></a>
+<p>There are a few main ways that you may want to compose validators:</p>
+<ol>
+<li>&quot;all are valid&quot;: Run both validators. Concatenate the errors and return them.</li>
+<li>Example: &quot;check that this number is greater than 5 and less than 10&quot;</li>
+<li>&quot;pipeline&quot;: Run the first validator. If it fails, return its errors. If it succeeds, run the second validator and return its errors.</li>
+<li>Example: &quot;check that this value is a string, and then check that this value is a valid URL&quot;</li>
+<li>&quot;any are valid&quot;: Run both validators. If any of them succeeds, return an empty list. Otherwise, return an error containing both lists of errors.</li>
+</ol>
+<p>The <code>@cross-check/dsl</code> package makes it easy to compose validators in this way.</p>
+<a class="header" href="#all-composition" id="all-composition"><h4>&quot;All&quot; Composition</h4></a>
+<p>Let's assume the existence of <code>gt</code> and <code>lt</code> validators. We would like to create a <code>range</code> validator that takes two parameters, a start and end position.</p>
+<pre><code class="language-ts">import { gt, lt } from &quot;my-library&quot;;
+import { compose } from &quot;cross-check/dsl&quot;;
+
+export function range(start, end) {
+  // TODO: Move [BUILD] into @cross-check/core to allow mixing
+  // and matching the builder with the core primitive
+  return compose(gt(start)).andAlso(lt(end))
+}
+</code></pre>
+<p>You can keep chaining <code>.andAlso()</code>s too. Let's say we want to make a validator that also checks to make sure that the number is an integer.</p>
+<pre><code class="language-ts">import { gt, lt, int } from &quot;my-library&quot;;
+import { compose } from &quot;cross-check/dsl&quot;;
+
+export function wholeNumberInRange(start, end) {
+  // TODO: Move [BUILD] into @cross-check/core to allow mixing
+  // and matching the builder with the core primitive
+  return compose(int()).andAlso(gt(start)).andAlso(lt(end))
+}
+</code></pre>
+<a class="header" href="#pipeline-composition" id="pipeline-composition"><h4>&quot;Pipeline&quot; Composition</h4></a>
+<p>Sometimes, you only want to run a subsequent validator if an earlier one succeeded. For example, let's say we want to validate that a value is a string, and only if it is a string, confirm that it's a valid URL.</p>
+<p>The <code>.andThen()</code> composition is designed for this situation:</p>
+<pre><code class="language-ts">import { string, url } from &quot;my-library&quot;;
+import { compose } from &quot;cross-check/dsl&quot;;
+
+export function validURL() {
+  return compose(string()).andThen(url())
+}
+</code></pre>
+<p>[Learn more about composition using @cross-check/dsl][dsl-composition]</p>
+<p>[Learn more about low-level composition in @cross-check/core][core-composition]</p>
+<a class="header" href="#extensibility-first" id="extensibility-first"><h2>Extensibility First</h2></a>
 <p>CrossCheck schemas can be <strong>extended</strong>. You can create a single base type that can be customized for different uses or by different brands in a larger organization.</p>
 <p>CrossCheck schemas can be <strong>evolved</strong> without big-bang data migrations. Instead, data created under v1 of a schema can be viewed through the lens of v2 of the same schema. Schema evolution is baked into CrossCheck from the ground up.</p>
 <p>CrossCheck schemas are <strong>resilient</strong> to old, invalid data or improperly imported data. Define fix-up rules for invalid data and CrossCheck can clean up broken data on the fly. No need to run migrations against all your old data or force every API client to harden itself against the possibility of broken data.</p>
-<a class="header" href="introduction.html#important-schema-features" id="important-schema-features"><h2>Important Schema Features</h2></a>
+<a class="header" href="#important-schema-features" id="important-schema-features"><h2>Important Schema Features</h2></a>
 <ul>
 <li><strong>Draft Mode</strong>: Defining a schema automatically generates a &quot;draft schema&quot;, to make it easier to save in-progress work that doesn't yet satisfy the strict schema requirements.</li>
 <li><strong>Rich Types</strong>: Any concept that you can write a validation function for can be used as a schema type: URL, single word string, Date formatted as 8601, etc.</li>
@@ -149,7 +269,7 @@
 <li><strong>TypeScript Support</strong>: Turn any CrossCheck schema into a TypeScript interface.</li>
 <li><strong>Pretty Printing</strong>: Use the CrossCheck formatter API to turn your schema into the format expected by another library. Need to generate MobX classes? Want to generate GraphQL schemas? No problem!</li>
 </ul>
-<a class="header" href="introduction.html#important-validator-features" id="important-validator-features"><h2>Important Validator Features</h2></a>
+<a class="header" href="#important-validator-features" id="important-validator-features"><h2>Important Validator Features</h2></a>
 <ul>
 <li><strong>Value-based</strong>: Validate values, not just objects (&quot;validate that this value is a titlecase string&quot;)</li>
 <li><strong>Async</strong>: Validators can be async (&quot;validate that this is a unique email address&quot;)</li>
@@ -168,10 +288,6 @@
                         
 
                         
-                            <a rel="next" href="schemas.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
-                        
 
                         <div style="clear: both"></div>
                     </nav>
@@ -182,16 +298,25 @@
                 
 
                 
-                    <a href="schemas.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                
             </nav>
 
         </div>
 
         
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
 
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
         
 
         
@@ -205,9 +330,6 @@
         
 
         
-        <script src="searchindex.js" type="text/javascript" charset="utf-8"></script>
-        
-        
         <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
@@ -218,6 +340,8 @@
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
+        
+
         
 
     </body>
