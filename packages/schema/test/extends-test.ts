@@ -25,3 +25,17 @@ mod.test(
     );
   }
 );
+
+mod.test(
+  "records can be extended by removing fields",
+  async (assert, { registry }) => {
+    let ExtendedRecord = SimpleArticle.extend({
+      remove: [
+        "hed"
+      ]
+    });
+
+    assert.notOk(ExtendedRecord.members.members.hed,
+      "extended record does not have removed field in members");
+  }
+);
