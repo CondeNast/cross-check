@@ -7,7 +7,7 @@ const mod = module("[schema] - extending schema");
 mod.test(
   "records can be extended by copying fields",
   async (assert, { registry }) => {
-    let ExtendedRecord = SimpleArticle.extend({
+    let ExtendedRecord = SimpleArticle.merge({
       fields: {
         byline: types.SingleLine()
       }
@@ -26,16 +26,13 @@ mod.test(
   }
 );
 
-mod.test(
-  "records can be extended by removing fields",
-  async (assert, { registry }) => {
-    let ExtendedRecord = SimpleArticle.extend({
-      remove: [
-        "hed"
-      ]
-    });
+mod.test("records can be extended by removing fields", async assert => {
+  let ExtendedRecord = SimpleArticle.merge({
+    remove: ["hed"]
+  });
 
-    assert.notOk(ExtendedRecord.members.members.hed,
-      "extended record does not have removed field in members");
-  }
-);
+  assert.notOk(
+    ExtendedRecord.members.members.hed,
+    "extended record does not have removed field in members"
+  );
+});
