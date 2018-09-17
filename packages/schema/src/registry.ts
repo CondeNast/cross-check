@@ -119,7 +119,8 @@ function TYPES(): RegisteredTypeMap {
     Pointer: new Type(),
     Iterator: new Type(),
     Dictionary: new Type(),
-    PrimitiveFactory: new Type()
+    PrimitiveFactory: new Type(),
+    Other: new ReferenceType()
   };
 }
 
@@ -129,7 +130,7 @@ function copyTypes(types: Dict<Copy>): RegisteredTypeMap {
 
 type RegisteredTypeMap = {
   readonly [P in keyof RegistryValues]: Type<RegistryValues[P] & Copy>
-};
+} & { Other: ReferenceType };
 
 interface RegistryValues {
   Record: Record;
@@ -156,6 +157,7 @@ export interface TypeID<K extends RegistryName> {
 export interface RegistryOptions {
   record?(name: string, registry: Registry): Option<RecordRegistration>;
   primitive?(name: string, registry: Registry): Option<PrimitiveRegistration>;
+  other?(name: string, registry: Registry): Option<unknown>;
 }
 
 export type RegistryCallback = (
@@ -176,18 +178,16 @@ export class Registry {
 
   private constructor(
     private defaults: RegisteredTypeMap = TYPES(),
-    private types: RegisteredTypeMap = TYPES(),
+    private overrides: RegisteredTypeMap = TYPES(),
     private base: Type<Base> = new Type(),
-    private other: ReferenceType = new ReferenceType(),
     private options: RegistryOptions | null = null
   ) {}
 
   clone(options?: RegistryOptions): Registry {
     return new Registry(
       copyTypes(this.defaults),
-      copyTypes(this.types),
+      copyTypes(this.overrides),
       this.base.copy(),
-      this.other.copy(),
       options || this.options
     );
   }
@@ -201,14 +201,14 @@ export class Registry {
 
   registerPrimitive(name: string, primitive: PrimitiveRegistration): void {
     assert(
-      this.types.PrimitiveFactory.get(name) === null,
+      this.overrides.PrimitiveFactory.get(name) === null,
       `primitive:${name} was already registered. You should only register a record once.`
     );
 
     if ("default" in primitive) {
       this.defaults.PrimitiveFactory.set(name, new Primitive(primitive));
     } else {
-      this.types.PrimitiveFactory.set(name, new Primitive(primitive));
+      this.overrides.PrimitiveFactory.set(name, new Primitive(primitive));
     }
   }
 
@@ -226,7 +226,7 @@ export class Registry {
     if ("default" in options) {
       types = this.defaults[id.type];
     } else {
-      types = this.types[id.type];
+      types = this.overrides[id.type];
     }
 
     types.set(id.name, new Aliased(value));
@@ -234,7 +234,7 @@ export class Registry {
 
   /** @internal */
   getPrimitive(name: string): PrimitiveRegistration {
-    let override = this.types.PrimitiveFactory.get(name);
+    let override = this.overrides.PrimitiveFactory.get(name);
     if (override) return override.registration;
 
     if (this.options && this.options.primitive) {
@@ -257,22 +257,22 @@ export class Registry {
   ): void {
     if ("default" in options) {
       assert(
-        this.types.Record.get(name) === null,
+        this.overrides.Record.get(name) === null,
         `record:${name} was already registered as a default. You should only register a record once as an override.`
       );
     } else {
       assert(
-        this.types.Record.get(name) === null,
+        this.overrides.Record.get(name) === null,
         `record:${name} was already registered as an override. You should only register a record once as an override.`
       );
     }
 
-    this.types.Record.set(name, new Record(name, dictionary, metadata));
+    this.overrides.Record.set(name, new Record(name, dictionary, metadata));
   }
 
   /** @internal */
   setOther(name: string, other: unknown): void {
-    this.other.set(name, other);
+    this.overrides.Other.set(name, other);
   }
 
   /** @internal */
@@ -310,7 +310,7 @@ export class Registry {
   getRawRecord(
     name: string
   ): { dictionary: dehydrated.Dictionary; metadata: JSONObject | null } {
-    let registered = this.types.Record.get(name);
+    let registered = this.overrides.Record.get(name);
 
     if (registered) return registered;
 
@@ -337,14 +337,20 @@ export class Registry {
 
   /** @internal */
   getOther(name: string): unknown {
-    let other = this.other.get(name);
+    let override = this.overrides.Other.get(name);
+    if (override) return override;
 
-    return expect(other, `other:${name} wasn't found`);
+    if (this.options && this.options.other) {
+      let other = this.options.other(name, this);
+      if (other) return other;
+    }
+
+    return expect(this.defaults.Other.get(name), `other:${name} was not found`);
   }
 
   /** @internal */
   get<K extends RegistryName>(id: TypeID<K>): RegistryValue {
-    let types = this.types[id.type];
+    let types = this.overrides[id.type];
     return expect(
       types.get(id.name),
       `Expected ${id.type}:${id.name} to be registered, but it was not`
