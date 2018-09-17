@@ -37,7 +37,7 @@ export interface RecordRegistration {
 }
 
 class Base implements Copy {
-  constructor(readonly name: string, readonly args: JSONValue | undefined) {}
+  constructor(readonly name: string, readonly args: JSONValue | undefined) { }
 
   copy(): this {
     return new Base(this.name, this.args) as this;
@@ -49,7 +49,7 @@ class Record {
     readonly name: string,
     readonly dictionary: dehydrated.Dictionary,
     readonly metadata: JSONObject | null
-  ) {}
+  ) { }
 
   copy(): this {
     return new Record(this.name, this.dictionary, this.metadata) as this;
@@ -57,7 +57,7 @@ class Record {
 }
 
 class Primitive {
-  constructor(readonly registration: PrimitiveRegistration) {}
+  constructor(readonly registration: PrimitiveRegistration) { }
 
   copy(): this {
     return new Primitive(this.registration) as this;
@@ -65,7 +65,7 @@ class Primitive {
 }
 
 class Aliased<T extends dehydrated.Descriptor> implements Copy {
-  constructor(readonly descriptor: T) {}
+  constructor(readonly descriptor: T) { }
 
   copy(): this {
     return new Aliased(Object.assign({}, this.descriptor) as T) as this;
@@ -77,7 +77,7 @@ export interface Copy {
 }
 
 class Type<T extends Copy> implements Copy {
-  constructor(readonly instances: Dict<T> = dict()) {}
+  constructor(readonly instances: Dict<T> = dict()) { }
 
   set(name: string, value: T): void {
     this.instances[name] = value;
@@ -95,7 +95,7 @@ class Type<T extends Copy> implements Copy {
 }
 
 class ReferenceType implements Copy {
-  constructor(readonly instances: Dict<unknown> = dict()) {}
+  constructor(readonly instances: Dict<unknown> = dict()) { }
 
   set(name: string, value: unknown): void {
     this.instances[name] = value;
@@ -180,7 +180,7 @@ export class Registry {
     private base: Type<Base> = new Type(),
     private other: ReferenceType = new ReferenceType(),
     private options: RegistryOptions | null = null
-  ) {}
+  ) { }
 
   clone(options?: RegistryOptions): Registry {
     return new Registry(
@@ -232,7 +232,6 @@ export class Registry {
     types.set(id.name, new Aliased(value));
   }
 
-  /** @internal */
   getPrimitive(name: string): PrimitiveRegistration {
     let override = this.types.PrimitiveFactory.get(name);
     if (override) return override.registration;
@@ -248,7 +247,6 @@ export class Registry {
     ).registration;
   }
 
-  /** @internal */
   setRecord(
     name: string,
     dictionary: dehydrated.Dictionary,
@@ -270,12 +268,10 @@ export class Registry {
     this.types.Record.set(name, new Record(name, dictionary, metadata));
   }
 
-  /** @internal */
   setOther(name: string, other: unknown): void {
     this.other.set(name, other);
   }
 
-  /** @internal */
   getRecordImpl(
     name: string,
     hydrator: Hydrator | HydrateParameters
@@ -284,7 +280,6 @@ export class Registry {
     return new RecordImpl(dictionary, metadata, name);
   }
 
-  /** @internal */
   getRecord(
     name: string,
     hydrator: Hydrator | HydrateParameters
@@ -306,7 +301,6 @@ export class Registry {
     };
   }
 
-  /** @internal */
   getRawRecord(
     name: string
   ): { dictionary: dehydrated.Dictionary; metadata: JSONObject | null } {
@@ -324,7 +318,6 @@ export class Registry {
     return expect(defaultRecord, `record:${name} wasn't found`);
   }
 
-  /** @internal */
   getBase(name: string): PrimitiveRegistration {
     let base = this.base.get(name);
 
@@ -335,14 +328,12 @@ export class Registry {
     }
   }
 
-  /** @internal */
   getOther(name: string): unknown {
     let other = this.other.get(name);
 
     return expect(other, `other:${name} wasn't found`);
   }
 
-  /** @internal */
   get<K extends RegistryName>(id: TypeID<K>): RegistryValue {
     let types = this.types[id.type];
     return expect(
