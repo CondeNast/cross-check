@@ -19,7 +19,7 @@ import { ValidationBuilder, validates } from "../builders";
  */
 export interface ValidatorClass<T, Options> {
   validatorName: string;
-  new (env: ObjectModel, options: Options): ValidatorInstance<T>;
+  new(env: ObjectModel, options: Options): ValidatorInstance<T>;
 }
 
 /**
@@ -39,8 +39,6 @@ export interface ValidatorInstance<T> {
 }
 
 /**
- * @internal
- *
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
  *
  */

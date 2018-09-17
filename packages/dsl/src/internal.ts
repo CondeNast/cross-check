@@ -4,7 +4,6 @@
 
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
 
-/** @internal */
 export function descriptor<T>(
   name: string,
   validator: ValidatorFactory<T, unknown>,
