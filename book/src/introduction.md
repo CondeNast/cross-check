@@ -115,6 +115,10 @@ There are a few main ways that you may want to compose validators:
 
 The `@cross-check/dsl` package makes it easy to compose validators in this way.
 
+Note that all of the below examples assume that you created primitive validators from scratch in your own library. In practice, the `@cross-check/dsl` package also contains a [standard library][validator-std] of built-in validators that you should use for these kinds of simple cases.
+
+[validator-std][./validator-stdlib.html]
+
 #### "All" Composition
 
 Let's assume the existence of `gt` and `lt` validators. We would like to create a `range` validator that takes two parameters, a start and end position.
@@ -151,12 +155,85 @@ The `.andThen()` composition is designed for this situation:
 
 ```ts
 import { string, url } from "my-library";
-import { compose } from "cross-check/dsl";
+import { compose } from "@cross-check/dsl";
 
 export function validURL() {
   return compose(string()).andThen(url())
 }
 ```
+
+#### "Any" Composition
+
+The last major kind of composition allows you to define a validation that succeeds if any of its constituent parts succeeds.
+
+For example, let's say we want to write a validator that checked to make sure a value was either a string or a number.
+
+```ts
+import { string, number } from "my-library";
+import { compose } from "@cross-check/dsl";
+
+export function stringOrNumber() {
+  return compose(string()).or(number())
+}
+```
+
+If you attempt to use this validator on a value:
+
+```ts
+import { stringOrNumber } from "my-library";
+
+await validate(10, stringOrNumber);
+// []
+
+await validate("hello", stringOrNumber);
+// []
+
+await validate({}, stringOrNumber);
+// [{
+//   message: {
+//     name: "multiple",
+//     details: [
+//       [{ message: { name: "type", details: "string" }, path: [] }],
+//       [{ message: { name: "type", details: "number" }, path: [] }]
+//     ]
+//   },
+//   path: []
+// }]
+```
+
+If either of the two validations succeed, you get back no error at all. If both of the validations fail, you get a "multiple" error that contains the errors for each validation as `details`.
+
+This is because, when both validations fail, it's not clear which of the two makes sense to report to the user. In this case, it might make sense to tell a user that the value wasn't a string, but it also might make sense to create a special error message that describes both failures.
+
+#### "Catch" Composition And Higher Level Abstractions
+
+While it makes sense for "any" composition to give you back both validation errors if they both fail, you might want to bundle them up into a higher level error.
+
+For example, let's say that we have a validation that allows the user to provide either a URL or a path on the file system (like npm dependencies):
+
+```ts
+import { url, file } from "my-library";
+
+function npmDependency() {
+  return compose(url()).or(file());
+}
+```
+
+If we invoke this validator with a the string `"hello world"`, we get back a `"multiple"` error. But we really would like to bundle it up into a higher-level "npm dependency" validation, along with its own error message.
+
+To do so, we can use the `catch` composition to hide the internal errors and replace them with a higher level error message:
+
+```ts
+import { url, file } from "my-library";
+
+function npmDependency() {
+  return compose(url())
+    .or(file())
+    .catch(() => invalid("npm-dependency"))
+}
+```
+
+The `catch` method takes a callback that takes a list of errors, if any occurred, and returns either a valid response or an invalid response. This allows you to turn a failure into a success, but also allows you to map a failure into a more abstract failure.
 
 [Learn more about composition using @cross-check/dsl][dsl-composition]
 
