@@ -10,7 +10,8 @@ mod.test("simple", (assert, { format }) => {
       {
         hed: <single line string>,
         dek?: <string>,
-        body: <string>
+        body: <string>,
+        issueDate?: <ISO Date>
       }
     `
   );

@@ -13,6 +13,7 @@ mod.test("simple", (assert, { format }) => {
         hed: SingleLine!
         dek: String
         body: String!
+        issueDate: ISODate
       }
     `
   );
@@ -27,6 +28,7 @@ mod.test("simple", (assert, { format }) => {
         hed: String
         dek: String
         body: String
+        issueDate: ISODate
       }
     `
   );

@@ -155,6 +155,15 @@ export const SingleWord = scalar("SingleWord", {
   buildArgs: buildTextArgs
 });
 
+export const ISODate = scalar("ISODate", {
+  description: "ISO date",
+  typescript: "ISODate",
+
+  validation() {
+    return validators.isISODateString();
+  }
+});
+
 // tslint:disable-next-line:variable-name
 export const Boolean = scalar("Boolean", {
   description: "boolean",

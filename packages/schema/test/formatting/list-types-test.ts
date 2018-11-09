@@ -4,13 +4,14 @@ const mod = module("[schema] formatting - listTypes");
 
 mod.test("simple", (assert, { env }) => {
   assert.deepEqual(env.published.listTypes("SimpleArticle"), [
+    "ISODate",
     "SingleLine",
     "Text"
   ]);
 });
 
 mod.test("simple - draft", (assert, { env }) => {
-  assert.deepEqual(env.draft.listTypes("SimpleArticle"), ["Text"]);
+  assert.deepEqual(env.draft.listTypes("SimpleArticle"), ["ISODate", "Text"]);
 });
 
 mod.test("detailed", (assert, { env }) => {

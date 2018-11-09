@@ -80,4 +80,25 @@ export class IsArrayValidator extends BasicValidator<unknown> {
   }
 }
 
+export class IsISODateStringValidator extends BasicValidator<unknown> {
+  static validatorName = "is-ISODateString";
+
+  validate(value: unknown): ValidationError[] {
+    if (value === undefined) {
+        return [];
+    }
+    let parsed = Date.parse(value);
+
+    if (isNaN(parsed))
+      return [{ path: [], message: { name: "ISODateString" } }];
+  
+    if (value === new Date(parsed).toISOString()) {
+      return [];
+    } else {
+      return [{ path: [], message: { name: "ISODateString" } }];
+    }
+  }
+}
+
 export const isArray = builderFor(IsArrayValidator);
+export const isISODateString = builderFor(IsISODateStringValidator);

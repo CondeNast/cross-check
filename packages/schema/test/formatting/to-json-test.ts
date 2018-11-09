@@ -7,7 +7,8 @@ mod.test("simple - published", (assert, { format }) => {
     fields: {
       hed: { type: "SingleLine", required: true },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
-      body: { type: "Text", required: true }
+      body: { type: "Text", required: true },
+      issueDate: { type: "ISODate", required: false }
     },
 
     metadata: {
@@ -22,7 +23,8 @@ mod.test("simple - draft", (assert, { format }) => {
     fields: {
       hed: { type: "Text", required: false, args: { allowEmpty: true } },
       dek: { type: "Text", required: false, args: { allowEmpty: true } },
-      body: { type: "Text", required: false, args: { allowEmpty: true } }
+      body: { type: "Text", required: false, args: { allowEmpty: true } },
+      issueDate: { type: "ISODate", required: false }
     },
     metadata: {
       collectionName: "simple-articles",

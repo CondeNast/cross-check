@@ -18,6 +18,7 @@ mod.test(
         hed: null,
         dek: null,
         body: null,
+        issueDate: null,
         byline: null
       }),
       [],

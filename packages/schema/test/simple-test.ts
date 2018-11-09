@@ -18,7 +18,8 @@ mod.test(
       await validateDraft(SimpleArticle, registry, {
         hed: null,
         dek: null,
-        body: null
+        body: null,
+        issueDate: null,
       }),
       [],
       "all fields can be null in drafts"
@@ -68,7 +69,8 @@ mod.test(
       await validateDraft(SimpleArticle, registry, {
         hed: "Hello world\nMultiline strings are allowed in SingleLine",
         dek: "Hello, the cool world!",
-        body: null
+        body: null,
+        issueDate: null
       }),
       [],
       "draft mode can accept the widened type"
@@ -81,7 +83,8 @@ mod.test("published drafts must be narrow", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world\nProblem here!",
       dek: "Hello, the cool world!",
-      body: null
+      body: null,
+      issueDate: null
     }),
     [typeError("string:single-line", "hed"), missingError("body")],
     "published records must not be missing fields or have the widened type"
@@ -97,7 +100,8 @@ mod.test(
 
         // dek is allowed to be an empty string, because its type is not required
         dek: "",
-        body: ""
+        body: "",
+        issueDate: null 
       }),
       [
         {
@@ -129,6 +133,7 @@ mod.test("parsing", (assert, { registry }) => {
     {
       hed: "Hello world",
       dek: null,
+      issueDate: null,
       body: "The body"
     }
   );
@@ -137,12 +142,14 @@ mod.test("parsing", (assert, { registry }) => {
     SimpleArticle.with({ registry }).parse({
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
+      issueDate: null 
     }),
     {
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
+      issueDate: null 
     }
   );
 });
@@ -152,6 +159,7 @@ mod.test("serialize", (assert, { registry }) => {
     SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: null,
+      issueDate: null,
       body: "The body"
     }),
     {
@@ -164,6 +172,7 @@ mod.test("serialize", (assert, { registry }) => {
     SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: "Hello. Hello world.",
+      issueDate: null,
       body: "The body"
     }),
     {
@@ -179,7 +188,8 @@ mod.test("a valid published draft", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!\nMultiline allowed here",
-      body: "Hello world.\nThis text is permitted.\nTotally fine."
+      body: "Hello world.\nThis text is permitted.\nTotally fine.",
+      issueDate: null
     }),
     [],
     "a valid draft"
@@ -209,7 +219,7 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {}),
     [
       keysError({
-        missing: ["hed", "dek", "body"]
+        missing: ["hed", "dek", "body", "issueDate"]
       })
     ],
     "missing all fields"
@@ -218,7 +228,8 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
   assert.deepEqual(
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
-      dek: "Hello, the cool world!"
+      dek: "Hello, the cool world!",
+      issueDate: null
     }),
     [
       keysError({
@@ -233,7 +244,8 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
       hed: "Hello world",
       dek: "Hello, the cool world!",
       body: "Hello!!!",
-      wat: "dis"
+      wat: "dis",
+      issueDate: null
     }),
     [
       keysError({
@@ -247,6 +259,7 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!",
+      issueDate: null,
       wat: "dis"
     }),
     [

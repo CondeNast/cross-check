@@ -10,7 +10,8 @@ mod.test("simple", (assert, { format }) => {
       Record("SimpleArticle", {
         hed: SingleLine().required(),
         dek: Text(),
-        body: Text().required()
+        body: Text().required(),
+        issueDate: ISODate()
       }).metadata({
         collectionName: "simple-articles",
         modelName: "simple-article"

@@ -322,3 +322,13 @@ QUnit.test("isArray", async assert => {
   );
   assert.deepEqual(await run(validators.isArray(), "hello"), failure("array"));
 });
+
+QUnit.test("isISODateString", async assert => {
+  assert.equal(format(validates(validators.isISODateString())), `(is-ISODateString)`);
+
+  assert.deepEqual(await run(validators.isISODateString(), undefined), success());
+  assert.deepEqual(await run(validators.isISODateString(), new Date().toISOString()), success());
+
+  assert.deepEqual(await run(validators.isISODateString(), null), failure("ISODateString"));
+  assert.deepEqual(await run(validators.isISODateString(), "hello"), failure("ISODateString"));
+});

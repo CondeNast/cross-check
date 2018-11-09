@@ -12,7 +12,8 @@ export const SimpleArticle: Record = Record("SimpleArticle", {
   fields: {
     hed: types.SingleLine().required(),
     dek: types.Text(),
-    body: types.Text().required()
+    body: types.Text().required(),
+    issueDate: types.ISODate(),
   },
   metadata: {
     collectionName: "simple-articles",

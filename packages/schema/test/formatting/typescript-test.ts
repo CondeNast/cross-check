@@ -11,6 +11,7 @@ mod.test("simple - published", (assert, { format }) => {
           hed: string;
           dek?: string;
           body: string;
+          issueDate?: Date;
         }
       `
   );
@@ -27,6 +28,7 @@ mod.test("simple - draft", (assert, { format }) => {
           hed?: string;
           dek?: string;
           body?: string;
+          issueDate?: Date;
         }
       `
   );
