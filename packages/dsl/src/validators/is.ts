@@ -83,19 +83,19 @@ export class IsArrayValidator extends BasicValidator<unknown> {
 export class IsISODateStringValidator extends BasicValidator<unknown> {
   static validatorName = "is-ISODateString";
 
-  validate(value: unknown): ValidationError[] {
+  validate(value: string): ValidationError[] {
     if (value === undefined) {
         return [];
     }
     let parsed = Date.parse(value);
 
     if (isNaN(parsed))
-      return [{ path: [], message: { name: "ISODateString" } }];
+      return [{ path: [], message: { name: "type", details: "ISODateString" } }];
   
     if (value === new Date(parsed).toISOString()) {
       return [];
     } else {
-      return [{ path: [], message: { name: "ISODateString" } }];
+      return [{ path: [], message: { name: "type", details: "ISODateString" } }];
     }
   }
 }
