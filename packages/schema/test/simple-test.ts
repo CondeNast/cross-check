@@ -7,7 +7,7 @@ import {
   validateDraft,
   validatePublished
 } from "./support";
-import { SimpleArticle } from "./support/records";
+import { SimpleArticle, SingleWordRecord } from "./support/records";
 
 const mod = module("[schema] - simple schema");
 
@@ -22,6 +22,19 @@ mod.test(
       }),
       [],
       "all fields can be null in drafts"
+    );
+  }
+);
+
+mod.test(
+  "Cannot add more than a single word into a field defined as SingleWord",
+  async (assert, { registry }) => {
+    assert.deepEqual(
+      await validateDraft(SingleWordRecord, registry, {
+        hed: "One two"
+      }),
+      [typeError("string:single-word", "hed")],
+      "error returned when adding two words to a SingleWord field"
     );
   }
 );

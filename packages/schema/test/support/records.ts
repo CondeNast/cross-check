@@ -20,6 +20,16 @@ export const SimpleArticle: Record = Record("SimpleArticle", {
   }
 });
 
+export const SingleWordRecord: Record = Record("SingleWordRecord", {
+  fields: {
+    hed: types.SingleWord().required()
+  },
+  metadata: {
+    collectionName: "single-word-records",
+    modelName: "single-word-record"
+  }
+});
+
 if (DEBUG_LOG === "debug") {
   // @ts-ignore
   // tslint:disable-next-line
