@@ -5,6 +5,7 @@ import {
   RecordImpl,
   Registry
 } from "@cross-check/schema";
+import { mutePath } from "@cross-check/dsl";
 import { Task } from "no-show";
 import { Dict, Option } from "ts-std";
 
@@ -49,6 +50,13 @@ export function validate(
   obj: Dict<unknown>
 ): Task<ValidationError[]> {
   return record.validate(obj, ENV);
+}
+
+export function validateAndMute(
+  record: RecordImpl,
+  obj: Dict<unknown>
+): Task<ValidationError[]> {
+  return record.validate(obj, ENV).catch(mutePath['hed']);
 }
 
 export function validateDraft(

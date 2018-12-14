@@ -4,12 +4,29 @@ import {
   module,
   typeError,
   validate,
+  validateAndMute,
   validateDraft,
   validatePublished
 } from "./support";
-import { SimpleArticle } from "./support/records";
+import { SimpleArticle, RequiredFieldRecord } from "./support/records";
+
+import { validates, validators, mutePath } from "@cross-check/dsl";
+const { object } = validators;
 
 const mod = module("[schema] - simple schema");
+
+mod.test(
+  "required field validation can be muted",
+  async (assert, { registry }) => {
+    let b = RequiredFieldRecord.with({ strictKeys: false, draft: true, registry });
+
+    assert.deepEqual(
+      await validateAndMute(b, {}),
+      [],
+      "field defined as required('always') on the schema can be muted"
+    );
+  }
+);
 
 mod.test(
   "all fields are optional in draft mode",
@@ -25,6 +42,7 @@ mod.test(
     );
   }
 );
+
 
 mod.test(
   "extra fields are permitted when strictKeys is false in draft mode",

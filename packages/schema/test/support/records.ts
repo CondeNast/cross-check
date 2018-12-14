@@ -26,6 +26,16 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(SimpleArticle.descriptor));
 }
 
+export const RequiredFieldRecord: Record = Record("RequiredFieldRecord", {
+  fields: {
+    hed: types.SingleWord().required('always')
+  },
+  metadata: {
+    collectionName: "required-field-records",
+    modelName: "required-field-record"
+  }
+});
+
 export const MediumArticle: Record = Record("MediumArticle", {
   fields: {
     hed: types.SingleLine().required("always"),
