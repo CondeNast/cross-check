@@ -10,18 +10,13 @@ import {
 } from "./support";
 import { SimpleArticle, RequiredFieldRecord } from "./support/records";
 
-import { validates, validators, mutePath } from "@cross-check/dsl";
-const { object } = validators;
-
 const mod = module("[schema] - simple schema");
 
 mod.test(
   "required field validation can be muted",
   async (assert, { registry }) => {
-    let b = RequiredFieldRecord.with({ strictKeys: false, draft: true, registry });
-
     assert.deepEqual(
-      await validateAndMute(b, {}),
+      await validateAndMute(RequiredFieldRecord, {}),
       [],
       "field defined as required('always') on the schema can be muted"
     );
