@@ -1,6 +1,7 @@
 .ember-cli
 DEBUG
 *.tgz
+config
 dist/**/test
 dist/**/node_modules
 ember-cli-build.js

@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-module.exports = require("libkit").build({
-  name: "@cross-check/core",
+module.exports = require('libkit').build({
+  name: '@cross-check/core',
   root: __dirname
 });

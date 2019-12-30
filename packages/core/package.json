@@ -17,6 +17,7 @@
     "ember-addon"
   ],
   "scripts": {
+    "start": "ember s -p 0",
     "problems": "node ../../scripts/problems.js",
     "preversion": "\"$npm_execpath\" run test",
     "prepare": "ember build -prod",

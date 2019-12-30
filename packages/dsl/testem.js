@@ -1,17 +1,17 @@
 module.exports = {
-  launchers: {
-    Node: {
-      cwd: process.env.EMBER_CLI_TEST_OUTPUT,
-      command: `qunit "commonjs/test/**/*-test.js"`,
-      protocol: "tap"
-    }
+  "launchers": {
+    "Node": {
+      "cwd": process.env.EMBER_CLI_TEST_OUTPUT,
+      "command": `qunit "commonjs/test/**/*-test.js"`,
+      "protocol": "tap"
+    },
   },
 
-  framework: "qunit",
-  test_page: "index.testem.html?hidepassed",
+  "framework": "qunit",
+  "test_page": "index.html?hidepassed",
 
-  browser_args: {
-    Chrome: [
+  "browser_args": {
+    "Chrome": [
       "--headless",
       "--no-sandbox",
       "--disable-gpu",
@@ -20,7 +20,7 @@ module.exports = {
     ]
   },
 
-  disable_watching: true,
-  launch_in_ci: ["Node", "Chrome"],
-  launch_in_dev: ["Node", "Chrome"]
-};
+  "disable_watching": true,
+  "launch_in_dev": ["Node", "Chrome"],
+  "launch_in_ci": ["Node", "Chrome"]
+}
