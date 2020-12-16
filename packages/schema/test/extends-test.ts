@@ -7,10 +7,10 @@ const mod = module("[schema] - extending schema");
 mod.test(
   "records can be extended by copying fields",
   async (assert, { registry }) => {
-    let ExtendedRecord = SimpleArticle.merge({
+    const ExtendedRecord = SimpleArticle.merge({
       fields: {
-        byline: types.SingleLine()
-      }
+        byline: types.SingleLine(),
+      },
     });
 
     assert.deepEqual(
@@ -18,7 +18,7 @@ mod.test(
         hed: null,
         dek: null,
         body: null,
-        byline: null
+        byline: null,
       }),
       [],
       "extended record can be validated as draft"
@@ -26,9 +26,9 @@ mod.test(
   }
 );
 
-mod.test("records can be extended by removing fields", async assert => {
-  let ExtendedRecord = SimpleArticle.merge({
-    remove: ["hed"]
+mod.test("records can be extended by removing fields", async (assert) => {
+  const ExtendedRecord = SimpleArticle.merge({
+    remove: ["hed"],
   });
 
   assert.notOk(

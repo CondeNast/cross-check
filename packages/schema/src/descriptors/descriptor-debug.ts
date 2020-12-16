@@ -1,13 +1,12 @@
-import { Dict, JSONObject, entries } from "ts-std";
 import { Record } from "../record";
 import { REGISTRY } from "../registry";
 import * as visitor from "../types/describe/visitor";
-import { JSONValue, mapDict } from "../utils";
+import { JSONObject, JSONValue, mapDict } from "../utils";
 
 export interface DescriptorJSON {
   type: keyof visitor.Descriptors;
   inner?: DescriptorJSON;
-  inners?: Dict<DescriptorJSON>;
+  inners?: { [key: string]: DescriptorJSON };
   attributes?: JSONObject;
 }
 
@@ -122,7 +121,7 @@ function formatDescriptorJSON(
   }
 
   if (descriptor.attributes) {
-    for (let [key, value] of entries(descriptor.attributes)) {
+    for (let [key, value] of Object.entries(descriptor.attributes)) {
       out += ` ${key}=${formatJSON(value!)}`;
     }
   }
@@ -168,7 +167,7 @@ function formatJSON(args: JSONValue | undefined): string {
   if (args && typeof args === "object") {
     let out = [];
 
-    for (let [key, value] of entries(args)) {
+    for (let [key, value] of Object.entries(args)) {
       out.push(`${key}=${formatJSON(value)}`);
     }
 

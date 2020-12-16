@@ -5,10 +5,9 @@ import {
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
-import { Dict, Indexable, Option, Present, dict, entries } from "ts-std";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
-import { isObject } from "./is";
+import { isObject, Present } from "./is";
 
 function mapError(
   { path, message }: ValidationError,
@@ -30,14 +29,14 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
 
   constructor(
     protected objectModel: ObjectModel,
-    protected descriptors: Dict<ValidationDescriptor<T>>
+    protected descriptors: Record<string, ValidationDescriptor<T>>
   ) {}
 
-  run(value: Present, context: Option<string>): Task<ValidationError[]> {
+  run(value: Present, context: string | null): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 
-      for (let [key, descriptor] of entries(this.descriptors)) {
+      for (let [key, descriptor] of Object.entries(this.descriptors)) {
         let suberrors = await run(
           validate(
             this.objectModel.get(value, key) as T,
@@ -62,7 +61,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
  * This validator checks that the value contains all of the enumerated fields
  * and also does not contain any extra fields.
  */
-export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
+export class KeysValidator<T> implements ValidatorInstance<Readonly<Record<string, T>>> {
   static validatorName = "keys";
 
   constructor(
@@ -70,7 +69,7 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
     protected descriptorKeys: string[]
   ) {}
 
-  run(value: Indexable<T>): Task<ValidationError[]> {
+  run(value: Readonly<Record<string, T>>): Task<ValidationError[]> {
     return new Task(async () => {
       let errors: ValidationError[] = [];
       let valueKeys = Object.keys(value);
@@ -106,13 +105,13 @@ export class KeysValidator<T> implements ValidatorInstance<Indexable<T>> {
 }
 
 export function fields<T>(
-  builders: Dict<ValidationBuilder<T>>
+  builders: Record<string, ValidationBuilder<T>>
 ): ValidationBuilder<Present> {
   return validates(
     "fields",
     factoryFor(FieldsValidator as ValidatorClass<
       Present,
-      Dict<ValidationDescriptor<T>>
+      Record<string, ValidationDescriptor<T>>
     >),
     normalizeFields(builders)
   );
@@ -120,10 +119,10 @@ export function fields<T>(
 
 export function keys<T>(
   descriptorKeys: string[]
-): ValidationBuilder<Indexable<T>> {
+): ValidationBuilder<Readonly<Record<string, T>>> {
   return validates(
     "keys",
-    factoryFor(KeysValidator as ValidatorClass<Indexable<T>, string[]>),
+    factoryFor(KeysValidator as ValidatorClass<Readonly<Record<string, T>>, string[]>),
     descriptorKeys
   );
 }
@@ -132,7 +131,7 @@ export function keys<T>(
  * @api public
  */
 export function object(
-  builders: Dict<ValidationBuilder<unknown>>
+  builders: Record<string, ValidationBuilder<unknown>>
 ): ValidationBuilder<unknown> {
   return isObject().andThen(fields(builders));
 }
@@ -141,7 +140,7 @@ export function object(
  * @api public
  */
 export function strictObject(
-  builders: Dict<ValidationBuilder<unknown>>
+  builders: Record<string, ValidationBuilder<unknown>>
 ): ValidationBuilder<unknown> {
   return isObject()
     .andThen(keys(Object.keys(builders)))
@@ -149,12 +148,12 @@ export function strictObject(
 }
 
 function normalizeFields<T>(
-  builders: Dict<ValidationBuilder<T>>
-): Dict<ValidationDescriptor<T>> {
-  let out = dict<ValidationDescriptor<T>>();
+  builders: Record<string, ValidationBuilder<T>>
+): Record<string, ValidationDescriptor<T>> {
+  let out: Record<string, ValidationDescriptor<T>> = Object.create(null);
 
-  for (let [key, value] of entries(builders)) {
-    out[key] = build(value!);
+  for (let [key, value] of Object.entries(builders)) {
+    out[key] = build(value);
   }
 
   return out;

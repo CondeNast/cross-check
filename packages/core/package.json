@@ -7,34 +7,11 @@
     "Yehuda Katz <yehuda@tilde.io>"
   ],
   "repository": "https://github.com/cross-check/cross-check",
-  "main": "dist/commonjs/src/index.js",
-  "module": "dist/modules/src/index.js",
-  "types": "dist/types/src/index.d.ts",
-  "ember-addon": {
-    "main": "ember-addon.js"
-  },
-  "keywords": [
-    "ember-addon"
-  ],
-  "scripts": {
-    "problems": "node ../../scripts/problems.js",
-    "preversion": "\"$npm_execpath\" run test",
-    "prepare": "ember build -prod",
-    "build": "ember build -prod",
-    "pretest": "\"$npm_execpath\" run problems",
-    "version": "node ../../scripts/bump.js"
-  },
+  "main": "dist/commonjs/index.js",
+  "module": "dist/modules/index.js",
+  "types": "dist/commonjs/index.d.ts",
   "license": "Apache-2.0",
-  "devDependencies": {
-    "ember-cli": "*",
-    "libkit": "*",
-    "prettier": "*",
-    "shelljs": "*",
-    "tslint": "*",
-    "write-pkg": "*"
-  },
   "peerDependencies": {
-    "no-show": "^0.6.2",
-    "ts-std": "^0.7.0"
+    "no-show": "^0.6.2"
   }
 }

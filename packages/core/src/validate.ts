@@ -1,27 +1,26 @@
 import { Task } from "no-show";
-import { Indexable, Option } from "ts-std";
 import {
   ObjectModel,
   ValidationDescriptor,
-  ValidationError
+  ValidationError,
 } from "./descriptor";
 
 const DEFAULT_OBJECT_MODEL: ObjectModel = {
   get(object: unknown, key: string | number): unknown {
     if (object !== null && object !== undefined) {
-      return (object as Indexable)[key];
+      return (object as Readonly<Record<string, unknown>>)[key];
     } else {
       return object;
     }
   },
 
-  asList(object: unknown): Option<Array<unknown>> {
+  asList(object: unknown): Array<unknown> | null {
     if (Array.isArray(object)) {
       return object;
     } else {
       return null;
     }
-  }
+  },
 };
 
 /**
@@ -45,17 +44,17 @@ const DEFAULT_OBJECT_MODEL: ObjectModel = {
 export function validate<T, Options>(
   value: T,
   descriptor: ValidationDescriptor<T, Options>,
-  context: Option<string> = null,
+  context: string | null = null,
   objectModel: ObjectModel = DEFAULT_OBJECT_MODEL
 ): Task<ValidationError[]> {
-  return new Task(async run => {
-    let { validator, options, contexts } = descriptor;
+  return new Task(async (run) => {
+    const { validator, options, contexts } = descriptor;
 
     if (context !== null && contexts && contexts.length) {
       if (contexts.indexOf(context) === -1) return [];
     }
 
-    let validateFunction = validator(options, objectModel);
+    const validateFunction = validator(options, objectModel);
 
     return await run(validateFunction(value, context));
   });

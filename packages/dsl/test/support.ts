@@ -1,17 +1,15 @@
 import Task from "no-show";
-import { Option, dict, isIndexable } from "ts-std";
-
 import {
   ObjectModel,
   ValidationDescriptor,
   ValidationError,
   ValidatorFactory,
-  validate
+  validate,
 } from "@cross-check/core";
 import build, {
   ValidationBuildable,
   ValidationBuilder,
-  validates
+  validates,
 } from "@cross-check/dsl";
 
 export const presence = builder("presence");
@@ -20,7 +18,7 @@ export const email = builder<unknown, { tlds: string[] }>("email");
 export const isEmail = builder<string, { tlds: string[] }>("isEmail");
 export const uniqueness = builder("uniqueness");
 
-let factories = dict<ValidatorFactory<unknown, unknown>>();
+const factories: ValidatorFactory<unknown, unknown> = Object.create(null);
 
 export function factory(name: string): ValidatorFactory<unknown, unknown> {
   if (!factories[name]) {
@@ -28,7 +26,7 @@ export function factory(name: string): ValidatorFactory<unknown, unknown> {
       return () => new Task(async () => []);
     };
   }
-  return factories[name]!;
+  return factories[name];
 }
 
 function builder<T = unknown>(name: string): () => ValidationBuilder<T>;
@@ -41,10 +39,10 @@ function builder(name: string): (options: any) => ValidationBuilder<unknown> {
 
 export class Obj implements ObjectModel {
   get(object: unknown, key: string): unknown {
-    return isIndexable(object) ? object[key] : undefined;
+    return typeof object === "object" ? object[key] : undefined;
   }
 
-  asList(object: unknown): Option<Array<unknown>> {
+  asList(object: unknown): Array<unknown | null> {
     if (Array.isArray(object)) {
       return object;
     } else {

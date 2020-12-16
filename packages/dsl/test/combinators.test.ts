@@ -3,7 +3,7 @@ import {
   ValidationDescriptor,
   ValidationError,
   Validator,
-  ValidatorFactory
+  ValidatorFactory,
 } from "@cross-check/core";
 import {
   MapErrorOptions,
@@ -15,13 +15,12 @@ import {
   muteAll,
   mutePath,
   muteType,
-  or
+  or,
 } from "@cross-check/dsl";
 import Task from "no-show";
 import { run } from "./support";
 
 describe("Combinators", () => {
-
   const Success: ValidatorFactory<unknown, void> = (): Validator<unknown> => {
     return () => new Task(async () => []);
   };
@@ -33,7 +32,7 @@ describe("Combinators", () => {
 
   const Fail: ValidatorFactory<unknown, FailOptions> = ({
     reason,
-    path
+    path,
   }: FailOptions) => {
     return () =>
       new Task<ValidationError[]>(async () => [error(reason, null, path)]);
@@ -57,7 +56,7 @@ describe("Combinators", () => {
       name,
       validator,
       options,
-      contexts: []
+      contexts: [],
     };
   }
 
@@ -70,8 +69,8 @@ describe("Combinators", () => {
       path,
       message: {
         name: reason,
-        details
-      }
+        details,
+      },
     };
   }
 
@@ -95,24 +94,21 @@ describe("Combinators", () => {
         fail("reason 1"),
         success(),
         fail("reason 2"),
-        success()
-      ])).toEqual(
-      [error("reason 1"), error("reason 2")]
-    );
+        success(),
+      ])
+    ).toEqual([error("reason 1"), error("reason 2")]);
     expect(
-      await runMulti(and, [fail("reason"), fail("reason"), fail("reason")])).toEqual(
-      [error("reason")]
-    );
+      await runMulti(and, [fail("reason"), fail("reason"), fail("reason")])
+    ).toEqual([error("reason")]);
     expect(
-      await runMulti(and, [fail("reason", ["foo"]), fail("reason", ["bar"])])).toEqual(
-      [error("reason", null, ["foo"]), error("reason", null, ["bar"])]
-    );
+      await runMulti(and, [fail("reason", ["foo"]), fail("reason", ["bar"])])
+    ).toEqual([error("reason", null, ["foo"]), error("reason", null, ["bar"])]);
   });
 
   test("or", async () => {
-    expect(await runMulti(or, [success()])).toEqual( []);
-    expect(await runMulti(or, [fail("reason")])).toEqual( [
-      error("multiple", [[error("reason")]])
+    expect(await runMulti(or, [success()])).toEqual([]);
+    expect(await runMulti(or, [fail("reason")])).toEqual([
+      error("multiple", [[error("reason")]]),
     ]);
     expect(
       await runMulti(or, [
@@ -120,39 +116,34 @@ describe("Combinators", () => {
         fail("reason 1"),
         success(),
         fail("reason 2"),
-        success()
-      ])).toEqual(
-      []
-    );
+        success(),
+      ])
+    ).toEqual([]);
     expect(
       await runMulti(or, [fail("reason 1"), fail("reason 2"), fail("reason 3")])
-        ).toEqual(
-      [
-        error("multiple", [
-          [error("reason 1")],
-          [error("reason 2")],
-          [error("reason 3")]
-        ])
-      ]
-    );
+    ).toEqual([
+      error("multiple", [
+        [error("reason 1")],
+        [error("reason 2")],
+        [error("reason 3")],
+      ]),
+    ]);
     expect(
       await runMulti(or, [fail("reason"), fail("reason"), fail("reason")])
-        ).toEqual(
-      [
-        error("multiple", [
-          [error("reason")],
-          [error("reason")],
-          [error("reason")]
-        ])
-      ]
-    );
+    ).toEqual([
+      error("multiple", [
+        [error("reason")],
+        [error("reason")],
+        [error("reason")],
+      ]),
+    ]);
   });
 
   test("if", async () => {
-    expect(await runMulti(ifValid, [success(), success()])).toEqual( []);
-    expect(await runMulti(ifValid, [fail("reason"), success()])).toEqual( []);
-    expect(await runMulti(ifValid, [success(), fail("reason")])).toEqual( [
-      error("reason")
+    expect(await runMulti(ifValid, [success(), success()])).toEqual([]);
+    expect(await runMulti(ifValid, [fail("reason"), success()])).toEqual([]);
+    expect(await runMulti(ifValid, [success(), fail("reason")])).toEqual([
+      error("reason"),
     ]);
 
     expect(
@@ -161,35 +152,30 @@ describe("Combinators", () => {
         fail("reason 1"),
         success(),
         fail("reason 2"),
-        success()
-      ])).toEqual(
-      []
-    );
+        success(),
+      ])
+    ).toEqual([]);
 
     expect(
-      await runMulti(ifValid, [fail("reason"), fail("reason"), fail("reason")])).toEqual(
-      []
-    );
+      await runMulti(ifValid, [fail("reason"), fail("reason"), fail("reason")])
+    ).toEqual([]);
   });
 
   test("chain", async () => {
-    expect(await runMulti(chain, [success()])).toEqual( []);
-    expect(await runMulti(chain, [fail("reason")])).toEqual( [error("reason")]);
+    expect(await runMulti(chain, [success()])).toEqual([]);
+    expect(await runMulti(chain, [fail("reason")])).toEqual([error("reason")]);
     expect(
       await runMulti(chain, [
         success(),
         fail("reason 1"),
         success(),
         fail("reason 2"),
-        success()
-      ])).toEqual(
-      [error("reason 1")]
-    );
+        success(),
+      ])
+    ).toEqual([error("reason 1")]);
     expect(
       await runMulti(chain, [fail("reason"), fail("reason"), fail("reason")])
-    ).toEqual(
-      [error("reason")]
-    );
+    ).toEqual([error("reason")]);
   });
 
   test("mapError", async () => {
@@ -200,7 +186,7 @@ describe("Combinators", () => {
       return run(
         descriptorFor<unknown, MapErrorOptions<unknown>>("mapError", mapError, {
           do: descriptor,
-          catch: transform
+          catch: transform,
         }),
         null
       );
@@ -211,16 +197,16 @@ describe("Combinators", () => {
     }
 
     function append(descriptor: ValidationDescriptor): Task<ValidationError[]> {
-      return map(descriptor, errors => [...errors, error("appended")]);
+      return map(descriptor, (errors) => [...errors, error("appended")]);
     }
 
     expect(await cast(success())).toEqual([]);
     expect(await cast(fail("reason"))).toEqual([error("casted")]);
 
-    expect(await append(success())).toEqual( []);
+    expect(await append(success())).toEqual([]);
     expect(await append(fail("reason"))).toEqual([
       error("reason"),
-      error("appended")
+      error("appended"),
     ]);
 
     expect(await map(success(), muteAll())).toEqual([]);
@@ -233,47 +219,32 @@ describe("Combinators", () => {
     expect(await map(success(), mutePath(["foo", "bar"]))).toEqual([]);
     expect(
       await map(fail("foo", ["foo", "bar"]), mutePath(["foo", "bar"]))
-    ).toEqual(
-      []
-    );
+    ).toEqual([]);
     expect(
       await map(fail("foo", ["foo", "bar", "baz"]), mutePath(["foo", "bar"]))
-    ).toEqual(
-      []
-    );
-    expect(await map(fail("foo", ["foo"]), mutePath(["foo", "bar"]))
-    ).toEqual([
-      error("foo", null, ["foo"])
+    ).toEqual([]);
+    expect(await map(fail("foo", ["foo"]), mutePath(["foo", "bar"]))).toEqual([
+      error("foo", null, ["foo"]),
     ]);
     expect(
       await map(fail("foo", ["not", "it"]), mutePath(["foo", "bar"]))
-    ).toEqual(
-      [error("foo", null, ["not", "it"])]
-    );
+    ).toEqual([error("foo", null, ["not", "it"])]);
 
     expect(await map(success(), mutePath(["foo", "bar"], true))).toEqual([]);
     expect(
       await map(fail("foo", ["foo", "bar"]), mutePath(["foo", "bar"], true))
-    ).toEqual(
-      []
-    );
+    ).toEqual([]);
     expect(
       await map(
         fail("foo", ["foo", "bar", "baz"]),
         mutePath(["foo", "bar"], true)
       )
-    ).toEqual(
-      [error("foo", null, ["foo", "bar", "baz"])]
-    );
+    ).toEqual([error("foo", null, ["foo", "bar", "baz"])]);
     expect(
       await map(fail("foo", ["foo"]), mutePath(["foo", "bar"], true))
-    ).toEqual(
-      [error("foo", null, ["foo"])]
-    );
+    ).toEqual([error("foo", null, ["foo"])]);
     expect(
       await map(fail("foo", ["not", "it"]), mutePath(["foo", "bar"], true))
-    ).toEqual(
-      [error("foo", null, ["not", "it"])]
-    );
+    ).toEqual([error("foo", null, ["not", "it"])]);
   });
 });

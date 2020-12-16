@@ -1,31 +1,30 @@
 import { ValidationError, format } from "@cross-check/core";
 import validates, { BasicValidator, builderFor } from "@cross-check/dsl";
-import { Indexable } from "ts-std";
 import { buildAndRun as run } from "../support";
 
 function isNotBlank(str: unknown): boolean {
   return typeof str === "string" && str.trim() !== "";
 }
 
-function hasPackageName({ name }: Indexable): boolean {
+function hasPackageName({ name }: Readonly<Record<string, unknown>>): boolean {
   return isNotBlank(name);
 }
 
-function hasAuthor({ author }: Indexable): boolean {
+function hasAuthor({ author }: Readonly<Record<string, unknown>>): boolean {
   return isNotBlank(author);
 }
 
-function hasContributors({ contributors }: Indexable): boolean {
+function hasContributors({ contributors }: Readonly<Record<string, unknown>>): boolean {
   return Array.isArray(contributors) && contributors.length > 0;
 }
 
 describe("Validators (basic)", () => {
 
   test("PackageJSONValidator", async () => {
-    class PackageJSONValidator extends BasicValidator<Indexable> {
+    class PackageJSONValidator extends BasicValidator<Readonly<Record<string, unknown>>> {
       static validatorName = "package-json";
 
-      validate(json: Indexable): ValidationError[] {
+      validate(json: Readonly<Record<string, unknown>>): ValidationError[] {
         let errors = [];
 
         if (!hasPackageName(json)) {

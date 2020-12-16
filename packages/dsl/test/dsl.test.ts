@@ -7,7 +7,7 @@ import validates, {
   factoryForCallback,
   ifValid,
   mapError,
-  or
+  or,
 } from "@cross-check/dsl";
 import { email, factory, isEmail, presence, str, uniqueness } from "./support";
 
@@ -16,41 +16,37 @@ function validationCallback() {
 }
 
 describe("DSL", () => {
-
   test("basic DSL", () => {
-    expect(validates(str())).toEqual( {
+    expect(validates(str())).toEqual({
       name: "str",
       validator: factory("str"),
       options: undefined,
-      contexts: []
+      contexts: [],
     });
 
     expect(
       validates(email({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
-      ).toEqual(
-      {
-        name: "email",
-        validator: factory("email"),
-        options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-        contexts: []
-      }
-    );
+    ).toEqual({
+      name: "email",
+      validator: factory("email"),
+      options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
+      contexts: [],
+    });
   });
 
   test("andAlso", () => {
-    let validations = validates(
+    const validations = validates(
       str()
         .andAlso(email({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
         .andAlso(uniqueness())
         .andAlso(validationCallback)
     );
 
-    expect(
-      format(validations)).toEqual(
+    expect(format(validations)).toEqual(
       `(all (str) (email tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness) (validationCallback function() { ... }))`
     );
 
-    let expected = {
+    const expected = {
       name: "all",
       validator: and,
       options: [
@@ -58,48 +54,46 @@ describe("DSL", () => {
           name: "str",
           validator: factory("str"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "email",
           validator: factory("email"),
           options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "validationCallback",
           validator: factoryForCallback,
           options: validationCallback,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     };
 
-    expect(validations).toEqual( expected);
+    expect(validations).toEqual(expected);
   });
 
   test("or", () => {
-    let validations = validates(
+    const validations = validates(
       str()
         .or(email({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
         .or(uniqueness())
         .or(validationCallback)
     );
 
-    expect(
-      format(validations)
-    ).toEqual(
+    expect(format(validations)).toEqual(
       `(any (str) (email tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness) (validationCallback function() { ... }))`
     );
 
-    let expected = {
+    const expected = {
       name: "any",
       validator: or,
       options: [
@@ -107,48 +101,46 @@ describe("DSL", () => {
           name: "str",
           validator: factory("str"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "email",
           validator: factory("email"),
           options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "validationCallback",
           validator: factoryForCallback,
           options: validationCallback,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     };
 
-    expect(validations).toEqual( expected);
+    expect(validations).toEqual(expected);
   });
 
   test("andThen", () => {
-    let validations = validates(
+    const validations = validates(
       str()
         .andThen(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
         .andThen(uniqueness())
         .andThen(validationCallback)
     );
 
-    expect(
-      format(validations)
-    ).toEqual(
+    expect(format(validations)).toEqual(
       `(pipe (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness) (validationCallback function() { ... }))`
     );
 
-    let expected = {
+    const expected = {
       name: "pipe",
       validator: chain,
       options: [
@@ -156,47 +148,45 @@ describe("DSL", () => {
           name: "str",
           validator: factory("str"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "isEmail",
           validator: factory("isEmail"),
           options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "validationCallback",
           validator: factoryForCallback,
           options: validationCallback,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     };
 
     expect(validations).toEqual(expected);
   });
 
   test("if", () => {
-    let validations = validates(
+    const validations = validates(
       uniqueness()
         .if(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
         .if(str())
     );
 
-    expect(
-      format(validations)
-    ).toEqual(
+    expect(format(validations)).toEqual(
       `(if (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness))`
     );
 
-    let expected = {
+    const expected = {
       name: "if",
       validator: ifValid,
       options: [
@@ -204,22 +194,22 @@ describe("DSL", () => {
           name: "str",
           validator: factory("str"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "isEmail",
           validator: factory("isEmail"),
           options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     };
 
     expect(validations).toEqual(expected);
@@ -228,20 +218,18 @@ describe("DSL", () => {
   test("catch", () => {
     const mapper: MapErrorTransform = () => [];
 
-    let validations = validates(
+    const validations = validates(
       str()
         .andThen(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
         .andThen(uniqueness())
         .catch(mapper)
     );
 
-    expect(
-      format(validations)
-    ).toEqual(
+    expect(format(validations)).toEqual(
       `(try do=(pipe (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness)) catch=function() { ... })`
     );
 
-    let expected = {
+    const expected = {
       name: "try",
       validator: mapError,
       options: {
@@ -254,38 +242,36 @@ describe("DSL", () => {
               name: "str",
               validator: factory("str"),
               options: undefined,
-              contexts: []
+              contexts: [],
             },
             {
               name: "isEmail",
               validator: factory("isEmail"),
               options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
-              contexts: []
+              contexts: [],
             },
             {
               name: "uniqueness",
               validator: factory("uniqueness"),
               options: undefined,
-              contexts: []
-            }
+              contexts: [],
+            },
           ],
-          contexts: []
-        }
+          contexts: [],
+        },
       },
-      contexts: []
+      contexts: [],
     };
 
     expect(validations).toEqual(expected);
   });
 
   test("validation contexts", () => {
-    expect(
-      () => str().on()
-    ).toThrow(
+    expect(() => str().on()).toThrow(
       /must provide at least one validation context/
     );
 
-    let validations = validates(
+    const validations = validates(
       str()
         .andAlso(email({ tlds: [".com"] }))
         .on("create", "update")
@@ -293,13 +279,11 @@ describe("DSL", () => {
         .on("create", "update", "destroy")
     );
 
-    expect(
-      format(validations)
-    ).toEqual(
+    expect(format(validations)).toEqual(
       `(all (all (str) (email tlds=[".com"]))::on(create update) (uniqueness)::on(update))::on(create update destroy)`
     );
 
-    let expected = {
+    const expected = {
       name: "all",
       validator: and,
       options: [
@@ -311,36 +295,36 @@ describe("DSL", () => {
               name: "str",
               validator: factory("str"),
               options: undefined,
-              contexts: []
+              contexts: [],
             },
             {
               name: "email",
               validator: factory("email"),
               options: { tlds: [".com"] },
-              contexts: []
-            }
+              contexts: [],
+            },
           ],
-          contexts: ["create", "update"]
+          contexts: ["create", "update"],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: ["update"]
-        }
+          contexts: ["update"],
+        },
       ],
-      contexts: ["create", "update", "destroy"]
+      contexts: ["create", "update", "destroy"],
     };
 
     expect(validations).toEqual(expected);
   });
 
   test("extend", () => {
-    let mapper: MapErrorTransform = () => [];
+    const mapper: MapErrorTransform = () => [];
 
-    let validations = validates(presence().andThen(str()));
+    const validations = validates(presence().andThen(str()));
 
-    let extended = validates(
+    const extended = validates(
       extend(validations)
         .andThen(isEmail({ tlds: [".com"] }))
         .andAlso(uniqueness().on("create"))
@@ -349,13 +333,11 @@ describe("DSL", () => {
 
     expect(format(validations)).toEqual(`(pipe (presence) (str))`);
 
-    expect(
-      format(extended)
-    ).toEqual(
+    expect(format(extended)).toEqual(
       `(try do=(all (pipe (presence) (str) (isEmail tlds=[".com"])) (uniqueness)::on(create)) catch=function() { ... })`
     );
 
-    let expected = {
+    const expected = {
       name: "try",
       validator: mapError,
       options: {
@@ -372,62 +354,58 @@ describe("DSL", () => {
                   name: "presence",
                   validator: factory("presence"),
                   options: undefined,
-                  contexts: []
+                  contexts: [],
                 },
                 {
                   name: "str",
                   validator: factory("str"),
                   options: undefined,
-                  contexts: []
+                  contexts: [],
                 },
                 {
                   name: "isEmail",
                   validator: factory("isEmail"),
                   options: { tlds: [".com"] },
-                  contexts: []
-                }
+                  contexts: [],
+                },
               ],
-              contexts: []
+              contexts: [],
             },
             {
               name: "uniqueness",
               validator: factory("uniqueness"),
               options: undefined,
-              contexts: ["create"]
-            }
+              contexts: ["create"],
+            },
           ],
-          contexts: []
-        }
+          contexts: [],
+        },
       },
-      contexts: []
+      contexts: [],
     };
 
     expect(extended).toEqual(expected);
   });
 
   test(`"andAlso" does not mutate previously defined builder`, () => {
-    let present = presence();
-    let presentAndEmail = present.andAlso(email({ tlds: [".com"] }));
-    let presentAndUnique = present.andAlso(uniqueness());
+    const present = presence();
+    const presentAndEmail = present.andAlso(email({ tlds: [".com"] }));
+    const presentAndUnique = present.andAlso(uniqueness());
 
     expect(validates(present)).toEqual({
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: []
+      contexts: [],
     });
 
     expect(format(validates(present))).toEqual(`(presence)`);
 
-    expect(
-      format(validates(presentAndEmail))
-    ).toEqual(
+    expect(format(validates(presentAndEmail))).toEqual(
       `(all (presence) (email tlds=[".com"]))`
     );
 
-    expect(
-      format(validates(presentAndUnique))
-    ).toEqual(
+    expect(format(validates(presentAndUnique))).toEqual(
       `(all (presence) (uniqueness))`
     );
 
@@ -439,16 +417,16 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "email",
           validator: factory("email"),
           options: { tlds: [".com"] },
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentAndUnique)).toEqual({
@@ -459,33 +437,31 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
   });
 
   test(`"or" does not mutate previously defined builder`, () => {
-    let present = presence();
-    let presentAndEmail = present.or(email({ tlds: [".com"] }));
-    let presentAndUnique = present.or(uniqueness());
+    const present = presence();
+    const presentAndEmail = present.or(email({ tlds: [".com"] }));
+    const presentAndUnique = present.or(uniqueness());
 
     expect(format(validates(present))).toEqual(`(presence)`);
 
-    expect(
-      format(validates(presentAndEmail))).toEqual(
+    expect(format(validates(presentAndEmail))).toEqual(
       `(any (presence) (email tlds=[".com"]))`
     );
 
-    expect(
-      format(validates(presentAndUnique))).toEqual(
+    expect(format(validates(presentAndUnique))).toEqual(
       `(any (presence) (uniqueness))`
     );
 
@@ -493,7 +469,7 @@ describe("DSL", () => {
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentAndEmail)).toEqual({
@@ -504,16 +480,16 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "email",
           validator: factory("email"),
           options: { tlds: [".com"] },
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentAndUnique)).toEqual({
@@ -524,33 +500,31 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
   });
 
   test(`"andThen" does not mutate previously defined builder`, () => {
-    let present = presence();
-    let presentAndEmail = present.andThen(isEmail({ tlds: [".com"] }));
-    let presentAndUnique = present.andThen(uniqueness());
+    const present = presence();
+    const presentAndEmail = present.andThen(isEmail({ tlds: [".com"] }));
+    const presentAndUnique = present.andThen(uniqueness());
 
     expect(format(validates(present))).toEqual(`(presence)`);
 
-    expect(
-      format(validates(presentAndEmail))).toEqual(
+    expect(format(validates(presentAndEmail))).toEqual(
       `(pipe (presence) (isEmail tlds=[".com"]))`
     );
 
-    expect(
-      format(validates(presentAndUnique))).toEqual(
+    expect(format(validates(presentAndUnique))).toEqual(
       `(pipe (presence) (uniqueness))`
     );
 
@@ -558,7 +532,7 @@ describe("DSL", () => {
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentAndEmail)).toEqual({
@@ -569,16 +543,16 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "isEmail",
           validator: factory("isEmail"),
           options: { tlds: [".com"] },
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentAndUnique)).toEqual({
@@ -589,49 +563,53 @@ describe("DSL", () => {
           name: "presence",
           validator: factory("presence"),
           options: undefined,
-          contexts: []
+          contexts: [],
         },
         {
           name: "uniqueness",
           validator: factory("uniqueness"),
           options: undefined,
-          contexts: []
-        }
+          contexts: [],
+        },
       ],
-      contexts: []
+      contexts: [],
     });
   });
 
   test(`"on" does not mutate previously defined builder`, () => {
-    let present = presence();
-    let presentOnCreate = present.on("create");
-    let presentOnUpdate = present.on("update");
+    const present = presence();
+    const presentOnCreate = present.on("create");
+    const presentOnUpdate = present.on("update");
 
-    expect(format(validates(present))).toEqual( `(presence)`);
+    expect(format(validates(present))).toEqual(`(presence)`);
 
-    expect(format(validates(presentOnCreate))).toEqual( `(presence)::on(create)`);
+    expect(format(validates(presentOnCreate))).toEqual(
+      `(presence)::on(create)`
+    );
 
-    expect(format(validates(presentOnUpdate))).toEqual(`(presence)::on(update)`);
+    expect(format(validates(presentOnUpdate))).toEqual(
+      `(presence)::on(update)`
+    );
 
     expect(validates(present)).toEqual({
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: []
+      contexts: [],
     });
 
     expect(validates(presentOnCreate)).toEqual({
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: ["create"]
+      contexts: ["create"],
     });
 
     expect(validates(presentOnUpdate)).toEqual({
       name: "presence",
       validator: factory("presence"),
       options: undefined,
-      contexts: ["update"]
+      contexts: ["update"],
     });
   });
 });

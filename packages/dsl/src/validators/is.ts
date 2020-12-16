@@ -1,5 +1,4 @@
 import { ErrorMessage, ValidationError } from "@cross-check/core";
-import { Absent, Present, isIndexable as indexable } from "ts-std";
 import { ValidationBuilder, validates } from "../builders";
 import { builderFor, factoryFor } from "./abstract";
 import { BasicValidator } from "./basic";
@@ -28,11 +27,12 @@ function isTypeOf<To>(typeOf: string): () => ValidationBuilder<unknown> {
   return is((value: unknown): value is To => typeof value === typeOf, typeOf);
 }
 
+export type Present = number | string | boolean | symbol | object;
 export type NotNull = Present | undefined;
 export type NotUndefined = Present | null;
 
 export const isAbsent = is(
-  (value: unknown): value is Absent => value === null || value === undefined,
+  (value: unknown): value is null | undefined => value === null || value === undefined,
   "absent"
 );
 export const isPresent = is(
@@ -61,7 +61,9 @@ export const isBoolean = isTypeOf("boolean");
 export const isString = isTypeOf("string");
 export const isSymbol = isTypeOf("symbol");
 export const isFunction = isTypeOf("function");
-export const isIndexable = is(indexable, "indexable");
+export const isIndexable = is((value: unknown): value is Record<string, unknown> =>
+    value !== null && (typeof value === 'object' || typeof value === 'function'),
+  "indexable");
 export const isObject = is(
   (value: unknown): value is object =>
     value !== null && typeof value === "object" && !Array.isArray(value),

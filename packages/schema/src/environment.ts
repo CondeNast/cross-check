@@ -1,7 +1,6 @@
 import { ObjectModel, ValidationError, validate } from "@cross-check/core";
 import build from "@cross-check/dsl";
 import Task from "no-show";
-import { Dict } from "ts-std";
 import { dehydrated } from "./descriptors";
 import { RecordImpl } from "./record";
 import { Registry } from "./registry";
@@ -14,7 +13,7 @@ import {
   listTypes,
   schemaFormat,
   toJSON,
-  typescript
+  typescript,
 } from "./types";
 
 export class Environment {
@@ -24,8 +23,11 @@ export class Environment {
     readonly objectModel: ObjectModel
   ) {}
 
-  validate(name: string, obj: Dict): Task<ValidationError[]> {
-    let { dictionary } = this.registry.getRecord(name, this.params);
+  validate(
+    name: string,
+    obj: { [key: string]: unknown }
+  ): Task<ValidationError[]> {
+    const { dictionary } = this.registry.getRecord(name, this.params);
 
     return validate(
       obj,
@@ -47,16 +49,21 @@ export class Environment {
     return new Formatters(this.registry, this.params);
   }
 
-  get validation(): (name: string, value: Dict) => Task<ValidationError[]> {
-    return (name: string, value: Dict) => {
-      let impl = this.hydrate(name);
+  get validation(): (
+    name: string,
+    value: { [key: string]: unknown }
+  ) => Task<ValidationError[]> {
+    return (name: string, value: { [key: string]: unknown }) => {
+      const impl = this.hydrate(name);
       return impl.validate(value, this.objectModel);
     };
   }
 
-  validator(name: string): (value: Dict) => Task<ValidationError[]> {
-    return (value: Dict) => {
-      let impl = this.hydrate(name);
+  validator(
+    name: string
+  ): (value: { [key: string]: unknown }) => Task<ValidationError[]> {
+    return (value: { [key: string]: unknown }) => {
+      const impl = this.hydrate(name);
       return impl.validate(value, this.objectModel);
     };
   }
@@ -67,7 +74,7 @@ export class Environment {
 }
 
 export function env(registry: Registry, objectModel: ObjectModel) {
-  return (params: dehydrated.HydrateParameters) =>
+  return (params: dehydrated.HydrateParameters): Environment =>
     new Environment(registry, params, objectModel);
 }
 

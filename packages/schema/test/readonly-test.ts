@@ -7,32 +7,32 @@ const mod = module("[schema] readonly");
 
 mod.test(
   "readonly() means read: true, create: false, update: false",
-  async assert => {
+  async (assert) => {
     await testMode(assert, ISODate().readonly(), { read: true });
   }
 );
 
 mod.test(
   `writable({ on: "create" }) means read: true, create: true, update: false`,
-  async assert => {
+  async (assert) => {
     await testMode(assert, ISODate().writable({ on: "create" }), {
       create: true,
-      read: true
+      read: true,
     });
   }
 );
 
 mod.test(
   `writable({ on: "update" }) means read: true, create: false, update: true`,
-  async assert => {
+  async (assert) => {
     await testMode(assert, ISODate().writable({ on: "update" }), {
       read: true,
-      update: true
+      update: true,
     });
   }
 );
 
-mod.test("no readonly() means always required", async assert => {
+mod.test("no readonly() means always required", async (assert) => {
   await testMode(assert, ISODate(), { create: true, read: true, update: true });
 });
 
@@ -41,20 +41,24 @@ async function testMode(
   type: builders.TypeBuilder,
   options: { read?: true; create?: true; update?: true }
 ) {
-  let modes: Array<"create" | "read" | "update"> = ["create", "read", "update"];
+  const modes: Array<"create" | "read" | "update"> = [
+    "create",
+    "read",
+    "update",
+  ];
 
   const Article = Record("Article", {
     fields: {
-      createdAt: type
-    }
+      createdAt: type,
+    },
   });
 
-  for (let mode of modes) {
-    let registry = REGISTRY.clone({
-      record: resolve
+  for (const mode of modes) {
+    const registry = REGISTRY.clone({
+      record: resolve,
     });
-    let recordWithMode = Article.with({ mode, registry });
-    let result = await recordWithMode.validate({}, ENV);
+    const recordWithMode = Article.with({ mode, registry });
+    const result = await recordWithMode.validate({}, ENV);
 
     if (options[mode]) {
       assert.deepEqual(result, [keysError({ missing: ["createdAt"] })]);

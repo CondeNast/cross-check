@@ -1,4 +1,3 @@
-import { Dict } from "ts-std";
 import { exhausted } from "../../utils";
 import { Buffer as StringBuffer } from "./buffer";
 import * as visitor from "./visitor";
@@ -245,7 +244,7 @@ export enum Pos {
   IsRequired = Pos.ExplicitRequired | Pos.PositionRequired
 }
 
-export function formatPosition(position: Pos): Dict<boolean> {
+export function formatPosition(position: Pos): { [key: string]: boolean } {
   return {
     first: isFirst(position),
     last: isLast(position),

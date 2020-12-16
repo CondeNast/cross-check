@@ -1,8 +1,8 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { JSONObject } from "ts-std";
 import { dehydrated } from "../../index";
 import { Type } from "../../type";
 import { DictionaryType } from "../../types/fundamental";
+import { JSONObject } from "../../utils";
 import { ANY } from "./core";
 
 export abstract class ReferenceImpl implements Type {

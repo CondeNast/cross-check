@@ -5,7 +5,6 @@ import {
   validate
 } from "@cross-check/core";
 import { Task } from "no-show";
-import { Option } from "ts-std";
 import { ValidationBuilder, build } from "../builders";
 import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
@@ -33,7 +32,7 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
     protected descriptor: ValidationDescriptor<unknown>
   ) {}
 
-  run(value: unknown, context: Option<string>): Task<ValidationError[]> {
+  run(value: unknown, context: string | null): Task<ValidationError[]> {
     return new Task(async run => {
       let errors: ValidationError[] = [];
 

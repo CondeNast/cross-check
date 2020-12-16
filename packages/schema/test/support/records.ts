@@ -5,7 +5,6 @@ import {
   formatDescriptor,
   types
 } from "@cross-check/schema";
-import { Dict } from "ts-std";
 import { ISODate, Url } from "../support";
 
 export const SimpleArticle: Record = Record("SimpleArticle", {
@@ -124,7 +123,7 @@ if (DEBUG_LOG === "debug") {
   console.log(formatDescriptor(Nesting.descriptor));
 }
 
-const Records: Dict<RecordBuilder> = {
+const Records: { [key: string]: RecordBuilder } = {
   SimpleArticle,
   MediumArticle,
   Related,

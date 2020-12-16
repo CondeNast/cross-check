@@ -1,8 +1,7 @@
-import { Dict } from "ts-std";
 import { error, missingError, module, typeError, urlish } from "./support";
 import { MediumArticle } from "./support/records";
 
-function create(object: Dict = {}) {
+function create(object: Record<string, unknown> = {}) {
   return {
     hed: null,
     dek: null,
@@ -15,12 +14,12 @@ function create(object: Dict = {}) {
     geo: null,
     contributors: null,
     relatedArticles: null,
-    ...object
+    ...object,
   };
 }
 
 const mod = module("[schema] - detailed schema", {
-  record: MediumArticle
+  record: MediumArticle,
 });
 
 mod.test(
@@ -38,7 +37,7 @@ mod.test("drafts", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "Not\nactually\na\nsingle\nline",
-      canonicalUrl: "totally -- invalid :: url"
+      canonicalUrl: "totally -- invalid :: url",
     }),
     [],
     "can be missing fields"
@@ -47,7 +46,7 @@ mod.test("drafts", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      categories: []
+      categories: [],
     }),
     [],
     "can supply empty arrays for required arrays"
@@ -56,7 +55,7 @@ mod.test("drafts", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      categories: ["This\nis\na multiline\nstring"]
+      categories: ["This\nis\na multiline\nstring"],
     }),
     [],
     "arrays use the draft type of their members"
@@ -76,13 +75,13 @@ mod.test("published documents", async (assert, { validate }) => {
       categories: null,
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [
       typeError("string:single-line", "hed"),
       missingError("body"),
       error("url", ["absolute"], "canonicalUrl"),
-      missingError("categories")
+      missingError("categories"),
     ],
     "match the schema"
   );
@@ -100,7 +99,7 @@ mod.test("published documents", async (assert, { validate }) => {
       canonicalUrl: null,
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("string", "tags.0"), typeError("string", "tags.2")],
     "if an optional field is present, it must match the schema"
@@ -111,7 +110,7 @@ mod.test("dates (issueDate)", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      issueDate: "not -- a valid :: date"
+      issueDate: "not -- a valid :: date",
     }),
     [typeError("iso-date", "issueDate")],
     "dates don't widen into strings for drafts"
@@ -130,7 +129,7 @@ mod.test("dates (issueDate)", async (assert, { validate }) => {
       tags: null,
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("iso-date", "issueDate")]
   );
@@ -142,8 +141,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       hed: "hello world",
       geo: {
         lat: null,
-        long: null
-      }
+        long: null,
+      },
     }),
     [],
     "drafts do not need nested required fields"
@@ -155,7 +154,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       body: "Hello world\nMore content",
       geo: {
         lat: null,
-        long: null
+        long: null,
       },
       categories: ["single"],
 
@@ -165,7 +164,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [missingError("geo.lat"), missingError("geo.long")],
     "published documents must include nested required fields if dictionary is present"
@@ -184,7 +183,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [],
     "published documents may leave out optional dictionaries"
@@ -203,7 +202,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       contributors: null,
       categories: null,
       geo: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [missingError("categories")],
     "published documents may not leave out required dictionaries"
@@ -220,7 +219,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      categories: null
+      categories: null,
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in drafts use the draft type (but numbers still aren't strings)"
@@ -239,7 +238,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in published documents use the record type (but numbers aren't strings)"
@@ -258,11 +257,11 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       canonicalUrl: null,
       tags: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [
       typeError("number:integer", "geo.lat"),
-      typeError("number:integer", "geo.long")
+      typeError("number:integer", "geo.long"),
     ],
     "nested fields in published documents use the record type (floats aren't integers)"
   );
@@ -270,7 +269,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      author: { first: "Christina\nTODO: Check", last: "Kung" }
+      author: { first: "Christina\nTODO: Check", last: "Kung" },
     }),
     [],
     "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
@@ -289,7 +288,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       geo: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("string:single-line", "author.first")],
     "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
@@ -302,8 +301,8 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       hed: "hello world",
       geo: {
         lat: null,
-        long: null
-      }
+        long: null,
+      },
     }),
     [],
     "drafts do not need nested required fields"
@@ -315,7 +314,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       body: "Hello world\nMore content",
       geo: {
         lat: null,
-        long: null
+        long: null,
       },
       categories: ["single"],
 
@@ -325,7 +324,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [missingError("geo.lat"), missingError("geo.long")],
     "published documents must include nested required fields if dictionary is present"
@@ -344,7 +343,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       contributors: null,
       geo: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [],
     "published documents may leave out optional dictionaries"
@@ -363,7 +362,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       geo: null,
       categories: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [missingError("categories")],
     "published documents may not leave out required dictionaries"
@@ -372,7 +371,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      geo: { lat: "10", long: "20" }
+      geo: { lat: "10", long: "20" },
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in drafts use the draft type (but numbers still are't strings)"
@@ -391,7 +390,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("number", "geo.lat"), typeError("number", "geo.long")],
     "nested fields in published documents use the record type (but numbers aren't strings)"
@@ -400,7 +399,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
   assert.deepEqual(
     await validate.sloppy({
       hed: "hello world",
-      author: { first: "Christina\nTODO: Check", last: "Kung" }
+      author: { first: "Christina\nTODO: Check", last: "Kung" },
     }),
     [],
     "nested fields in drafts use the draft type (multiline strings are accepted for single-line strings)"
@@ -419,7 +418,7 @@ mod.test("optional dictionaries (geo)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       geo: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("string:single-line", "author.first")],
     "nested fields in published documents use the record type (multiline strings are not valid single-line strings)"
@@ -440,7 +439,7 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("present-array", "categories")],
     "in published documents, required lists must have at least one element"
@@ -451,7 +450,7 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
       hed: "A single line",
       body: "Hello world\nMore content",
       geo: { lat: 10, long: 20 },
-      categories: []
+      categories: [],
     }),
     [],
     "in drafts, required lists may be empty"
@@ -470,7 +469,7 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
       contributors: null,
       author: null,
       categories: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [typeError("present", "categories")],
     "in published documents, required lists may not be missing"
@@ -480,7 +479,7 @@ mod.test("required lists (categories)", async (assert, { validate }) => {
     await validate.sloppy({
       hed: "A single line",
       body: "Hello world\nMore content",
-      geo: { lat: 10, long: 20 }
+      geo: { lat: 10, long: 20 },
     }),
     [],
     "in drafts, required lists may be missing"
@@ -501,7 +500,7 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       canonicalUrl: null,
       contributors: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [],
     "in published documents, optional lists may be empty"
@@ -513,7 +512,7 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       body: "Hello world\nMore content",
       geo: { lat: 10, long: 20 },
       tags: [],
-      categories: ["somecategory"]
+      categories: ["somecategory"],
     }),
     [],
     "in drafts, optional lists may be empty"
@@ -532,7 +531,7 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       tags: null,
       contributors: null,
       author: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     [],
     "in published documents, optional lists may be missing"
@@ -543,7 +542,7 @@ mod.test("optional lists (tags)", async (assert, { validate }) => {
       hed: "A single line",
       body: "Hello world\nMore content",
       categories: ["somecategory"],
-      geo: { lat: 10, long: 20 }
+      geo: { lat: 10, long: 20 },
     }),
     [],
     "in drafts, optional lists may be missing"
@@ -555,7 +554,7 @@ mod.test("parsing", (assert, { registry }) => {
     MediumArticle.with({ registry }).parse({
       hed: "Hello world",
       body: "The body",
-      categories: ["one category", "two categories"]
+      categories: ["one category", "two categories"],
     }),
     {
       hed: "Hello world",
@@ -568,7 +567,7 @@ mod.test("parsing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }
   );
 
@@ -584,7 +583,7 @@ mod.test("parsing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }),
     {
       hed: "Hello world",
@@ -597,12 +596,12 @@ mod.test("parsing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: null,
       contributors: null,
-      relatedArticles: null
+      relatedArticles: null,
     }
   );
 
-  let date = new Date();
-  let url = urlish("https://example.com/path/to/hello");
+  const date = new Date();
+  const url = urlish("https://example.com/path/to/hello");
 
   assert.deepEqual(
     MediumArticle.with({ registry }).parse({
@@ -610,7 +609,7 @@ mod.test("parsing", (assert, { registry }) => {
       dek: "Hello. Hello world.",
       body: "The body",
       author: {
-        first: "Christina"
+        first: "Christina",
         // nested missing stuff serializes to nulls
       },
       issueDate: date.toISOString(),
@@ -619,14 +618,14 @@ mod.test("parsing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: {
         lat: 100,
-        long: 100
+        long: 100,
       },
       contributors: [
         { first: "Dan" },
         { last: "Ohara" },
-        { first: "Godfrey", last: "Chan" }
+        { first: "Godfrey", last: "Chan" },
       ],
-      relatedArticles: null
+      relatedArticles: null,
     }),
     {
       hed: "Hello world",
@@ -634,7 +633,7 @@ mod.test("parsing", (assert, { registry }) => {
       body: "The body",
       author: {
         first: "Christina",
-        last: null
+        last: null,
       },
       issueDate: date,
       canonicalUrl: url,
@@ -642,14 +641,14 @@ mod.test("parsing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: {
         lat: 100,
-        long: 100
+        long: 100,
       },
       contributors: [
         { first: "Dan", last: null },
         { first: null, last: "Ohara" },
-        { first: "Godfrey", last: "Chan" }
+        { first: "Godfrey", last: "Chan" },
       ],
-      relatedArticles: null
+      relatedArticles: null,
     }
   );
 });
@@ -660,18 +659,18 @@ mod.test("serializing", (assert, { registry }) => {
       create({
         hed: "Hello world",
         body: "The body",
-        categories: ["one category", "two categories"]
+        categories: ["one category", "two categories"],
       })
     ),
     {
       hed: "Hello world",
       body: "The body",
-      categories: ["one category", "two categories"]
+      categories: ["one category", "two categories"],
     }
   );
 
-  let date = new Date();
-  let url = urlish("https://example.com/path/to/hello");
+  const date = new Date();
+  const url = urlish("https://example.com/path/to/hello");
 
   assert.deepEqual(
     MediumArticle.with({ registry }).serialize(
@@ -681,7 +680,7 @@ mod.test("serializing", (assert, { registry }) => {
         body: "The body",
         author: {
           first: "Christina",
-          last: null
+          last: null,
         },
         issueDate: date,
         canonicalUrl: url,
@@ -689,13 +688,13 @@ mod.test("serializing", (assert, { registry }) => {
         categories: ["one category", "two categories"],
         geo: {
           lat: 100,
-          long: 100
+          long: 100,
         },
         contributors: [
           { first: "Dan", last: null },
           { first: null, last: "Ohara" },
-          { first: "Godfrey", last: "Chan" }
-        ]
+          { first: "Godfrey", last: "Chan" },
+        ],
       })
     ),
     {
@@ -703,7 +702,7 @@ mod.test("serializing", (assert, { registry }) => {
       dek: "Hello. Hello world.",
       body: "The body",
       author: {
-        first: "Christina"
+        first: "Christina",
       },
       issueDate: date.toISOString(),
       canonicalUrl: url.toString(),
@@ -711,13 +710,13 @@ mod.test("serializing", (assert, { registry }) => {
       categories: ["one category", "two categories"],
       geo: {
         lat: 100,
-        long: 100
+        long: 100,
       },
       contributors: [
         { first: "Dan" },
         { last: "Ohara" },
-        { first: "Godfrey", last: "Chan" }
-      ]
+        { first: "Godfrey", last: "Chan" },
+      ],
     }
   );
 });

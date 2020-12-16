@@ -1,11 +1,7 @@
-.ember-cli
-DEBUG
 *.tgz
-dist/**/test
-dist/**/node_modules
-ember-cli-build.js
+.DS_Store
+.npmrc
+src
 test
-testem.js
-tmp
 tsconfig.json
-tslint.json
+tsconfig.modules.json

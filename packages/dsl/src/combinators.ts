@@ -5,7 +5,7 @@ import {
   ValidationError,
   Validator,
   ValidatorFactory,
-  validate
+  validate,
 } from "@cross-check/core";
 import { Task } from "no-show";
 
@@ -27,9 +27,9 @@ export function chain<T>(
   objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      for (let descriptor of descriptors) {
-        let errors = await run(
+    return new Task(async (run) => {
+      for (const descriptor of descriptors) {
+        const errors = await run(
           validate(value, descriptor, context, objectModel)
         );
         if (errors.length) return errors;
@@ -52,10 +52,10 @@ export function and<T>(
   objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      let result: ValidationError[] = [];
+    return new Task(async (run) => {
+      const result: ValidationError[] = [];
 
-      for (let descriptor of descriptors) {
+      for (const descriptor of descriptors) {
         mergeErrors(
           result,
           await run(validate(value, descriptor, context, objectModel))
@@ -80,11 +80,11 @@ export function or<T>(
   objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      let result: ValidationError[][] = [];
+    return new Task(async (run) => {
+      const result: ValidationError[][] = [];
 
-      for (let descriptor of descriptors) {
-        let errors = await run(
+      for (const descriptor of descriptors) {
+        const errors = await run(
           validate(value, descriptor, context, objectModel)
         );
 
@@ -118,12 +118,12 @@ export function ifValid<T>(
   objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      let head = descriptors.slice(0, -1);
-      let tail = descriptors.slice(-1)[0];
+    return new Task(async (run) => {
+      const head = descriptors.slice(0, -1);
+      const tail = descriptors.slice(-1)[0];
 
-      for (let descriptor of head) {
-        let errors = await run(
+      for (const descriptor of head) {
+        const errors = await run(
           validate(value, descriptor, context, objectModel)
         );
 
@@ -153,8 +153,10 @@ export function mapError<T>(
   objectModel: ObjectModel
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
-    return new Task(async run => {
-      let errors = await run(validate(value, options.do, context, objectModel));
+    return new Task(async (run) => {
+      const errors = await run(
+        validate(value, options.do, context, objectModel)
+      );
 
       if (errors.length) {
         return options.catch(errors);
@@ -170,19 +172,20 @@ export function muteAll(): MapErrorTransform {
 }
 
 export function muteType(type: string): MapErrorTransform {
-  return errors => errors.filter(error => error.message.name !== type);
+  return (errors) => errors.filter((error) => error.message.name !== type);
 }
 
 export function mutePath(path: ErrorPath, exact = false): MapErrorTransform {
-  return errors => errors.filter(error => !matchPath(path, error.path, exact));
+  return (errors) =>
+    errors.filter((error) => !matchPath(path, error.path, exact));
 }
 
 function mergeErrors(
   base: ValidationError[],
   additions: ValidationError[]
 ): void {
-  additions.forEach(addition => {
-    if (base.every(error => !matchError(error, addition))) {
+  additions.forEach((addition) => {
+    if (base.every((error) => !matchError(error, addition))) {
       base.push(addition);
     }
   });

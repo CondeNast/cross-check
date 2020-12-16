@@ -5,7 +5,6 @@ import validates, {
   validators
 } from "@cross-check/dsl";
 import Task from "no-show";
-import { Option, isIndexable } from "ts-std";
 import { buildAndRun as runWithEnv, defaultRun } from "../support";
 
 describe("Validators (array)", () => {
@@ -15,7 +14,7 @@ describe("Validators (array)", () => {
   }
 
   function failure(
-    path: Option<string>,
+    path: string | null,
     type: string,
     details: unknown
   ): ValidationError {
@@ -51,15 +50,15 @@ describe("Validators (array)", () => {
   test("custom asList", async () => {
     const ENV = {
       get(value: unknown, key: string): unknown {
-        if (isIndexable(value)) {
+        if (value !== null && (typeof value === 'object' || typeof value === 'function')) {
           return value[key];
         } else {
           return;
         }
       },
 
-      asList(value: unknown): Option<Iterable<unknown>> {
-        if (isIndexable(value) && value.toArray) {
+      asList(value: unknown): Iterable<unknown | null> {
+        if (value !== null && (typeof value === 'object' || typeof value === 'function') && "toArray" in value) {
           return iterable(value as { toArray(): Array<unknown> });
         } else {
           return null;

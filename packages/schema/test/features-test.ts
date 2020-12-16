@@ -4,7 +4,7 @@ import {
   Record,
   builders,
   dehydrated,
-  types
+  types,
 } from "@cross-check/schema";
 import {
   ENV,
@@ -12,7 +12,7 @@ import {
   missingError,
   module,
   typeError,
-  validate
+  validate,
 } from "./support";
 import { Features, resolve } from "./support/records";
 
@@ -26,14 +26,14 @@ mod.test(
         Features.with({
           registry,
           features: ["category-picker", "description", "map"],
-          draft: true
+          draft: true,
         }),
         {
           hed: null,
           dek: null,
           categories: null,
           description: null,
-          location: null
+          location: null,
         }
       ),
       [],
@@ -50,14 +50,14 @@ mod.test(
         Features.with({
           registry,
           features: ["category-picker", "description", "map"],
-          draft: true
+          draft: true,
         }),
         {
           hed: "Hello world",
           dek: "Hello, the cool world!",
           categories: null,
           description: null,
-          location: null
+          location: null,
         }
       ),
       [],
@@ -131,19 +131,19 @@ class RowMatches {
   }
 
   has(match: RowMatch): boolean {
-    let required = this.matches.get(match.required);
+    const required = this.matches.get(match.required);
 
     if (!required) {
       return false;
     }
 
-    let draft = required.get(match.draft);
+    const draft = required.get(match.draft);
 
     if (!draft) {
       return false;
     }
 
-    let flagged = draft.get(match.flagged);
+    const flagged = draft.get(match.flagged);
 
     if (!flagged) {
       return false;
@@ -156,17 +156,17 @@ class RowMatches {
 type MatchValue = "null" | "missing" | "success" | "failure";
 
 function rowMatch(row: Row): RowMatch[] {
-  let requiredValues = normalize(row.required, [true, false]);
-  let draftValues = normalize(row.draft, [true, false]);
-  let flaggedValues = normalize(row.flagged, ["on", "off"]).map(
-    v => v === "on"
+  const requiredValues = normalize(row.required, [true, false]);
+  const draftValues = normalize(row.draft, [true, false]);
+  const flaggedValues = normalize(row.flagged, ["on", "off"]).map(
+    (v) => v === "on"
   );
 
-  let values: MatchValue[] = [];
+  const values: MatchValue[] = [];
 
   if ("success" in row) {
     values.push(
-      ...row.success.map(r => {
+      ...row.success.map((r) => {
         if (r === null) return "null";
         else if (r === undefined) return "missing";
         else return "success";
@@ -174,7 +174,7 @@ function rowMatch(row: Row): RowMatch[] {
     );
   } else {
     values.push(
-      ...row.failures.map(r => {
+      ...row.failures.map((r) => {
         if (r === null) return "null";
         else if (r === undefined) return "missing";
         else return "failure";
@@ -182,17 +182,17 @@ function rowMatch(row: Row): RowMatch[] {
     );
   }
 
-  let matches: RowMatch[] = [];
+  const matches: RowMatch[] = [];
 
-  requiredValues.forEach(required =>
-    draftValues.forEach(draft =>
-      flaggedValues.forEach(flagged =>
-        values.forEach(value =>
+  requiredValues.forEach((required) =>
+    draftValues.forEach((draft) =>
+      flaggedValues.forEach((flagged) =>
+        values.forEach((value) =>
           matches.push({
             required,
             draft,
             flagged,
-            value
+            value,
           })
         )
       )
@@ -228,7 +228,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
     draft,
     value,
     expected,
-    description
+    description,
   }: {
     required: boolean;
     flagged: boolean;
@@ -238,7 +238,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
     description: string;
   }) {
     let type = options.type;
-    let matrix = [];
+    const matrix = [];
 
     if (required) {
       type = options.type.required();
@@ -250,18 +250,18 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
     type = type.features(["flag"]);
 
     const registry = REGISTRY.clone({
-      record: resolve
+      record: resolve,
     });
 
     const FeaturesRecordBuilder = Record("Flag", {
       fields: {
-        field: type
-      }
+        field: type,
+      },
     });
 
     registry.register(FeaturesRecordBuilder);
 
-    let hydrateParams: dehydrated.HydrateParameters = { registry };
+    const hydrateParams: dehydrated.HydrateParameters = { registry };
 
     if (draft) {
       hydrateParams.draft = true;
@@ -278,9 +278,9 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       matrix.push("flagged: off");
     }
 
-    let FeaturesRecord = FeaturesRecordBuilder.with(hydrateParams);
+    const FeaturesRecord = FeaturesRecordBuilder.with(hydrateParams);
 
-    let testValue: { field?: unknown } = {};
+    const testValue: { field?: unknown } = {};
 
     if (value === null) {
       testValue.field = null;
@@ -292,7 +292,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       matrix.push(`value: ${JSON.stringify(value)}`);
     }
 
-    let result = await FeaturesRecord.validate(testValue, ENV);
+    const result = await FeaturesRecord.validate(testValue, ENV);
 
     assert.deepEqual(
       result,
@@ -310,21 +310,21 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       | { draft: ValidationError[]; published: ValidationError[] },
     description: string
   ) {
-    let matches = Array.isArray(cases) ? cases : [cases];
+    const matches = Array.isArray(cases) ? cases : [cases];
 
-    matches.forEach(matchOptions => {
-      let required = normalize(matchOptions.required, [true, false]);
-      let draft = normalize(matchOptions.draft, [true, false]);
-      let flagged = normalize(matchOptions.flagged, ["on", "off"]);
-      let values =
+    matches.forEach((matchOptions) => {
+      const required = normalize(matchOptions.required, [true, false]);
+      const draft = normalize(matchOptions.draft, [true, false]);
+      const flagged = normalize(matchOptions.flagged, ["on", "off"]);
+      const values =
         "success" in matchOptions
           ? matchOptions.success
           : matchOptions.failures;
 
-      normalize(required, [true, false]).forEach(r => {
-        normalize(draft, [true, false]).forEach(d => {
-          normalize(flagged, ["on", "off"]).forEach(f => {
-            values.forEach(value => {
+      normalize(required, [true, false]).forEach((r) => {
+        normalize(draft, [true, false]).forEach((d) => {
+          normalize(flagged, ["on", "off"]).forEach((f) => {
+            values.forEach((value) => {
               let expectedErrors;
 
               if (Array.isArray(expected)) {
@@ -341,7 +341,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
                 draft: d,
                 value,
                 expected: expectedErrors,
-                description
+                description,
               });
             });
           });
@@ -358,15 +358,15 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       expected: ValidationError[],
       description: string
     ) {
-      let matches: RowMatch[] = [];
+      const matches: RowMatch[] = [];
 
       if (Array.isArray(cases)) {
-        cases.forEach(c => matches.push(...rowMatch(c)));
+        cases.forEach((c) => matches.push(...rowMatch(c)));
       } else {
         matches.push(...rowMatch(cases));
       }
 
-      matches.forEach(m => {
+      matches.forEach((m) => {
         this.matches.add(m);
       });
 
@@ -374,17 +374,17 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
     }
 
     exhaustiveCheck() {
-      [true, false].forEach(required => {
-        [true, false].forEach(draft => {
-          [true, false].forEach(flagged => {
-            let values: MatchValue[] = [
+      [true, false].forEach((required) => {
+        [true, false].forEach((draft) => {
+          [true, false].forEach((flagged) => {
+            const values: MatchValue[] = [
               "null",
               "missing",
               "success",
-              "failure"
+              "failure",
             ];
-            values.forEach(value => {
-              let matchValue = { required, draft, flagged, value };
+            values.forEach((value) => {
+              const matchValue = { required, draft, flagged, value };
               assert.ok(
                 this.matches.has(matchValue),
                 `Exhaustiveness check: ${JSON.stringify(matchValue)}`
@@ -396,7 +396,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
     }
   }
 
-  let matcher = new Matcher();
+  const matcher = new Matcher();
 
   // Combinations:
   // flagged off, *: the field doesn't exist
@@ -419,13 +419,13 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       flagged: "off",
       draft: "any",
       required: "any",
-      success: [null, options.success]
+      success: [null, options.success],
     },
     [keysError({ extra: ["field"] })],
     "flagged off fields don't allow providing missing values"
   );
 
-  for (let test of options.cases) {
+  for (const test of options.cases) {
     matcher.match(
       { flagged: "off", draft: "any", required: "any", failures: [test.value] },
       [keysError({ extra: ["field"] })],
@@ -439,8 +439,8 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
         flagged: "on",
         required: "any",
         draft: "any",
-        failures: [undefined]
-      }
+        failures: [undefined],
+      },
     ],
     [keysError({ missing: ["field"] })],
     "missing value when flagged on"
@@ -455,14 +455,14 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
         flagged: "on",
         required: false,
         draft: "any",
-        success: [null, options.success]
+        success: [null, options.success],
       },
       {
         flagged: "on",
         required: true,
         draft: true,
-        success: [null, options.success]
-      }
+        success: [null, options.success],
+      },
     ],
     [],
     "optional allows null or success values"
@@ -475,22 +475,22 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
         flagged: "on",
         required: true,
         draft: true,
-        success: [undefined]
-      }
+        success: [undefined],
+      },
     ],
     [keysError({ missing: ["field"] })],
     "optional still requires the field when flagged on"
   );
 
-  for (let failure of options.cases) {
+  for (const failure of options.cases) {
     matcher.match(
       [
         {
           flagged: "on",
           required: false,
           draft: true,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.draftErrors || [],
       "failure value in draft"
@@ -502,8 +502,8 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
           flagged: "on",
           required: false,
           draft: false,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.errors || [],
       "failure value in published"
@@ -515,8 +515,8 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
           flagged: "on",
           required: true,
           draft: true,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.draftErrors || [],
       "failure value in published"
@@ -528,8 +528,8 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
           flagged: "on",
           required: false,
           draft: true,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.draftErrors || [],
       "failure value in draft"
@@ -544,7 +544,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       flagged: "on",
       required: true,
       draft: false,
-      success: [options.success]
+      success: [options.success],
     },
     [],
     "published/required"
@@ -555,21 +555,21 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
       flagged: "on",
       required: true,
       draft: false,
-      failures: [null]
+      failures: [null],
     },
     [missingError("field")],
     "published/required disallows null"
   );
 
-  for (let failure of options.cases) {
+  for (const failure of options.cases) {
     matcher.match(
       [
         {
           flagged: "on",
           required: true,
           draft: false,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.errors || [],
       "failure value"
@@ -581,8 +581,8 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
           flagged: "on",
           required: true,
           draft: true,
-          failures: [failure.value]
-        }
+          failures: [failure.value],
+        },
       ],
       failure.draftErrors || [],
       "failure value"
@@ -592,7 +592,7 @@ async function testType(assert: typeof QUnit.assert, options: TestCase) {
   matcher.exhaustiveCheck();
 }
 
-mod.test("feature flag matrix", async assert => {
+mod.test("feature flag matrix", async (assert) => {
   await testType(assert, {
     type: types.SingleLine(),
     success: "hello world",
@@ -600,14 +600,14 @@ mod.test("feature flag matrix", async assert => {
       {
         value: 1,
         errors: [typeError("string", "field")],
-        draftErrors: [typeError("string", "field")]
+        draftErrors: [typeError("string", "field")],
       },
       {
         value: "hello\nworld",
         errors: [typeError("string:single-line", "field")],
-        draftErrors: []
-      }
-    ]
+        draftErrors: [],
+      },
+    ],
   });
 
   await testType(assert, {
@@ -617,14 +617,14 @@ mod.test("feature flag matrix", async assert => {
       {
         value: 5.5,
         errors: [typeError("number:integer", "field")],
-        draftErrors: [typeError("number:integer", "field")]
+        draftErrors: [typeError("number:integer", "field")],
       },
       {
         value: "5",
         errors: [typeError("number", "field")],
-        draftErrors: [typeError("number", "field")]
-      }
-    ]
+        draftErrors: [typeError("number", "field")],
+      },
+    ],
   });
 });
 
@@ -634,7 +634,7 @@ mod.test(
     assert.deepEqual(
       await validate(Features.with({ registry, features: [] }), {
         hed: "Hello world",
-        dek: "Hello, the cool world!"
+        dek: "Hello, the cool world!",
       }),
       [],
       "flagged out fields are missing"
@@ -648,7 +648,7 @@ mod.test(
     assert.deepEqual(
       await validate(Features.with({ registry, features: [], draft: true }), {
         hed: null,
-        dek: null
+        dek: null,
       }),
       [],
       "flagged out fields fields are missing in drafts"

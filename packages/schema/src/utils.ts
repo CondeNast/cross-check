@@ -1,8 +1,17 @@
 import { ErrorPath, ValidationError } from "@cross-check/core";
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, dict, entries } from "ts-std";
 
-export { JSON as JSONValue } from "ts-std";
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONObject
+  | JSONArray;
+export type JSONObject = { [key: string]: JSONValue | undefined };
+export type JSONArray = Array<JSONValue>;
+
+export default JSONValue;
 
 export function exhausted(x: never): never {
   throw new Error("Unexpected object: " + x);
@@ -21,18 +30,18 @@ function isMultiple(error: ValidationError): error is Multiple {
 }
 
 export type MapDict<
-  D extends Dict,
+  D extends Record<string, unknown>,
   C extends (value: any, key?: any) => unknown
-> = { [P in keyof D]: ReturnType<C> };
+> = { [P in keyof D]: Exclude<ReturnType<C>, undefined> };
 
 export function mapDict<T, U>(
-  input: Dict<T>,
+  input: Record<string, T>,
   callback: (value: T, key: keyof typeof input) => U
 ): MapDict<typeof input, typeof callback> {
-  let out = dict();
+  const out = Object.create(null);
 
-  for (let [key, value] of entries(input)) {
-    let result = callback(value!, key);
+  for (const [key, value] of Object.entries(input)) {
+    const result = callback(value, key);
     if (result !== undefined) {
       out[key] = result;
     }
@@ -41,7 +50,9 @@ export function mapDict<T, U>(
   return out as MapDict<typeof input, typeof callback>;
 }
 
-export function maybe<T>(validator: ValidationBuilder<T>) {
+export function maybe<T>(
+  validator: ValidationBuilder<T>
+): ValidationBuilder<T> {
   // This validators allows values to be absent, but if they are present,
   // requires them to comply with the specified validator. The `catch`
   // unwraps the `or` error join.
@@ -57,10 +68,10 @@ export function maybe<T>(validator: ValidationBuilder<T>) {
   return validators
     .isAbsent()
     .or(validator)
-    .catch(errors => {
-      let first = errors[0];
+    .catch((errors) => {
+      const first = errors[0];
       if (isMultiple(first)) {
-        let suberrors = first.message.details;
+        const suberrors = first.message.details;
 
         if (suberrors.length === 2) {
           return suberrors[1];

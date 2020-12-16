@@ -5,7 +5,6 @@ import {
   ValidatorFactory
 } from "@cross-check/core";
 import { Task } from "no-show";
-import { Option } from "ts-std";
 import { ValidationBuilder, validates } from "../builders";
 
 /**
@@ -35,7 +34,7 @@ export interface ValidatorClass<T, Options> {
  * @typeparam T  a valid input value for this validator instance.
  */
 export interface ValidatorInstance<T> {
-  run(value: T, context: Option<string>): Task<ValidationError[]>;
+  run(value: T, context: string | null): Task<ValidationError[]>;
 }
 
 /**

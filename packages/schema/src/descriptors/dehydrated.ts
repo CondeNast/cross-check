@@ -1,5 +1,4 @@
 import { ValidationBuilder } from "@cross-check/dsl";
-import { Dict, JSONObject } from "ts-std";
 import { RecordBuilder } from "../record";
 import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
@@ -13,7 +12,7 @@ import {
   PointerImpl,
   visitor
 } from "../types";
-import { JSONValue, exhausted, mapDict } from "../utils";
+import { JSONObject, JSONValue, exhausted, mapDict } from "../utils";
 import * as builders from "./builders";
 
 export type Args = JSONValue | undefined;
@@ -36,7 +35,7 @@ export interface Member {
 
 export interface Dictionary {
   readonly type: "Dictionary";
-  readonly members: Dict<Member>;
+  readonly members: { [key: string]: Member };
   readonly required: Required;
 }
 
@@ -193,9 +192,11 @@ export class Placeholder implements Type {
 
 export class PlaceholderDictionary extends Placeholder
   implements DictionaryType {
-  readonly type!: DictionaryImpl;
+  protected get type(): DictionaryImpl {
+    return super.type as DictionaryImpl;
+  }
 
-  get members(): Dict<Type> {
+  get members(): { [key: string]: Type } {
     return this.type.members;
   }
 }

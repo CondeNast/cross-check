@@ -1,6 +1,5 @@
 import { ValidationError, format } from "@cross-check/core";
 import validates, { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option } from "ts-std";
 import { buildAndRun as run } from "../support";
 import { keysError } from "../utils";
 
@@ -10,7 +9,7 @@ describe("Validators (object)", () => {
   }
 
   function failure(
-    path: Option<string>,
+    path: string | null,
     type: string,
     details: unknown
   ): ValidationError {
@@ -40,7 +39,7 @@ describe("Validators (object)", () => {
   });
 
   type ObjectBuilder = (
-    fields: Dict<ValidationBuilder<any>>
+    fields: Record<string, ValidationBuilder<any>>
   ) => ValidationBuilder<any>;
 
   [validators.fields, validators.object].forEach((builder: ObjectBuilder) => {

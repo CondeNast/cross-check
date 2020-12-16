@@ -1,5 +1,4 @@
 import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, assert } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";
@@ -9,12 +8,12 @@ export interface DictionaryImplOptions {
 }
 
 export interface DictionaryType extends Type {
-  readonly members: Dict<Type>;
+  readonly members: { [key: string]: Type };
 }
 
 export class DictionaryImpl implements DictionaryType {
   constructor(
-    readonly members: Dict<Type>,
+    readonly members: { [key: string]: Type },
     private options: DictionaryImplOptions
   ) {}
 
@@ -30,16 +29,15 @@ export class DictionaryImpl implements DictionaryType {
     };
   }
 
-  serialize(js: Dict): Option<Dict> {
+  serialize(js: { [key: string]: unknown }): { [key: string]: unknown } | null {
     if (js === null) {
       return null;
     }
 
     return mapDict(this.members, (member, key) => {
-      assert(
-        key in js,
-        `Serialization error: missing field \`${key}\` (must validate before serializing)`
-      );
+      if (!(key in js)) {
+        throw new Error(`Serialization error: missing field \`${key}\` (must validate before serializing)`);
+      }
 
       let result = member.serialize(js[key]);
 
@@ -49,7 +47,7 @@ export class DictionaryImpl implements DictionaryType {
     });
   }
 
-  parse(wire: Dict): Option<Dict> {
+  parse(wire: { [key: string]: unknown }): { [key: string]: unknown } | null {
     return mapDict(this.members, (member, key) => {
       let raw = wire[key];
 
@@ -75,12 +73,12 @@ export class DictionaryImpl implements DictionaryType {
 }
 
 export interface DictionaryOptions {
-  members: Dict<builders.MembersMeta>;
+  members: { [key: string]: builders.MembersMeta };
   name?: string;
 }
 
 export function Dictionary(
-  members: Dict<builders.TypeBuilderMember>
+  members: { [key: string]: builders.TypeBuilderMember }
 ): builders.DictionaryBuilder {
   return new builders.DictionaryBuilder({ members });
 }

@@ -9,7 +9,6 @@ import {
   Registry
 } from "@cross-check/schema";
 import Task from "no-show";
-import { Dict } from "ts-std";
 import { resolve } from "./records";
 import { ENV } from "./utils";
 
@@ -35,8 +34,8 @@ export type SubjectStringFormatFunction<O = void> = O extends void
 export type RecursiveFormatFunction<T> = (record: FormattableRecord) => T;
 export type SubjectRecursiveFormatFunction<T> = () => T;
 
-export type Validate = (name: string, value: Dict) => Task<ValidationError[]>;
-export type SubjectValidate = (value: Dict) => Task<ValidationError[]>;
+export type Validate = (name: string, value: { [key: string]: unknown }) => Task<ValidationError[]>;
+export type SubjectValidate = (value: { [key: string]: unknown }) => Task<ValidationError[]>;
 
 export interface TestEnv {
   published: Environment;

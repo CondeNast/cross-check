@@ -2,7 +2,7 @@ import { validate, validator } from "@cross-check/core";
 
 describe("validator", () => {
   test("void options using the synchronous API", async () => {
-    let isAllCaps = validator("is-all-caps", () => (input: string) =>
+    const isAllCaps = validator("is-all-caps", () => (input: string) =>
       input.toUpperCase() === input
     );
 
@@ -11,9 +11,9 @@ describe("validator", () => {
         path: [],
         message: {
           name: "is-all-caps",
-          details: null
-        }
-      }
+          details: null,
+        },
+      },
     ]);
 
     expect(await validate("Hello", isAllCaps())).toEqual([
@@ -21,16 +21,16 @@ describe("validator", () => {
         path: [],
         message: {
           name: "is-all-caps",
-          details: null
-        }
-      }
+          details: null,
+        },
+      },
     ]);
 
     expect(await validate("HELLO", isAllCaps())).toEqual([]);
   });
 
   test("with options using the synchronous API", async () => {
-    let lt = validator("lt", (upperBound: number) => (input: number) =>
+    const lt = validator("lt", (upperBound: number) => (input: number) =>
       input < upperBound
     );
 
@@ -39,9 +39,9 @@ describe("validator", () => {
         path: [],
         message: {
           name: "lt",
-          details: 5
-        }
-      }
+          details: 5,
+        },
+      },
     ]);
 
     expect(await validate(6, lt(5))).toEqual([
@@ -49,9 +49,9 @@ describe("validator", () => {
         path: [],
         message: {
           name: "lt",
-          details: 5
-        }
-      }
+          details: 5,
+        },
+      },
     ]);
 
     expect(await validate(4, lt(5))).toEqual([]);

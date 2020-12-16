@@ -6,12 +6,12 @@ export {
   Environment,
   ValidatorFactory,
   Validator,
-  ValidationDescriptor
+  ValidationDescriptor,
 } from "./descriptor";
 export * from "./validate";
 export * from "./format";
 export {
   BasicValidator,
   HigherOrderBasicValidator,
-  validator
+  validator,
 } from "./validator";

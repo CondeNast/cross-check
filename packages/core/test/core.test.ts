@@ -5,7 +5,7 @@ function desc(name: string, options: unknown = null): ValidationDescriptor {
     name,
     validator: () => null as any,
     options,
-    contexts: []
+    contexts: [],
   };
 }
 
@@ -18,7 +18,7 @@ function descOn(
     name,
     validator: () => null as any,
     options,
-    contexts
+    contexts,
   };
 }
 
@@ -29,7 +29,7 @@ describe("format", () => {
     [[undefined], "(call undefined)"],
     [[null], "(call null)"],
     [[() => null], "(call function() { ... })"],
-    [[class X { }], "(call class X { ... })"],
+    [[class X {}], "(call class X { ... })"],
     [[/hello world/i], "(call /hello world/i)"],
     [[{}], "(call {})"],
     [{ hello: {} }, "(call hello={})"],
@@ -37,15 +37,16 @@ describe("format", () => {
     [{ x: null, y: undefined }, "(call x=null y=undefined)"],
     [["some", "string"], `(call "some" "string")`],
     [[desc("string"), desc("url")], `(call (string) (url))`],
-    [[desc("url", { absolute: true }), desc("present")],
-      "(call (url absolute=true) (present))"
+    [
+      [desc("url", { absolute: true }), desc("present")],
+      "(call (url absolute=true) (present))",
     ],
     [
       [desc("present"), desc("number", { min: 1, max: 4 })],
-      "(call (present) (number min=1 max=4))"
+      "(call (present) (number min=1 max=4))",
     ],
-    [[descOn(["create"], "str")], `(call (str)::on(create))`]
-  ])('formatting a descriptor %p', (options: unknown, expected: string) => {
+    [[descOn(["create"], "str")], `(call (str)::on(create))`],
+  ])("formatting a descriptor %p", (options: unknown, expected: string) => {
     expect(format(desc("call", options))).toEqual(expected);
   });
 });

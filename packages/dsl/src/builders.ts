@@ -1,5 +1,4 @@
 import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
-import { assert } from "ts-std";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -7,7 +6,7 @@ import {
   chain,
   ifValid,
   mapError,
-  or
+  or,
 } from "./combinators";
 import { descriptor } from "./internal";
 import { ValidationCallback, factoryForCallback } from "./validators/callback";
@@ -174,7 +173,7 @@ export function build<T>(
       name,
       validator: factoryForCallback as ValidatorFactory<T, unknown>,
       options: buildable,
-      contexts: []
+      contexts: [],
     };
   } else if (isBuilder<T>(buildable)) {
     return buildable[BUILD]();
@@ -229,7 +228,7 @@ export function extend<T>({
   name,
   validator,
   options,
-  contexts
+  contexts,
 }: ValidationDescriptor<T, any>): ValidationBuilder<T> {
   if (validator === and) {
     return new AndBuilder("all", validator, options, contexts);
@@ -282,7 +281,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       and,
       [
         build(this) as ValidationDescriptor,
-        build(validation) as ValidationDescriptor
+        build(validation) as ValidationDescriptor,
       ],
       this.contexts
     );
@@ -294,7 +293,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       or,
       [
         build(this) as ValidationDescriptor,
-        build(validation) as ValidationDescriptor
+        build(validation) as ValidationDescriptor,
       ],
       this.contexts
     );
@@ -306,7 +305,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       ifValid,
       [
         build(validation) as ValidationDescriptor,
-        build(this) as ValidationDescriptor
+        build(this) as ValidationDescriptor,
       ],
       this.contexts
     );
@@ -320,7 +319,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       chain,
       [
         build(this) as ValidationDescriptor,
-        build(validation) as ValidationDescriptor
+        build(validation) as ValidationDescriptor,
       ],
       this.contexts
     );
@@ -336,10 +335,9 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
   }
 
   on(...contexts: string[]): BaseValidationBuilder<T, Options> {
-    assert(
-      !!contexts.length,
-      "You must provide at least one validation context"
-    );
+    if (contexts.length === 0) {
+      throw new Error("You must provide at least one validation context");
+    }
 
     return new OnBuilder(this.name, this.factory, this.options, contexts);
   }
@@ -417,10 +415,9 @@ class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
     options: Options,
     contexts: ReadonlyArray<string>
   ) {
-    assert(
-      !!contexts.length,
-      "You must provide at least one validation context"
-    );
+    if (contexts.length === 0) {
+      throw new Error("You must provide at least one validation context");
+    }
     super(name, factory, options, contexts);
   }
 

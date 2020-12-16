@@ -5,7 +5,7 @@ import {
   typeError,
   validate,
   validateDraft,
-  validatePublished
+  validatePublished,
 } from "./support";
 import { SimpleArticle } from "./support/records";
 
@@ -18,7 +18,7 @@ mod.test(
       await validateDraft(SimpleArticle, registry, {
         hed: null,
         dek: null,
-        body: null
+        body: null,
       }),
       [],
       "all fields can be null in drafts"
@@ -36,7 +36,7 @@ mod.test(
           hed: null,
           dek: null,
           body: null,
-          other: null
+          other: null,
         }
       ),
       [],
@@ -53,7 +53,7 @@ mod.test(
         hed: "hello world",
         dek: "this is the dek",
         body: "the body goes here",
-        other: null
+        other: null,
       }),
       [],
       "extra fields are permitted when strictKeys is false in publish mode"
@@ -68,7 +68,7 @@ mod.test(
       await validateDraft(SimpleArticle, registry, {
         hed: "Hello world\nMultiline strings are allowed in SingleLine",
         dek: "Hello, the cool world!",
-        body: null
+        body: null,
       }),
       [],
       "draft mode can accept the widened type"
@@ -81,7 +81,7 @@ mod.test("published drafts must be narrow", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world\nProblem here!",
       dek: "Hello, the cool world!",
-      body: null
+      body: null,
     }),
     [typeError("string:single-line", "hed"), missingError("body")],
     "published records must not be missing fields or have the widened type"
@@ -97,23 +97,23 @@ mod.test(
 
         // dek is allowed to be an empty string, because its type is not required
         dek: "",
-        body: ""
+        body: "",
       }),
       [
         {
           message: {
             details: null,
-            name: "blank"
+            name: "blank",
           },
-          path: ["hed"]
+          path: ["hed"],
         },
         {
           message: {
             details: null,
-            name: "blank"
+            name: "blank",
           },
-          path: ["body"]
-        }
+          path: ["body"],
+        },
       ],
       "published records must not be missing fields or have the widened type"
     );
@@ -124,12 +124,12 @@ mod.test("parsing", (assert, { registry }) => {
   assert.deepEqual(
     SimpleArticle.with({ registry }).parse({
       hed: "Hello world",
-      body: "The body"
+      body: "The body",
     }),
     {
       hed: "Hello world",
       dek: null,
-      body: "The body"
+      body: "The body",
     }
   );
 
@@ -137,12 +137,12 @@ mod.test("parsing", (assert, { registry }) => {
     SimpleArticle.with({ registry }).parse({
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
     }),
     {
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
     }
   );
 });
@@ -152,11 +152,11 @@ mod.test("serialize", (assert, { registry }) => {
     SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: null,
-      body: "The body"
+      body: "The body",
     }),
     {
       hed: "Hello world",
-      body: "The body"
+      body: "The body",
     }
   );
 
@@ -164,12 +164,12 @@ mod.test("serialize", (assert, { registry }) => {
     SimpleArticle.with({ registry }).serialize({
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
     }),
     {
       hed: "Hello world",
       dek: "Hello. Hello world.",
-      body: "The body"
+      body: "The body",
     }
   );
 });
@@ -179,7 +179,7 @@ mod.test("a valid published draft", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!\nMultiline allowed here",
-      body: "Hello world.\nThis text is permitted.\nTotally fine."
+      body: "Hello world.\nThis text is permitted.\nTotally fine.",
     }),
     [],
     "a valid draft"
@@ -209,8 +209,8 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {}),
     [
       keysError({
-        missing: ["hed", "dek", "body"]
-      })
+        missing: ["hed", "dek", "body"],
+      }),
     ],
     "missing all fields"
   );
@@ -218,12 +218,12 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
   assert.deepEqual(
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
-      dek: "Hello, the cool world!"
+      dek: "Hello, the cool world!",
     }),
     [
       keysError({
-        missing: ["body"]
-      })
+        missing: ["body"],
+      }),
     ],
     "missing one field"
   );
@@ -233,12 +233,12 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
       hed: "Hello world",
       dek: "Hello, the cool world!",
       body: "Hello!!!",
-      wat: "dis"
+      wat: "dis",
     }),
     [
       keysError({
-        extra: ["wat"]
-      })
+        extra: ["wat"],
+      }),
     ],
     "extra fields"
   );
@@ -247,13 +247,13 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
     await validatePublished(SimpleArticle, registry, {
       hed: "Hello world",
       dek: "Hello, the cool world!",
-      wat: "dis"
+      wat: "dis",
     }),
     [
       keysError({
         missing: ["body"],
-        extra: ["wat"]
-      })
+        extra: ["wat"],
+      }),
     ],
     "extra and missing fields"
   );
@@ -262,7 +262,7 @@ mod.test("Invalid shape with strictKeys", async (assert, { registry }) => {
 mod.test(
   "Shape restrictions are relaxed with strictKeys: false",
   async (assert, { registry }) => {
-    let sloppy = SimpleArticle.with({ registry, strictKeys: false });
+    const sloppy = SimpleArticle.with({ registry, strictKeys: false });
 
     assert.deepEqual(
       await validate(sloppy, false as any),
@@ -292,7 +292,7 @@ mod.test(
 
     assert.deepEqual(
       await validate(sloppy, {
-        hed: "Hello world"
+        hed: "Hello world",
       }),
       [missingError("body")],
       "required fields still may not be undefined, but optional fields may be undefined if strictKeys is false"
@@ -303,7 +303,7 @@ mod.test(
         hed: "Hello world",
         dek: "Hello, the cool world!",
         body: "Hello!!!",
-        wat: "dis"
+        wat: "dis",
       }),
       [],
       "extra fields are allowed when strictKeys is false"
@@ -313,7 +313,7 @@ mod.test(
       await validate(sloppy, {
         hed: "Hello world",
         body: "Hello, the cool world!",
-        wat: "dis"
+        wat: "dis",
       }),
       [],
       "missing optional fields and extra fields are allowed when strictKeys is false"

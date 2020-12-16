@@ -1,15 +1,12 @@
-import { Dict, JSONObject, Option } from "ts-std";
 import { RegistryName } from "../registry";
 import { DictionaryType, ListArgs } from "../types";
-import { JSONValue, mapDict } from "../utils";
+import { JSONObject, JSONValue, mapDict } from "../utils";
 import * as dehydrated from "./dehydrated";
 
 export interface TypeMetadata {
-  features: Option<string[]>;
-  required: Option<dehydrated.Required>;
-  mutabilityMode: Option<
-    dehydrated.MutabilityMode | dehydrated.MutabilityShorthand
-  >;
+  features: string[] | null;
+  required: dehydrated.Required | null;
+  mutabilityMode: dehydrated.MutabilityMode | dehydrated.MutabilityShorthand | null;
 }
 
 export function finalizeMeta(meta: TypeMetadata): MembersMeta {
@@ -128,7 +125,7 @@ export interface MembersMeta extends JSONObject {
 }
 
 export interface DictionaryBuilderState {
-  members: Dict<TypeBuilderMember>;
+  members: { [key: string]: TypeBuilderMember };
 }
 
 export class DictionaryBuilder extends AbstractTypeBuilder<

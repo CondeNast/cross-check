@@ -5,11 +5,10 @@ import {
   builderFor,
   validators
 } from "@cross-check/dsl";
-import { JSONObject } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
 import * as type from "../../type";
-import { JSONValue } from "../../utils";
+import { JSONObject, JSONValue } from "../../utils";
 import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args extends JSONValue | undefined>
