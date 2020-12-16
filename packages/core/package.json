@@ -21,22 +21,16 @@
     "preversion": "\"$npm_execpath\" run test",
     "prepare": "ember build -prod",
     "build": "ember build -prod",
-    "build-tests": "ember build",
     "pretest": "\"$npm_execpath\" run problems",
-    "test": "ember test",
-    "tdd": "ember test --server",
     "version": "node ../../scripts/bump.js"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/qunit": "*",
     "ember-cli": "*",
     "libkit": "*",
     "prettier": "*",
-    "qunitjs": "*",
     "shelljs": "*",
     "tslint": "*",
-    "typescript": "*",
     "write-pkg": "*"
   },
   "peerDependencies": {

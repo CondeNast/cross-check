@@ -8,10 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Run Tests",
-      "program": "${workspaceRoot}/node_modules/qunit/bin/qunit",
-      "args": [
-        "dist/tests.js"
-      ],
+      "program": "${workspaceRoot}/node_modules/.bin/jest",
       "internalConsoleOptions": "openOnSessionStart"
     }
   ]

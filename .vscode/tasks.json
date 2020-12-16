@@ -41,31 +41,9 @@
       "group": "build"
     },
     {
-      "label": "Build Tests",
-      "type": "shell",
-      "command": "yarn run build-tests",
-      "group": "build"
-    },
-    {
-      "label": "TDD",
-      "type": "shell",
-      "command": "yarn testem",
-      "group": "build",
-      "isBackground": true,
-      "problemMatcher": []
-    },
-    {
-      "label": "ember s",
-      "type": "shell",
-      "command": "yarn ember s",
-      "group": "build",
-      "isBackground": true,
-      "problemMatcher": []
-    },
-    {
       "label": "Run Tests",
       "type": "shell",
-      "command": "yarn run test",
+      "command": "yarn test",
       "group": {
         "kind": "test",
         "isDefault": true

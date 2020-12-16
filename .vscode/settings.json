@@ -12,17 +12,9 @@
     "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true
   },
-  "nodeTdd.testScript": "quicktest",
-  "nodeTdd.reporter": "tap",
-  "nodeTdd.verbose": false,
-  "nodeTdd.buildOnActivation": true,
-  "nodeTdd.buildOnCreate": true,
-  "nodeTdd.buildOnDelete": true,
-  "nodeTdd.glob": "dist/tests.js",
   "editor.formatOnSave": true,
   "[markdown]": {
     "editor.formatOnSave": false
   },
-  "tslint.autoFixOnSave": true,
   "typescript.tsdk": "node_modules/typescript/lib"
 }
