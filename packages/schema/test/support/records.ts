@@ -1,5 +1,4 @@
 import {
-  DEBUG_LOG,
   Record,
   RecordBuilder,
   formatDescriptor,
@@ -18,12 +17,6 @@ export const SimpleArticle: Record = Record("SimpleArticle", {
     modelName: "simple-article"
   }
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(SimpleArticle.descriptor));
-}
 
 export const MediumArticle: Record = Record("MediumArticle", {
   fields: {
@@ -53,12 +46,6 @@ export const MediumArticle: Record = Record("MediumArticle", {
   }
 });
 
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(MediumArticle.descriptor));
-}
-
 export const Related: Record = Record("Related", {
   fields: {
     first: types.SingleLine(),
@@ -72,12 +59,6 @@ export const Related: Record = Record("Related", {
     modelName: "related-article"
   }
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Related.descriptor));
-}
 
 export const Features: Record = Record("ArticleWithFlags", {
   fields: {
@@ -98,12 +79,6 @@ export const Features: Record = Record("ArticleWithFlags", {
   }
 });
 
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Features.descriptor));
-}
-
 export const Nesting: Record = Record("Nesting", {
   fields: {
     people: types
@@ -116,12 +91,6 @@ export const Nesting: Record = Record("Nesting", {
       .required()
   }
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Nesting.descriptor));
-}
 
 const Records: { [key: string]: RecordBuilder } = {
   SimpleArticle,

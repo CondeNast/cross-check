@@ -1,0 +1,136 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[schema] - detailed schema parsing 1`] = `
+Object {
+  "author": null,
+  "body": "The body",
+  "canonicalUrl": null,
+  "categories": Array [
+    "one category",
+    "two categories",
+  ],
+  "contributors": null,
+  "dek": null,
+  "geo": null,
+  "hed": "Hello world",
+  "issueDate": null,
+  "relatedArticles": null,
+  "tags": null,
+}
+`;
+
+exports[`[schema] - detailed schema parsing 2`] = `
+Object {
+  "author": null,
+  "body": "The body",
+  "canonicalUrl": null,
+  "categories": Array [
+    "one category",
+    "two categories",
+  ],
+  "contributors": null,
+  "dek": null,
+  "geo": null,
+  "hed": "Hello world",
+  "issueDate": null,
+  "relatedArticles": null,
+  "tags": null,
+}
+`;
+
+exports[`[schema] - detailed schema parsing 3`] = `
+Object {
+  "author": Object {
+    "first": "Christina",
+    "last": null,
+  },
+  "body": "The body",
+  "canonicalUrl": Urlish {
+    "host": "example.com",
+    "pathname": "path/to/hello",
+    "protocol": "https",
+  },
+  "categories": Array [
+    "one category",
+    "two categories",
+  ],
+  "contributors": Array [
+    Object {
+      "first": "Dan",
+      "last": null,
+    },
+    Object {
+      "first": null,
+      "last": "Ohara",
+    },
+    Object {
+      "first": "Godfrey",
+      "last": "Chan",
+    },
+  ],
+  "dek": "Hello. Hello world.",
+  "geo": Object {
+    "lat": 100,
+    "long": 100,
+  },
+  "hed": "Hello world",
+  "issueDate": 2020-12-17T22:04:25.627Z,
+  "relatedArticles": null,
+  "tags": Array [
+    "one-tag",
+    "two-tag",
+    "red-tag",
+    "blue-tag",
+  ],
+}
+`;
+
+exports[`[schema] - detailed schema serializing 1`] = `
+Object {
+  "body": "The body",
+  "categories": Array [
+    "one category",
+    "two categories",
+  ],
+  "hed": "Hello world",
+}
+`;
+
+exports[`[schema] - detailed schema serializing 2`] = `
+Object {
+  "author": Object {
+    "first": "Christina",
+  },
+  "body": "The body",
+  "canonicalUrl": "https://example.com/path/to/hello",
+  "categories": Array [
+    "one category",
+    "two categories",
+  ],
+  "contributors": Array [
+    Object {
+      "first": "Dan",
+    },
+    Object {
+      "last": "Ohara",
+    },
+    Object {
+      "first": "Godfrey",
+      "last": "Chan",
+    },
+  ],
+  "dek": "Hello. Hello world.",
+  "geo": Object {
+    "lat": 100,
+    "long": 100,
+  },
+  "hed": "Hello world",
+  "issueDate": "2020-12-17T22:04:25.633Z",
+  "tags": Array [
+    "one-tag",
+    "two-tag",
+    "red-tag",
+    "blue-tag",
+  ],
+}
+`;

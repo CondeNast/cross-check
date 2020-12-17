@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[schema] formatting - graphql detailed 1`] = `
+"type MediumArticleAuthor {
+  first: SingleLine
+  last: SingleLine
+}
+
+type MediumArticleGeo {
+  lat: Int!
+  long: Int!
+}
+
+type MediumArticleContributors {
+  first: SingleLine
+  last: SingleLine
+}
+
+type MediumArticle {
+  hed: SingleLine!
+  dek: String
+  body: String!
+  author: MediumArticleAuthor
+  issueDate: ISODate
+  canonicalUrl: Url
+  tags: [SingleWord!]
+  categories: [SingleLine!]!
+  geo: MediumArticleGeo
+  contributors: [MediumArticleContributors!]
+  relatedArticles: [MediumArticle!]
+}"
+`;
+
+exports[`[schema] formatting - graphql relationships 1`] = `
+"type Related {
+  first: SingleLine
+  last: String
+  person: SimpleArticle!
+  articles: [MediumArticle!]
+}"
+`;
+
+exports[`[schema] formatting - graphql simple 1`] = `
+"type Simple {
+  hed: SingleLine!
+  dek: String
+  body: String!
+}"
+`;
+
+exports[`[schema] formatting - graphql simple 2`] = `
+"type Simple {
+  hed: String
+  dek: String
+  body: String
+}"
+`;
