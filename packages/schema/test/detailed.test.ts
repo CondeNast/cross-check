@@ -60,7 +60,7 @@ describe("[schema] - detailed schema", () => {
   });
 
   test("published documents", async () => {
-    const { validate } = subject({ record: MediumArticle });
+    const { validate } = subject(MediumArticle);
     expect(
       await validate.published({
         hed: "Not\nactually\na\nsingle\nline",
@@ -533,7 +533,7 @@ describe("[schema] - detailed schema", () => {
       })
     ).toMatchSnapshot();
 
-    const date = new Date();
+    const date = new Date("2011-10-10T14:48:00");
     const url = urlish("https://example.com/path/to/hello");
 
     expect(
@@ -575,7 +575,7 @@ describe("[schema] - detailed schema", () => {
       )
     ).toMatchSnapshot();
 
-    const date = new Date();
+    const date = new Date("2011-10-10T14:48:00");
     const url = urlish("https://example.com/path/to/hello");
 
     expect(

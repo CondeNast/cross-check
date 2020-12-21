@@ -83,6 +83,8 @@ let ctx: {
   registry: Registry
 };
 
+export function subject(): TestState;
+export function subject(builder: RecordBuilder): SubjectTestState;
 export function subject(builder?: RecordBuilder) {
   if (ctx.used) {
     throw new Error(
