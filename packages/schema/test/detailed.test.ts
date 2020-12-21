@@ -533,7 +533,7 @@ describe("[schema] - detailed schema", () => {
       })
     ).toMatchSnapshot();
 
-    const date = new Date("2011-10-10T14:48:00");
+    const date = new Date("2011-10-10T14:48:00Z");
     const url = urlish("https://example.com/path/to/hello");
 
     expect(
@@ -575,7 +575,7 @@ describe("[schema] - detailed schema", () => {
       )
     ).toMatchSnapshot();
 
-    const date = new Date("2011-10-10T14:48:00");
+    const date = new Date("2011-10-10T14:48:00Z");
     const url = urlish("https://example.com/path/to/hello");
 
     expect(

@@ -74,7 +74,7 @@ Object {
     "long": 100,
   },
   "hed": "Hello world",
-  "issueDate": 2011-10-10T18:48:00.000Z,
+  "issueDate": 2011-10-10T14:48:00.000Z,
   "relatedArticles": null,
   "tags": Array [
     "one-tag",
@@ -125,7 +125,7 @@ Object {
     "long": 100,
   },
   "hed": "Hello world",
-  "issueDate": "2011-10-10T18:48:00.000Z",
+  "issueDate": "2011-10-10T14:48:00.000Z",
   "tags": Array [
     "one-tag",
     "two-tag",
