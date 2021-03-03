@@ -1,6 +1,10 @@
-import { ObjectModel, ValidationError, validate } from "@cross-check/core";
+import {
+  ObjectModel,
+  Task,
+  ValidationError,
+  validate,
+} from "@cross-check/core";
 import build from "@cross-check/dsl";
-import Task from "no-show";
 import { dehydrated } from "./descriptors";
 import { RecordImpl } from "./record";
 import { Registry } from "./registry";

@@ -13,7 +13,6 @@
   "license": "Apache-2.0",
   "peerDependencies": {
     "@cross-check/core": "0.11.4",
-    "@cross-check/dsl": "0.11.4",
-    "no-show": "^0.6.2"
+    "@cross-check/dsl": "0.11.4"
   }
 }

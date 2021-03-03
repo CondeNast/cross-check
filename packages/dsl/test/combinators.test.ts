@@ -1,5 +1,6 @@
 import {
   ErrorPath,
+  Task,
   ValidationDescriptor,
   ValidationError,
   Validator,
@@ -17,7 +18,6 @@ import {
   muteType,
   or,
 } from "@cross-check/dsl";
-import Task from "no-show";
 import { run } from "./support";
 
 describe("Combinators", () => {

@@ -1,10 +1,10 @@
 import {
   ObjectModel,
+  Task,
   ValidationError,
   Validator,
-  ValidatorFactory
+  ValidatorFactory,
 } from "@cross-check/core";
-import { Task } from "no-show";
 import { ValidationBuilder, validates } from "../builders";
 
 /**
@@ -18,7 +18,7 @@ import { ValidationBuilder, validates } from "../builders";
  */
 export interface ValidatorClass<T, Options> {
   validatorName: string;
-  new(env: ObjectModel, options: Options): ValidatorInstance<T>;
+  new (env: ObjectModel, options: Options): ValidatorInstance<T>;
 }
 
 /**

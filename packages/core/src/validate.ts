@@ -1,9 +1,9 @@
-import { Task } from "no-show";
 import {
   ObjectModel,
   ValidationDescriptor,
   ValidationError,
 } from "./descriptor";
+import { Task } from "./task";
 
 const DEFAULT_OBJECT_MODEL: ObjectModel = {
   get(object: unknown, key: string | number): unknown {

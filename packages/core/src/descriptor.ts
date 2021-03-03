@@ -1,4 +1,4 @@
-import { Task } from "no-show";
+import { Task } from "./task";
 
 export type ErrorPath = ReadonlyArray<string>;
 

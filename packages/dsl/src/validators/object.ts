@@ -1,10 +1,10 @@
 import {
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
-  validate
+  validate,
 } from "@cross-check/core";
-import { Task } from "no-show";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject, Present } from "./is";
@@ -33,7 +33,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
   ) {}
 
   run(value: Present, context: string | null): Task<ValidationError[]> {
-    return new Task(async run => {
+    return new Task(async (run) => {
       let errors: ValidationError[] = [];
 
       for (let [key, descriptor] of Object.entries(this.descriptors)) {
@@ -45,7 +45,7 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
             this.objectModel
           )
         );
-        errors.push(...suberrors.map(error => mapError(error, key)));
+        errors.push(...suberrors.map((error) => mapError(error, key)));
       }
 
       return errors;
@@ -61,7 +61,8 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
  * This validator checks that the value contains all of the enumerated fields
  * and also does not contain any extra fields.
  */
-export class KeysValidator<T> implements ValidatorInstance<Readonly<Record<string, T>>> {
+export class KeysValidator<T>
+  implements ValidatorInstance<Readonly<Record<string, T>>> {
   static validatorName = "keys";
 
   constructor(
@@ -80,7 +81,7 @@ export class KeysValidator<T> implements ValidatorInstance<Readonly<Record<strin
           // descriptor field is not present in the value
           errors.push({
             path: [key],
-            message: { name: "type", details: "present" }
+            message: { name: "type", details: "present" },
           });
         } else {
           valueKeys.splice(index, 1);
@@ -89,9 +90,9 @@ export class KeysValidator<T> implements ValidatorInstance<Readonly<Record<strin
 
       // these fields were not present in the descriptors
       errors.push(
-        ...valueKeys.map(key => ({
+        ...valueKeys.map((key) => ({
           path: [key],
-          message: { name: "type", details: "absent" }
+          message: { name: "type", details: "absent" },
         }))
       );
 
@@ -109,10 +110,12 @@ export function fields<T>(
 ): ValidationBuilder<Present> {
   return validates(
     "fields",
-    factoryFor(FieldsValidator as ValidatorClass<
-      Present,
-      Record<string, ValidationDescriptor<T>>
-    >),
+    factoryFor(
+      FieldsValidator as ValidatorClass<
+        Present,
+        Record<string, ValidationDescriptor<T>>
+      >
+    ),
     normalizeFields(builders)
   );
 }
@@ -122,7 +125,9 @@ export function keys<T>(
 ): ValidationBuilder<Readonly<Record<string, T>>> {
   return validates(
     "keys",
-    factoryFor(KeysValidator as ValidatorClass<Readonly<Record<string, T>>, string[]>),
+    factoryFor(
+      KeysValidator as ValidatorClass<Readonly<Record<string, T>>, string[]>
+    ),
     descriptorKeys
   );
 }

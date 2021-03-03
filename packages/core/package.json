@@ -10,8 +10,5 @@
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
   "types": "dist/commonjs/index.d.ts",
-  "license": "Apache-2.0",
-  "peerDependencies": {
-    "no-show": "^0.6.2"
-  }
+  "license": "Apache-2.0"
 }

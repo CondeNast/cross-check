@@ -1,14 +1,12 @@
-import { ValidationError, format } from "@cross-check/core";
+import { Task, ValidationError, format } from "@cross-check/core";
 import validates, {
   ValidationBuildable,
   ValidationBuilder,
-  validators
+  validators,
 } from "@cross-check/dsl";
-import Task from "no-show";
 import { buildAndRun as runWithEnv, defaultRun } from "../support";
 
 describe("Validators (array)", () => {
-
   function success(): ValidationError[] {
     return [];
   }
@@ -22,26 +20,24 @@ describe("Validators (array)", () => {
       path: path ? path.split(".") : [],
       message: {
         name: type,
-        details
-      }
+        details,
+      },
     };
   }
 
   test("array", async () => {
     let isStringArray = validators.array(validators.isString());
 
-    expect(
-      format(validates(isStringArray))
-    ).toEqual(
+    expect(format(validates(isStringArray))).toEqual(
       `(pipe (is-array) (array-items (is-string)))`
     );
 
     expect(await defaultRun(isStringArray, null)).toEqual([
-      failure(null, "type", "array")
+      failure(null, "type", "array"),
     ]);
 
     expect(await defaultRun(isStringArray, "string-is-not-arr")).toEqual([
-      failure(null, "type", "array")
+      failure(null, "type", "array"),
     ]);
 
     itemTests(isStringArray, Array, defaultRun);
@@ -50,7 +46,10 @@ describe("Validators (array)", () => {
   test("custom asList", async () => {
     const ENV = {
       get(value: unknown, key: string): unknown {
-        if (value !== null && (typeof value === 'object' || typeof value === 'function')) {
+        if (
+          value !== null &&
+          (typeof value === "object" || typeof value === "function")
+        ) {
           return value[key];
         } else {
           return;
@@ -58,12 +57,16 @@ describe("Validators (array)", () => {
       },
 
       asList(value: unknown): Iterable<unknown | null> {
-        if (value !== null && (typeof value === 'object' || typeof value === 'function') && "toArray" in value) {
+        if (
+          value !== null &&
+          (typeof value === "object" || typeof value === "function") &&
+          "toArray" in value
+        ) {
           return iterable(value as { toArray(): Array<unknown> });
         } else {
           return null;
         }
-      }
+      },
     };
 
     let isStringArray = validators.array(validators.isString());
@@ -73,7 +76,7 @@ describe("Validators (array)", () => {
 
     function arr(...args: Array<unknown>): { toArray(): Array<unknown> } {
       return {
-        toArray: () => args
+        toArray: () => args,
       };
     }
 
@@ -85,7 +88,9 @@ describe("Validators (array)", () => {
   test("arrayItems", async () => {
     let isStringArray = validators.items(validators.isString());
 
-    expect(format(validates(isStringArray))).toEqual(`(array-items (is-string))`);
+    expect(format(validates(isStringArray))).toEqual(
+      `(array-items (is-string))`
+    );
 
     itemTests(isStringArray, Array, defaultRun);
   });
@@ -96,21 +101,16 @@ describe("Validators (array)", () => {
     run: (b: ValidationBuildable<T>, value: T) => Task<ValidationError[]>
   ) {
     expect(await run(builder, arr())).toEqual(success());
-    expect(
-      await run(builder, arr(null))
-    ).toEqual(
-      [failure("0", "type", "string")]
-    );
+    expect(await run(builder, arr(null))).toEqual([
+      failure("0", "type", "string"),
+    ]);
     expect(await run(builder, arr(""))).toEqual(success());
-    expect(
-      await run(builder, arr(arr("hello")))
-    ).toEqual(
-      [failure("0", "type", "string")]
-    );
-    expect(
-      await run(builder, arr("", null, "item", false))
-    ).toEqual(
-      [failure("1", "type", "string"), failure("3", "type", "string")],
-    );
+    expect(await run(builder, arr(arr("hello")))).toEqual([
+      failure("0", "type", "string"),
+    ]);
+    expect(await run(builder, arr("", null, "item", false))).toEqual([
+      failure("1", "type", "string"),
+      failure("3", "type", "string"),
+    ]);
   }
 });

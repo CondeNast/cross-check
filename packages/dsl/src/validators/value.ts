@@ -1,5 +1,4 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
-import { Task } from "no-show";
+import { ObjectModel, Task, ValidationError } from "@cross-check/core";
 import { ValidatorInstance } from "./abstract";
 import { ValidationResult } from "./callback";
 
@@ -16,7 +15,7 @@ import { ValidationResult } from "./callback";
  */
 export abstract class ValueValidator<T, Options = void>
   implements ValidatorInstance<T> {
-  constructor(protected objectModel: ObjectModel, protected options: Options) { }
+  constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
   get env(): ObjectModel {
     return this.objectModel;
@@ -28,7 +27,7 @@ export abstract class ValueValidator<T, Options = void>
   ): ValidationResult | PromiseLike<ValidationResult>;
 
   run(value: T, context: string | null): Task<ValidationError[]> {
-    return new Task(async run => {
+    return new Task(async (run) => {
       let message = await run(this.validate(value, context));
 
       if (message) {

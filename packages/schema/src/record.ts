@@ -1,11 +1,11 @@
 import {
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
   validate,
 } from "@cross-check/core";
 import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
-import { Task } from "no-show";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { visitorDescriptor } from "./descriptors/dehydrated";

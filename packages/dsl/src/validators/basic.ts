@@ -1,5 +1,4 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
-import { Task } from "no-show";
+import { ObjectModel, Task, ValidationError } from "@cross-check/core";
 import { ValidatorInstance } from "./abstract";
 
 /**
@@ -13,7 +12,7 @@ import { ValidatorInstance } from "./abstract";
  */
 export abstract class BasicValidator<T, Options = void>
   implements ValidatorInstance<T> {
-  constructor(protected objectModel: ObjectModel, protected options: Options) { }
+  constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
   get env(): ObjectModel {
     return this.objectModel;
@@ -25,6 +24,6 @@ export abstract class BasicValidator<T, Options = void>
   ): ValidationError[] | PromiseLike<ValidationError[]>;
 
   run(value: T, context: string | null): Task<ValidationError[]> {
-    return new Task(async run => run(this.validate(value, context)));
+    return new Task(async (run) => run(this.validate(value, context)));
   }
 }

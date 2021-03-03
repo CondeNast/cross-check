@@ -11,6 +11,14 @@ export {
 export * from "./validate";
 export * from "./format";
 export {
+  Task,
+  Runnable,
+  TaskRunner,
+  TaskFunction,
+  CancelationError,
+  isCancelation,
+} from "./task";
+export {
   BasicValidator,
   HigherOrderBasicValidator,
   validator,

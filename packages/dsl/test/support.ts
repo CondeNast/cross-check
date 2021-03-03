@@ -1,6 +1,6 @@
-import Task from "no-show";
 import {
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
   ValidatorFactory,

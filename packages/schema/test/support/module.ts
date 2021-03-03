@@ -1,4 +1,4 @@
-import { ValidationError } from "@cross-check/core";
+import { Task, ValidationError } from "@cross-check/core";
 import {
   EnvFormatters,
   EnvRecordFormatters,
@@ -6,24 +6,28 @@ import {
   FormattableRecord,
   REGISTRY,
   RecordBuilder,
-  Registry
+  Registry,
 } from "@cross-check/schema";
-import Task from "no-show";
 import { resolve } from "./records";
 import { ENV } from "./utils";
 
 export type StringFormatFunction<O = void> = O extends void
-  ? ((record: FormattableRecord) => string)
-  : ((record: FormattableRecord, options: O) => string);
+  ? (record: FormattableRecord) => string
+  : (record: FormattableRecord, options: O) => string;
 export type SubjectStringFormatFunction<O = void> = O extends void
-  ? (() => string)
-  : ((options: O) => string);
+  ? () => string
+  : (options: O) => string;
 
 export type RecursiveFormatFunction<T> = (record: FormattableRecord) => T;
 export type SubjectRecursiveFormatFunction<T> = () => T;
 
-export type Validate = (name: string, value: { [key: string]: unknown }) => Task<ValidationError[]>;
-export type SubjectValidate = (value: { [key: string]: unknown }) => Task<ValidationError[]>;
+export type Validate = (
+  name: string,
+  value: { [key: string]: unknown }
+) => Task<ValidationError[]>;
+export type SubjectValidate = (value: {
+  [key: string]: unknown;
+}) => Task<ValidationError[]>;
 
 export interface TestEnv {
   published: Environment;
@@ -79,17 +83,15 @@ export interface RecordSubjectOptions extends Options {
 }
 
 let ctx: {
-  used: boolean,
-  registry: Registry
+  used: boolean;
+  registry: Registry;
 };
 
 export function subject(): TestState;
 export function subject(builder: RecordBuilder): SubjectTestState;
 export function subject(builder?: RecordBuilder) {
   if (ctx.used) {
-    throw new Error(
-      `Can't reuse state in across tests`
-    );
+    throw new Error(`Can't reuse state in across tests`);
   }
   let registry = ctx.registry;
   let draft = new Environment(registry, { registry, draft: true }, ENV);
@@ -107,20 +109,20 @@ export function subject(builder?: RecordBuilder) {
       validate: {
         draft: draft.validator(builder.name),
         published: published.validator(builder.name),
-        sloppy: sloppy.validator(builder.name)
+        sloppy: sloppy.validator(builder.name),
       },
 
       env: {
         draft,
         published,
-        sloppy
+        sloppy,
       },
 
       format: {
         draft: draft.format(builder.name),
         published: published.format(builder.name),
-        sloppy: sloppy.format(builder.name)
-      }
+        sloppy: sloppy.format(builder.name),
+      },
     };
   }
 
@@ -130,20 +132,20 @@ export function subject(builder?: RecordBuilder) {
     validate: {
       draft: draft.validation,
       published: published.validation,
-      sloppy: sloppy.validation
+      sloppy: sloppy.validation,
     },
 
     env: {
       draft,
       published,
-      sloppy
+      sloppy,
     },
 
     format: {
       draft: draft.formatters,
       published: published.formatters,
-      sloppy: sloppy.formatters
-    }
+      sloppy: sloppy.formatters,
+    },
   };
 }
 
@@ -151,8 +153,8 @@ export function setupSchemaTest() {
   ctx = {
     used: false,
     registry: REGISTRY.clone({
-      record: resolve
-    })
+      record: resolve,
+    }),
   };
 }
 

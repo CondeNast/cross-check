@@ -1,13 +1,13 @@
 import {
   ErrorPath,
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
   Validator,
   ValidatorFactory,
   validate,
 } from "@cross-check/core";
-import { Task } from "no-show";
 
 export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
 export type CombinatorFactory<T> = ValidatorFactory<

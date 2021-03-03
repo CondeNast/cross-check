@@ -1,10 +1,9 @@
+import { Task } from "./task";
 import {
   ValidationDescriptor,
   ValidationError,
   ValidatorFactory,
 } from "./index";
-
-import { Task } from "no-show";
 
 export type BasicValidator<T> = (value: T) => ValidationError[] | void;
 

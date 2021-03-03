@@ -1,11 +1,10 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
+import { ObjectModel, Task, ValidationError } from "@cross-check/core";
 import {
   Record,
   RecordBuilder,
   RecordImpl,
-  Registry
+  Registry,
 } from "@cross-check/schema";
-import { Task } from "no-show";
 
 export const ENV: ObjectModel = {
   get(object: unknown, key: string): unknown {
@@ -19,7 +18,7 @@ export const ENV: ObjectModel = {
     } else {
       return null;
     }
-  }
+  },
 };
 
 export function strip(
@@ -38,7 +37,7 @@ export function strip(
     return Math.min(accum, size);
   }, Infinity);
 
-  lines = lines.map(l => l.slice(leading));
+  lines = lines.map((l) => l.slice(leading));
 
   return lines.join("\n");
 }
@@ -72,7 +71,7 @@ export function typeError(
 ): ValidationError {
   return {
     message: { details: kind, name: "type" },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
@@ -83,7 +82,7 @@ export function missingError(path: string | null = null) {
 export function keysError({
   extra = [],
   missing = [],
-  path = null
+  path = null,
 }: {
   extra?: string[];
   missing?: string[];
@@ -101,7 +100,7 @@ export function keysError({
 
   return {
     message: { name: "keys", details: errors },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
@@ -112,7 +111,7 @@ export function error(
 ): ValidationError {
   return {
     message: { details: problem, name: kind },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
@@ -126,5 +125,5 @@ export const GRAPHQL_SCALAR_MAP = {
   Text: "String",
   Integer: "Int",
   Number: "Float",
-  Boolean: "Boolean"
+  Boolean: "Boolean",
 };
