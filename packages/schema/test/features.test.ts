@@ -1,11 +1,11 @@
-import { ValidationError } from "@cross-check/core";
+import { ValidationError } from "@condenast/cross-check";
 import {
   REGISTRY,
   Record,
   builders,
   dehydrated,
   types,
-} from "@cross-check/schema";
+} from "@condenast/cross-check-schema";
 import {
   ENV,
   keysError,

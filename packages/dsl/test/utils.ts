@@ -1,4 +1,4 @@
-import { ValidationError } from "@cross-check/core";
+import { ValidationError } from "@condenast/cross-check";
 
 /// TODO: Extract into
 

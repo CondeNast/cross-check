@@ -1,10 +1,10 @@
-import { ObjectModel, Task, ValidationError } from "@cross-check/core";
+import { ObjectModel, Task, ValidationError } from "@condenast/cross-check";
 import {
   Record,
   RecordBuilder,
   RecordImpl,
   Registry,
-} from "@cross-check/schema";
+} from "@condenast/cross-check-schema";
 
 export const ENV: ObjectModel = {
   get(object: unknown, key: string): unknown {

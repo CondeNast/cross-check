@@ -1,5 +1,5 @@
-import { ErrorMessage, ValidationError, format } from "@cross-check/core";
-import validates from "@cross-check/dsl";
+import { ErrorMessage, ValidationError, format } from "@condenast/cross-check";
+import validates from "@condenast/cross-check-dsl";
 import { buildAndRun as run } from "../support";
 
 describe("Validators (callback)", () => {
@@ -20,15 +20,13 @@ describe("Validators (callback)", () => {
           path: [],
           message: {
             name: "alpha-numeric",
-            details: undefined
-          }
-        }
+            details: undefined,
+          },
+        },
       ];
     }
 
-    expect(
-      format(validates(isAlphaNumeric, "is-alpha-numeric"))
-    ).toEqual(
+    expect(format(validates(isAlphaNumeric, "is-alpha-numeric"))).toEqual(
       `(is-alpha-numeric function() { ... })`
     );
 

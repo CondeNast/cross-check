@@ -5,7 +5,7 @@ import {
   ValidationError,
   Validator,
   ValidatorFactory,
-} from "@cross-check/core";
+} from "@condenast/cross-check";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -17,7 +17,7 @@ import {
   mutePath,
   muteType,
   or,
-} from "@cross-check/dsl";
+} from "@condenast/cross-check-dsl";
 import { run } from "./support";
 
 describe("Combinators", () => {

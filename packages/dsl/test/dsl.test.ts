@@ -1,4 +1,4 @@
-import { format } from "@cross-check/core";
+import { format } from "@condenast/cross-check";
 import validates, {
   MapErrorTransform,
   and,
@@ -8,7 +8,7 @@ import validates, {
   ifValid,
   mapError,
   or,
-} from "@cross-check/dsl";
+} from "@condenast/cross-check-dsl";
 import { email, factory, isEmail, presence, str, uniqueness } from "./support";
 
 function validationCallback() {

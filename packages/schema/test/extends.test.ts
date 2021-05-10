@@ -1,4 +1,4 @@
-import { types } from "@cross-check/schema";
+import { types } from "@condenast/cross-check-schema";
 import {
   setupSchemaTest,
   teardownSchemaTest,

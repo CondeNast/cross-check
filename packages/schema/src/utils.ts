@@ -1,5 +1,5 @@
-import { ErrorPath, ValidationError } from "@cross-check/core";
-import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { ErrorPath, ValidationError } from "@condenast/cross-check";
+import { ValidationBuilder, validators } from "@condenast/cross-check-dsl";
 
 export type JSONValue =
   | string

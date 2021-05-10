@@ -1,4 +1,4 @@
-import { ValidationBuilder } from "@cross-check/dsl";
+import { ValidationBuilder } from "@condenast/cross-check-dsl";
 import { RecordBuilder } from "../record";
 import { Registry, RegistryName } from "../registry";
 import { Type } from "../type";
@@ -10,7 +10,7 @@ import {
   ListImpl,
   OptionalityImpl,
   PointerImpl,
-  visitor
+  visitor,
 } from "../types";
 import { JSONObject, JSONValue, exhausted, mapDict } from "../utils";
 import * as builders from "./builders";
@@ -102,7 +102,7 @@ export interface MutabilityMode extends JSONObject {
 export const READONLY: MutabilityMode = {
   read: true,
   create: false,
-  update: false
+  update: false,
 };
 
 export type MutabilityShorthand = "create" | "read" | "all";
@@ -190,7 +190,8 @@ export class Placeholder implements Type {
   }
 }
 
-export class PlaceholderDictionary extends Placeholder
+export class PlaceholderDictionary
+  extends Placeholder
   implements DictionaryType {
   protected get type(): DictionaryImpl {
     return super.type as DictionaryImpl;
@@ -315,7 +316,7 @@ export class Hydrator {
 
         let desc = this.registry.get({
           type: descriptor.target,
-          name: descriptor.name
+          name: descriptor.name,
         });
 
         return this.hydrate(desc);
@@ -323,7 +324,7 @@ export class Hydrator {
 
       case "Dictionary": {
         return new DictionaryImpl(
-          mapDict(descriptor.members, member => {
+          mapDict(descriptor.members, (member) => {
             if (
               this.hasFeaturesFor(member) &&
               this.inMutabilityModeFor(member)
@@ -446,20 +447,20 @@ export function visitorDescriptor(
         type: "Alias",
         target: descriptor.target,
         name: descriptor.name,
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
     case "Dictionary": {
       return {
         type: "Dictionary",
-        members: mapDict(descriptor.members, member => {
+        members: mapDict(descriptor.members, (member) => {
           return {
             descriptor: visitorDescriptor(member.descriptor, registry),
-            meta: member.meta
+            meta: member.meta,
           };
         }),
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
@@ -470,11 +471,11 @@ export function visitorDescriptor(
           type: "Alias",
           target: "Dictionary",
           name: descriptor.inner,
-          required: true
+          required: true,
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
@@ -483,7 +484,7 @@ export function visitorDescriptor(
         type: "List",
         inner: visitorDescriptor(descriptor.inner, registry),
         args: descriptor.args || { allowEmpty: false },
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
@@ -494,11 +495,11 @@ export function visitorDescriptor(
           type: "Alias",
           target: "Dictionary",
           name: descriptor.inner,
-          required: true
+          required: true,
         },
         metadata: descriptor.metadata,
         name: descriptor.kind,
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
@@ -519,7 +520,7 @@ export function visitorDescriptor(
         args,
         description,
         typescript,
-        required: visitorRequired(descriptor.required)
+        required: visitorRequired(descriptor.required),
       };
     }
 
@@ -576,13 +577,13 @@ function builderForDescriptor(
     case "Dictionary":
       return new builders.DictionaryBuilder(
         {
-          members: mapDict(desc.members, member =>
+          members: mapDict(desc.members, (member) =>
             functions.builder(
               member.descriptor,
               registry,
               metaForBuilder(desc, member.meta)
             )
-          )
+          ),
         },
         meta
       );
@@ -592,7 +593,7 @@ function builderForDescriptor(
         {
           kind: desc.kind,
           metadata: desc.metadata,
-          record: desc.inner
+          record: desc.inner,
         },
         meta
       );
@@ -601,7 +602,7 @@ function builderForDescriptor(
       return new builders.ListBuilder(
         {
           args: desc.args,
-          contents: functions.builder(desc.inner, registry).builder
+          contents: functions.builder(desc.inner, registry).builder,
         },
         meta
       );
@@ -615,7 +616,7 @@ function builderForDescriptor(
       return new builders.NamedBuilder({
         target: desc.target,
         name: desc.name,
-        args: desc.args
+        args: desc.args,
       });
     }
 
@@ -624,7 +625,7 @@ function builderForDescriptor(
         {
           kind: desc.kind,
           metadata: desc.metadata,
-          record: desc.inner
+          record: desc.inner,
         },
         meta
       );
@@ -633,7 +634,7 @@ function builderForDescriptor(
       return new builders.PrimitiveBuilder({
         name: desc.name,
         args: desc.args,
-        base: desc.base
+        base: desc.base,
       });
 
     default:
@@ -645,11 +646,11 @@ export const functions = {
   required(desc: Descriptor, requiredMode: Required): Descriptor {
     return {
       ...desc,
-      required: requiredMode
+      required: requiredMode,
     };
   },
 
-  builder: builderForDescriptor
+  builder: builderForDescriptor,
 };
 
 function metaForBuilder(
@@ -659,6 +660,6 @@ function metaForBuilder(
   return {
     features: meta && meta.features ? meta.features : null,
     required: desc.required,
-    mutabilityMode: meta && meta.mutabilityMode ? meta.mutabilityMode : null
+    mutabilityMode: meta && meta.mutabilityMode ? meta.mutabilityMode : null,
   };
 }

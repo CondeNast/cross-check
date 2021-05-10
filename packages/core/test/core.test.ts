@@ -1,4 +1,4 @@
-import { ValidationDescriptor, format } from "@cross-check/core";
+import { ValidationDescriptor, format } from "@condenast/cross-check";
 
 function desc(name: string, options: unknown = null): ValidationDescriptor {
   return {

@@ -1,4 +1,4 @@
-import { Task, ValidationError } from "@cross-check/core";
+import { Task, ValidationError } from "@condenast/cross-check";
 import {
   EnvFormatters,
   EnvRecordFormatters,
@@ -7,7 +7,7 @@ import {
   REGISTRY,
   RecordBuilder,
   Registry,
-} from "@cross-check/schema";
+} from "@condenast/cross-check-schema";
 import { resolve } from "./records";
 import { ENV } from "./utils";
 

@@ -1,5 +1,8 @@
-import { ValidationError, format } from "@cross-check/core";
-import validates, { BasicValidator, builderFor } from "@cross-check/dsl";
+import { ValidationError, format } from "@condenast/cross-check";
+import validates, {
+  BasicValidator,
+  builderFor,
+} from "@condenast/cross-check-dsl";
 import { buildAndRun as run } from "../support";
 
 function isNotBlank(str: unknown): boolean {
@@ -14,14 +17,17 @@ function hasAuthor({ author }: Readonly<Record<string, unknown>>): boolean {
   return isNotBlank(author);
 }
 
-function hasContributors({ contributors }: Readonly<Record<string, unknown>>): boolean {
+function hasContributors({
+  contributors,
+}: Readonly<Record<string, unknown>>): boolean {
   return Array.isArray(contributors) && contributors.length > 0;
 }
 
 describe("Validators (basic)", () => {
-
   test("PackageJSONValidator", async () => {
-    class PackageJSONValidator extends BasicValidator<Readonly<Record<string, unknown>>> {
+    class PackageJSONValidator extends BasicValidator<
+      Readonly<Record<string, unknown>>
+    > {
       static validatorName = "package-json";
 
       validate(json: Readonly<Record<string, unknown>>): ValidationError[] {
@@ -32,8 +38,8 @@ describe("Validators (basic)", () => {
             path: ["name"],
             message: {
               name: "required",
-              details: undefined
-            }
+              details: undefined,
+            },
           });
         }
 
@@ -42,8 +48,8 @@ describe("Validators (basic)", () => {
             path: [],
             message: {
               name: "authorship",
-              details: undefined
-            }
+              details: undefined,
+            },
           });
         }
 
@@ -65,9 +71,9 @@ describe("Validators (basic)", () => {
           path: ["name"],
           message: {
             name: "required",
-            details: undefined
-          }
-        }
+            details: undefined,
+          },
+        },
       ];
     }
 
@@ -77,44 +83,37 @@ describe("Validators (basic)", () => {
           path: [],
           message: {
             name: "authorship",
-            details: undefined
-          }
-        }
+            details: undefined,
+          },
+        },
       ];
     }
 
     expect(await run(packageJSON(), {})).toEqual([
       ...packageNameFailure(),
-      ...authorshipFailure()
+      ...authorshipFailure(),
     ]);
     expect(
-      await run(packageJSON(), { name: "@cross-check/dsl" })
-    ).toEqual(
-      authorshipFailure()
-    );
-    expect(
-      await run(packageJSON(), { author: "Godfrey" })
-    ).toEqual(
+      await run(packageJSON(), { name: "@condenast/cross-check-dsl" })
+    ).toEqual(authorshipFailure());
+    expect(await run(packageJSON(), { author: "Godfrey" })).toEqual(
       packageNameFailure()
     );
     expect(
       await run(packageJSON(), { contributors: ["Godfrey", "Yehuda"] })
-    ).toEqual(
-      packageNameFailure()
-    );
+    ).toEqual(packageNameFailure());
 
     expect(
-      await run(packageJSON(), { name: "@cross-check/dsl", author: "Godfrey" })
-    ).toEqual(
-      success()
-    );
+      await run(packageJSON(), {
+        name: "@condenast/cross-check-dsl",
+        author: "Godfrey",
+      })
+    ).toEqual(success());
     expect(
       await run(packageJSON(), {
-        name: "@cross-check/dsl",
-        contributors: ["Godfrey", "Yehuda"]
+        name: "@condenast/cross-check-dsl",
+        contributors: ["Godfrey", "Yehuda"],
       })
-    ).toEqual(
-      success()
-    );
+    ).toEqual(success());
   });
 });

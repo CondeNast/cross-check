@@ -39,8 +39,8 @@
     "typescript": "4.2.4"
   },
   "dependencies": {
-    "@cross-check/core": "file:packages/core",
-    "@cross-check/dsl": "file:packages/dsl",
-    "@cross-check/schema": "file:packages/schema"
+    "@condenast/cross-check": "file:packages/core",
+    "@condenast/cross-check-dsl": "file:packages/dsl",
+    "@condenast/cross-check-schema": "file:packages/schema"
   }
 }

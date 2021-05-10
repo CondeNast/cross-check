@@ -1,4 +1,4 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { ValidationBuilder, validators } from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";
@@ -20,12 +20,12 @@ export class DictionaryImpl implements DictionaryType {
   dehydrate(): dehydrated.Dictionary {
     return {
       type: "Dictionary",
-      members: mapDict(this.members, member => {
+      members: mapDict(this.members, (member) => {
         return {
-          descriptor: member.dehydrate()
+          descriptor: member.dehydrate(),
         };
       }),
-      required: "always"
+      required: "always",
     };
   }
 
@@ -36,7 +36,9 @@ export class DictionaryImpl implements DictionaryType {
 
     return mapDict(this.members, (member, key) => {
       if (!(key in js)) {
-        throw new Error(`Serialization error: missing field \`${key}\` (must validate before serializing)`);
+        throw new Error(
+          `Serialization error: missing field \`${key}\` (must validate before serializing)`
+        );
       }
 
       let result = member.serialize(js[key]);
@@ -62,11 +64,11 @@ export class DictionaryImpl implements DictionaryType {
   validation(): ValidationBuilder<unknown> {
     if (this.options.strictKeys) {
       return validators.strictObject(
-        mapDict(this.members, member => member.validation())
+        mapDict(this.members, (member) => member.validation())
       );
     } else {
       return validators.object(
-        mapDict(this.members, member => member.validation())
+        mapDict(this.members, (member) => member.validation())
       );
     }
   }
@@ -77,8 +79,8 @@ export interface DictionaryOptions {
   name?: string;
 }
 
-export function Dictionary(
-  members: { [key: string]: builders.TypeBuilderMember }
-): builders.DictionaryBuilder {
+export function Dictionary(members: {
+  [key: string]: builders.TypeBuilderMember;
+}): builders.DictionaryBuilder {
   return new builders.DictionaryBuilder({ members });
 }

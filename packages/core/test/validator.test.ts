@@ -1,4 +1,4 @@
-import { validate, validator } from "@cross-check/core";
+import { validate, validator } from "@condenast/cross-check";
 
 describe("validator", () => {
   test("void options using the synchronous API", async () => {

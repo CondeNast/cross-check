@@ -1,4 +1,9 @@
-import { ErrorMessage, ObjectModel, Task, Validator } from "@cross-check/core";
+import {
+  ErrorMessage,
+  ObjectModel,
+  Task,
+  Validator,
+} from "@condenast/cross-check";
 
 export type ValidationResult = ErrorMessage | void;
 export type ValidationCallback<T> = (

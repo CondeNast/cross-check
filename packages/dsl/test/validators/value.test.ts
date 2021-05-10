@@ -1,5 +1,9 @@
-import { ErrorMessage, ValidationError } from "@cross-check/core";
-import { ValueValidator, builderFor, validators } from "@cross-check/dsl";
+import { ErrorMessage, ValidationError } from "@condenast/cross-check";
+import {
+  ValueValidator,
+  builderFor,
+  validators,
+} from "@condenast/cross-check-dsl";
 import { buildAndRun as run } from "../support";
 
 describe("Validators (value)", () => {
@@ -28,9 +32,9 @@ describe("Validators (value)", () => {
           path: [],
           message: {
             name: "format",
-            details: EMAIL_REGEX
-          }
-        }
+            details: EMAIL_REGEX,
+          },
+        },
       ];
     }
 
@@ -40,9 +44,9 @@ describe("Validators (value)", () => {
           path: [],
           message: {
             name: "type",
-            details: "string"
-          }
-        }
+            details: "string",
+          },
+        },
       ];
     }
 
@@ -51,7 +55,7 @@ describe("Validators (value)", () => {
       .andThen(format(/^([^\s]+)@([^\s]+){2,}\.([^\s]+){2,}$/));
 
     expect(await run(email, null)).toEqual(stringFailure());
-    expect(await run(email, "dan")).toEqual( emailFailure());
-    expect(await run(email, "dan@example.com")).toEqual( success());
+    expect(await run(email, "dan")).toEqual(emailFailure());
+    expect(await run(email, "dan@example.com")).toEqual(success());
   });
 });

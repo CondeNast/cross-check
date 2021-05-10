@@ -1,4 +1,4 @@
-import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
+import { ValidationDescriptor, ValidatorFactory } from "@condenast/cross-check";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -148,9 +148,9 @@ export interface ValidationBuilder<T> {
  * or validation callback, and converts it into a validation descriptor.
  *
  * Validation descriptors can be passed into `validates()`, a function provided
- * by the `@cross-check/core` library.
+ * by the `@condenast/cross-check` library.
  *
- * In essence, `@cross-check/dsl` provides a builder API for conveniently
+ * In essence, `@condenast/cross-check-dsl` provides a builder API for conveniently
  * constructing validation descriptors, which can then be used directly by
  * the core validation library.
  */

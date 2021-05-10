@@ -1,4 +1,4 @@
-import { ObjectModel, Task, ValidationError } from "@cross-check/core";
+import { ObjectModel, Task, ValidationError } from "@condenast/cross-check";
 import { ValidatorInstance } from "./abstract";
 
 /**

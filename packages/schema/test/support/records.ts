@@ -2,20 +2,20 @@ import {
   Record,
   RecordBuilder,
   formatDescriptor,
-  types
-} from "@cross-check/schema";
+  types,
+} from "@condenast/cross-check-schema";
 import { ISODate, Url } from "../support";
 
 export const SimpleArticle: Record = Record("SimpleArticle", {
   fields: {
     hed: types.SingleLine().required(),
     dek: types.Text(),
-    body: types.Text().required()
+    body: types.Text().required(),
   },
   metadata: {
     collectionName: "simple-articles",
-    modelName: "simple-article"
-  }
+    modelName: "simple-article",
+  },
 });
 
 export const MediumArticle: Record = Record("MediumArticle", {
@@ -25,7 +25,7 @@ export const MediumArticle: Record = Record("MediumArticle", {
     body: types.Text().required(),
     author: types.Dictionary({
       first: types.SingleLine(),
-      last: types.SingleLine()
+      last: types.SingleLine(),
     }),
     issueDate: ISODate(),
     canonicalUrl: Url(),
@@ -33,17 +33,17 @@ export const MediumArticle: Record = Record("MediumArticle", {
     categories: types.List(types.SingleLine()).required(),
     geo: types.Dictionary({
       lat: types.Integer().required(),
-      long: types.Integer().required()
+      long: types.Integer().required(),
     }),
     contributors: types.List(
       types.Dictionary({ first: types.SingleLine(), last: types.SingleLine() })
     ),
-    relatedArticles: types.hasMany("MediumArticle")
+    relatedArticles: types.hasMany("MediumArticle"),
   },
   metadata: {
     collectionName: "medium-articles",
-    modelName: "medium-article"
-  }
+    modelName: "medium-article",
+  },
 });
 
 export const Related: Record = Record("Related", {
@@ -52,12 +52,12 @@ export const Related: Record = Record("Related", {
     last: types.Text(),
 
     person: types.hasOne("SimpleArticle").required(),
-    articles: types.hasMany("MediumArticle")
+    articles: types.hasMany("MediumArticle"),
   },
   metadata: {
     collectionName: "related-articles",
-    modelName: "related-article"
-  }
+    modelName: "related-article",
+  },
 });
 
 export const Features: Record = Record("ArticleWithFlags", {
@@ -69,14 +69,14 @@ export const Features: Record = Record("ArticleWithFlags", {
     location: types
       .Dictionary({
         lat: types.Float(),
-        long: types.Float()
+        long: types.Float(),
       })
-      .features(["map"])
+      .features(["map"]),
   },
   metadata: {
     collectionName: "articles-with-flags",
-    modelName: "article-with-flags"
-  }
+    modelName: "article-with-flags",
+  },
 });
 
 export const Nesting: Record = Record("Nesting", {
@@ -85,11 +85,11 @@ export const Nesting: Record = Record("Nesting", {
       .List(
         types.Dictionary({
           first: types.SingleLine(),
-          last: types.Text()
+          last: types.Text(),
         })
       )
-      .required()
-  }
+      .required(),
+  },
 });
 
 const Records: { [key: string]: RecordBuilder } = {
@@ -97,7 +97,7 @@ const Records: { [key: string]: RecordBuilder } = {
   MediumArticle,
   Related,
   Features,
-  Nesting
+  Nesting,
 };
 
 export function resolve(name: string) {
@@ -107,7 +107,7 @@ export function resolve(name: string) {
 
   return {
     dictionary: record.members,
-    metadata: record.metadata
+    metadata: record.metadata,
   };
 }
 

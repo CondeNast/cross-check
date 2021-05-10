@@ -2,8 +2,8 @@ import {
   ValidationBuilder,
   ValueValidator,
   builderFor,
-  validators
-} from "@cross-check/dsl";
+  validators,
+} from "@condenast/cross-check-dsl";
 import { dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";
@@ -18,7 +18,7 @@ export class OptionalityImpl implements Type {
   dehydrate(): dehydrated.Descriptor {
     return {
       ...this.type.dehydrate(),
-      required: this.args.isOptional ? "never" : "always"
+      required: this.args.isOptional ? "never" : "always",
     };
   }
 
@@ -33,7 +33,9 @@ export class OptionalityImpl implements Type {
   serialize(input: unknown): unknown {
     if (input === null) {
       if (!this.isOptional) {
-        throw new Error("Serialization error: unexpected null (must validate before serializing)");
+        throw new Error(
+          "Serialization error: unexpected null (must validate before serializing)"
+        );
       }
 
       return input;

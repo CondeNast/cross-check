@@ -3,8 +3,8 @@ import {
   Task,
   ValidationError,
   validate,
-} from "@cross-check/core";
-import build from "@cross-check/dsl";
+} from "@condenast/cross-check";
+import build from "@condenast/cross-check-dsl";
 import { dehydrated } from "./descriptors";
 import { RecordImpl } from "./record";
 import { Registry } from "./registry";

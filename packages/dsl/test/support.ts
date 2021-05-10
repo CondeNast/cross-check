@@ -5,12 +5,12 @@ import {
   ValidationError,
   ValidatorFactory,
   validate,
-} from "@cross-check/core";
+} from "@condenast/cross-check";
 import build, {
   ValidationBuildable,
   ValidationBuilder,
   validates,
-} from "@cross-check/dsl";
+} from "@condenast/cross-check-dsl";
 
 export const presence = builder("presence");
 export const str = builder("str");

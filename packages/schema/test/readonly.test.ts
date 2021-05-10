@@ -1,4 +1,4 @@
-import { REGISTRY, Record, builders } from "@cross-check/schema";
+import { REGISTRY, Record, builders } from "@condenast/cross-check-schema";
 import { ENV, keysError } from "./support";
 import { ISODate } from "./support/date";
 import { resolve } from "./support/records";

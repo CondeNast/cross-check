@@ -1,9 +1,9 @@
-import { Task, ValidationError, format } from "@cross-check/core";
+import { Task, ValidationError, format } from "@condenast/cross-check";
 import validates, {
   ValidationBuildable,
   ValidationBuilder,
   validators,
-} from "@cross-check/dsl";
+} from "@condenast/cross-check-dsl";
 import { buildAndRun as runWithEnv, defaultRun } from "../support";
 
 describe("Validators (array)", () => {

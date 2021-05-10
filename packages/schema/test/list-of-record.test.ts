@@ -1,4 +1,4 @@
-import { Record, toJSON, types } from "@cross-check/schema";
+import { Record, toJSON, types } from "@condenast/cross-check-schema";
 import {
   keysError,
   missingError,

@@ -1,14 +1,17 @@
 {
-  "name": "@cross-check/core",
+  "name": "@condenast/cross-check",
   "version": "0.11.4",
   "description": "The primitives for building validations.",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>",
     "Yehuda Katz <yehuda@tilde.io>"
   ],
-  "repository": "https://github.com/cross-check/cross-check",
+  "repository": "https://github.com/CondeNast/cross-check",
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
   "types": "dist/types/index.d.ts",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }

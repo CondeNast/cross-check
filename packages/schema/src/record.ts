@@ -4,8 +4,12 @@ import {
   ValidationDescriptor,
   ValidationError,
   validate,
-} from "@cross-check/core";
-import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
+} from "@condenast/cross-check";
+import build, {
+  BUILD,
+  Buildable,
+  ValidationBuilder,
+} from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { visitorDescriptor } from "./descriptors/dehydrated";

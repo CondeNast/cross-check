@@ -7,7 +7,7 @@ import {
   Validator,
   ValidatorFactory,
   validate,
-} from "@cross-check/core";
+} from "@condenast/cross-check";
 
 export type ValidationDescriptors<T> = ReadonlyArray<ValidationDescriptor<T>>;
 export type CombinatorFactory<T> = ValidatorFactory<

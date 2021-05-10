@@ -4,7 +4,7 @@ import {
   ValidationDescriptor,
   ValidationError,
   validate,
-} from "@cross-check/core";
+} from "@condenast/cross-check";
 import { ValidationBuilder, build, validates } from "../builders";
 import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject, Present } from "./is";

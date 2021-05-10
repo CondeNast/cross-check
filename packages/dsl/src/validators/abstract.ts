@@ -4,7 +4,7 @@ import {
   ValidationError,
   Validator,
   ValidatorFactory,
-} from "@cross-check/core";
+} from "@condenast/cross-check";
 import { ValidationBuilder, validates } from "../builders";
 
 /**

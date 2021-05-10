@@ -1,4 +1,4 @@
-import { ValidationBuilder } from "@cross-check/dsl";
+import { ValidationBuilder } from "@condenast/cross-check-dsl";
 import { dehydrated } from "../../index";
 import { Type } from "../../type";
 import { DictionaryType } from "../../types/fundamental";

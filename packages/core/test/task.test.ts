@@ -1,4 +1,4 @@
-import { Task, isCancelation } from "@cross-check/core";
+import { Task, isCancelation } from "@condenast/cross-check";
 
 describe("Task", () => {
   test("Running a basic task", async () => {
