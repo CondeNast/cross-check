@@ -41,11 +41,11 @@ const DEFAULT_OBJECT_MODEL: ObjectModel = {
  *  descriptor can represent multiple composed validations
  * @param context Optionally, a string that represents the saving context
  */
-export function validate<T, Options>(
+export function validate<T, Options, M extends ObjectModel>(
   value: T,
   descriptor: ValidationDescriptor<T, Options>,
   context: string | null = null,
-  objectModel: ObjectModel = DEFAULT_OBJECT_MODEL
+  objectModel: M = DEFAULT_OBJECT_MODEL as M
 ): Task<ValidationError[]> {
   return new Task(async (run) => {
     const { validator, options, contexts } = descriptor;

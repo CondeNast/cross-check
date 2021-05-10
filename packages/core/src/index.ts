@@ -3,7 +3,6 @@ export {
   ErrorMessage,
   ValidationError,
   ObjectModel,
-  Environment,
   ValidatorFactory,
   Validator,
   ValidationDescriptor,

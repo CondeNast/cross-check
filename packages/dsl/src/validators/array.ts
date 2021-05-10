@@ -24,11 +24,12 @@ function mapError(
  * Use this if you want to refine this validator and implement your own
  * custom `items()`.
  */
-export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
+export class ItemsValidator<T = unknown, M extends ObjectModel = ObjectModel>
+  implements ValidatorInstance<T[]> {
   static validatorName = "array-items";
 
   constructor(
-    protected env: ObjectModel,
+    protected env: M,
     protected descriptor: ValidationDescriptor<unknown>
   ) {}
 

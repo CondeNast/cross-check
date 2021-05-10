@@ -13,11 +13,14 @@ import { ValidationResult } from "./callback";
  * If you need to return multiple errors from `validate()`, use the primitive
  * `BasicValidator` superclass instead.
  */
-export abstract class ValueValidator<T, Options = void, Environment = ObjectModel>
-  implements ValidatorInstance<T> {
-  constructor(protected objectModel: Environment, protected options: Options) {}
+export abstract class ValueValidator<
+  T,
+  Options = void,
+  M extends ObjectModel = ObjectModel
+> implements ValidatorInstance<T> {
+  constructor(protected objectModel: M, protected options: Options) {}
 
-  get env(): Environment {
+  get env(): M {
     return this.objectModel;
   }
 

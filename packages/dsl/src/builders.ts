@@ -1,4 +1,8 @@
-import { ValidationDescriptor, ValidatorFactory } from "@condenast/cross-check";
+import {
+  ObjectModel,
+  ValidationDescriptor,
+  ValidatorFactory,
+} from "@condenast/cross-check";
 import {
   MapErrorOptions,
   MapErrorTransform,
@@ -19,15 +23,23 @@ import { ValidationCallback, factoryForCallback } from "./validators/callback";
  * It's either another ValidationBuilder or a callback, which allows a more inline
  * style of composing validation chains.
  */
-export type ValidationBuildable<T = unknown> =
-  | ValidationCallback<T>
-  | Buildable<T>
+export type ValidationBuildable<
+  T = unknown,
+  Options = unknown,
+  M extends ObjectModel = ObjectModel
+> =
+  | ValidationCallback<T, M>
+  | Buildable<T, Options, M>
   | ValidationDescriptor<T>;
 
 export const BUILD = Symbol("BUILD");
 
-export interface Buildable<T = unknown> {
-  [BUILD](): ValidationDescriptor<T>;
+export interface Buildable<
+  T = unknown,
+  Options = unknown,
+  M extends ObjectModel = ObjectModel
+> {
+  [BUILD](): ValidationDescriptor<T, Options, M>;
 }
 
 /**
@@ -182,9 +194,9 @@ export function build<T>(
   }
 }
 
-export function validates<T, Options>(
+export function validates<T, Options, M extends ObjectModel = ObjectModel>(
   name: string,
-  factory: ValidatorFactory<T, Options>,
+  factory: ValidatorFactory<T, Options, M>,
   options: Options
 ): ValidationBuilder<T> {
   return new BaseValidationBuilder(name, factory, options);
@@ -267,10 +279,11 @@ export function builderForDescriptor<T>(
   );
 }
 
-class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
+class BaseValidationBuilder<T, Options, M extends ObjectModel = ObjectModel>
+  implements ValidationBuilder<T> {
   constructor(
     public name: string,
-    protected factory: ValidatorFactory<T, Options>,
+    protected factory: ValidatorFactory<T, Options, M>,
     protected options: Options,
     protected contexts: ReadonlyArray<string> = []
   ) {}
@@ -334,7 +347,7 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
-  on(...contexts: string[]): BaseValidationBuilder<T, Options> {
+  on(...contexts: string[]): BaseValidationBuilder<T, Options, M> {
     if (contexts.length === 0) {
       throw new Error("You must provide at least one validation context");
     }
@@ -408,10 +421,14 @@ class ChainBuilder<T> extends BaseValidationBuilder<
   }
 }
 
-class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
+class OnBuilder<
+  T,
+  Options,
+  M extends ObjectModel = ObjectModel
+> extends BaseValidationBuilder<T, Options, M> {
   constructor(
     name: string,
-    factory: ValidatorFactory<T, Options>,
+    factory: ValidatorFactory<T, Options, M>,
     options: Options,
     contexts: ReadonlyArray<string>
   ) {
@@ -421,8 +438,8 @@ class OnBuilder<T, Options> extends BaseValidationBuilder<T, Options> {
     super(name, factory, options, contexts);
   }
 
-  on(...contexts: string[]): BaseValidationBuilder<T, Options> {
-    return new OnBuilder<T, Options>(
+  on(...contexts: string[]): BaseValidationBuilder<T, Options, M> {
+    return new OnBuilder<T, Options, M>(
       this.name,
       this.factory,
       this.options,

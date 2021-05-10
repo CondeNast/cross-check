@@ -22,9 +22,9 @@ export type CombinatorFactory<T> = ValidatorFactory<
  * @param descriptors
  * @param objectModel
  */
-export function chain<T>(
+export function chain<T, M extends ObjectModel = ObjectModel>(
   descriptors: ValidationDescriptors<T>,
-  objectModel: ObjectModel
+  objectModel: M
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async (run) => {
@@ -47,9 +47,9 @@ export function chain<T>(
  * @param descriptors
  * @param objectModel
  */
-export function and<T>(
+export function and<T, M extends ObjectModel = ObjectModel>(
   descriptors: ValidationDescriptors<T>,
-  objectModel: ObjectModel
+  objectModel: M
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async (run) => {
@@ -75,9 +75,9 @@ export function and<T>(
  * @param descriptors
  * @param objectModel
  */
-export function or<T>(
+export function or<T, M extends ObjectModel = ObjectModel>(
   descriptors: ValidationDescriptors<T>,
-  objectModel: ObjectModel
+  objectModel: M
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async (run) => {
@@ -113,9 +113,9 @@ export function or<T>(
  * @param descriptors
  * @param objectModel
  */
-export function ifValid<T>(
+export function ifValid<T, M extends ObjectModel = ObjectModel>(
   descriptors: ValidationDescriptors<T>,
-  objectModel: ObjectModel
+  objectModel: M
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async (run) => {
@@ -148,9 +148,9 @@ export interface MapErrorOptions<T> {
   catch: MapErrorTransform;
 }
 
-export function mapError<T>(
+export function mapError<T, M extends ObjectModel = ObjectModel>(
   options: MapErrorOptions<T>,
-  objectModel: ObjectModel
+  objectModel: M
 ): Validator<T> {
   return (value, context): Task<ValidationError[]> => {
     return new Task(async (run) => {

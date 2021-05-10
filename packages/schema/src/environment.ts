@@ -20,11 +20,11 @@ import {
   typescript,
 } from "./types";
 
-export class Environment {
+export class Environment<M extends ObjectModel = ObjectModel> {
   constructor(
     readonly registry: Registry,
     readonly params: dehydrated.HydrateParameters,
-    readonly objectModel: ObjectModel
+    readonly objectModel: M
   ) {}
 
   validate(

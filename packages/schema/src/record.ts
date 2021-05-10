@@ -184,9 +184,9 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.dehydrate() as dehydrated.Dictionary;
   }
 
-  validate(
+  validate<M extends ObjectModel = ObjectModel>(
     obj: { [key: string]: unknown },
-    objectModel: ObjectModel
+    objectModel: M
   ): Task<ValidationError[]> {
     const validation = this.dictionary.validation();
 

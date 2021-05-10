@@ -16,9 +16,13 @@ import { ValidationBuilder, validates } from "../builders";
  * @typeparam T        a valid input value for instances of this validator class
  * @typeparam Options  the options passed to the constructor of this validator class
  */
-export interface ValidatorClass<T, Options> {
+export interface ValidatorClass<
+  T,
+  Options,
+  M extends ObjectModel = ObjectModel
+> {
   validatorName: string;
-  new (env: ObjectModel, options: Options): ValidatorInstance<T>;
+  new (objectModel: M, options: Options): ValidatorInstance<T>;
 }
 
 /**
@@ -41,10 +45,10 @@ export interface ValidatorInstance<T> {
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
  *
  */
-export function factoryFor<T, Options>(
-  Class: ValidatorClass<T, Options>
-): ValidatorFactory<T, Options> {
-  return (options: Options, objectModel: ObjectModel): Validator<T> => {
+export function factoryFor<T, Options, M extends ObjectModel = ObjectModel>(
+  Class: ValidatorClass<T, Options, M>
+): ValidatorFactory<T, Options, M> {
+  return (options: Options, objectModel: M): Validator<T> => {
     let validator = new Class(objectModel, options);
     return (value, context) => validator.run(value, context);
   };
@@ -79,8 +83,11 @@ export function builderFor<T>(
 export function builderFor<T, Options>(
   Class: ValidatorClass<T, Options>
 ): (options: Options) => ValidationBuilder<T>;
-export function builderFor<T, Options>(
-  Class: ValidatorClass<T, Options>
+export function builderFor<T, Options, M extends ObjectModel = ObjectModel>(
+  Class: ValidatorClass<T, Options, M>
+): (options: Options) => ValidationBuilder<T>;
+export function builderFor<T, Options, M extends ObjectModel = ObjectModel>(
+  Class: ValidatorClass<T, Options, M>
 ): (options: Options) => ValidationBuilder<T> {
   let factory = factoryFor(Class);
 

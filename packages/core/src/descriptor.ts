@@ -103,19 +103,17 @@ export interface ObjectModel {
   asList(object: unknown): Iterable<unknown> | Array<unknown> | null;
 }
 
-/** @deprecated */
-export type Environment = ObjectModel;
-
 /**
  * @api primitive
  *
  * A function that takes an object model and validator options and produces a new
  * Validator function. In other words, it curries the object model and options.
  */
-export type ValidatorFactory<T, Options> = (
-  options: Options,
-  objectModel: ObjectModel
-) => Validator<T>;
+export type ValidatorFactory<
+  T,
+  Options,
+  M extends ObjectModel = ObjectModel
+> = (options: Options, objectModel: M) => Validator<T>;
 
 /**
  * @api primitive
@@ -137,9 +135,13 @@ export type Validator<T = unknown> = (
  *
  * A low-level representation of a validation.
  */
-export type ValidationDescriptor<T = unknown, Options = unknown> = Readonly<{
+export type ValidationDescriptor<
+  T = unknown,
+  Options = unknown,
+  M extends ObjectModel = ObjectModel
+> = Readonly<{
   name: string;
-  validator: ValidatorFactory<T, Options>;
+  validator: ValidatorFactory<T, Options, M>;
   options: Options;
   contexts?: ReadonlyArray<string>;
 }>;
