@@ -10,11 +10,11 @@ import { ValidatorInstance } from "./abstract";
  * errors. If you only need to return a single error, use `ValueValidator`
  * instead.
  */
-export abstract class BasicValidator<T, Options = void>
+export abstract class BasicValidator<T, Options = void, Environment = ObjectModel>
   implements ValidatorInstance<T> {
-  constructor(protected objectModel: ObjectModel, protected options: Options) {}
+  constructor(protected objectModel: Environment, protected options: Options) {}
 
-  get env(): ObjectModel {
+  get env(): Environment {
     return this.objectModel;
   }
 
