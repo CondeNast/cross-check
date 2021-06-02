@@ -31,7 +31,8 @@ export interface FormattableRecord {
 export type RecordDetails = { [key: string]: unknown };
 
 export class RecordBuilder
-  implements builders.TypeBuilderMember, FormattableRecord {
+  implements builders.TypeBuilderMember, FormattableRecord
+{
   constructor(
     readonly name: string,
     readonly members: dehydrated.Dictionary,
@@ -235,9 +236,9 @@ export function Record(
   return new RecordBuilder(name, dictionary, metadata || null);
 }
 
-function dehydrate(fields: {
-  [key: string]: builders.TypeBuilder;
-}): { [key: string]: dehydrated.Member } {
+function dehydrate(fields: { [key: string]: builders.TypeBuilder }): {
+  [key: string]: dehydrated.Member;
+} {
   return mapDict(fields, (member) => {
     return {
       descriptor: member.dehydrate("never"),

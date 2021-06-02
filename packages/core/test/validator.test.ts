@@ -2,8 +2,9 @@ import { validate, validator } from "@condenast/cross-check";
 
 describe("validator", () => {
   test("void options using the synchronous API", async () => {
-    const isAllCaps = validator("is-all-caps", () => (input: string) =>
-      input.toUpperCase() === input
+    const isAllCaps = validator(
+      "is-all-caps",
+      () => (input: string) => input.toUpperCase() === input
     );
 
     expect(await validate("hello", isAllCaps())).toEqual([
@@ -30,8 +31,9 @@ describe("validator", () => {
   });
 
   test("with options using the synchronous API", async () => {
-    const lt = validator("lt", (upperBound: number) => (input: number) =>
-      input < upperBound
+    const lt = validator(
+      "lt",
+      (upperBound: number) => (input: number) => input < upperBound
     );
 
     expect(await validate(5, lt(5))).toEqual([

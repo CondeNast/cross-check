@@ -172,9 +172,9 @@ describe("[schema] - simple schema", () => {
       await validatePublished(SimpleArticle, registry, false as any)
     ).toEqual([typeError("object", null)]);
 
-    expect(
-      await validatePublished(SimpleArticle, registry, [] as any)
-    ).toEqual([typeError("object", null)]);
+    expect(await validatePublished(SimpleArticle, registry, [] as any)).toEqual(
+      [typeError("object", null)]
+    );
 
     expect(
       await validatePublished(SimpleArticle, registry, (() => null) as any)

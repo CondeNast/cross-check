@@ -96,10 +96,8 @@ describe("[schema] - record with feature flags", () => {
   }
 
   class RowMatches {
-    private matches: Map<
-      boolean,
-      Map<boolean, Map<boolean, Set<MatchValue>>>
-    > = new Map();
+    private matches: Map<boolean, Map<boolean, Map<boolean, Set<MatchValue>>>> =
+      new Map();
 
     add(match: RowMatch): void {
       let required = this.matches.get(match.required);

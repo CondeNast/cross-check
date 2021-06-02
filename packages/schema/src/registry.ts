@@ -308,9 +308,10 @@ export class Registry {
     };
   }
 
-  getRawRecord(
-    name: string
-  ): { dictionary: dehydrated.Dictionary; metadata: JSONObject | null } {
+  getRawRecord(name: string): {
+    dictionary: dehydrated.Dictionary;
+    metadata: JSONObject | null;
+  } {
     const registered = this.types.Record.get(name);
 
     if (registered) return registered;

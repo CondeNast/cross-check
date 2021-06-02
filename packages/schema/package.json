@@ -15,7 +15,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@condenast/cross-check": "0.11.4",
-    "@condenast/cross-check-dsl": "0.11.4"
+    "@condenast/cross-check": "*",
+    "@condenast/cross-check-dsl": "*"
   }
 }
