@@ -1,4 +1,4 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
+import { ValidationBuilder, validators } from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 
@@ -19,20 +19,20 @@ export class ListImpl implements Type {
       type: "List",
       args: this.args,
       inner: this.inner.dehydrate(),
-      required: "always"
+      required: "always",
     };
   }
 
   serialize(js: any[]): any {
     let itemType = this.inner;
 
-    return js.map(item => itemType.serialize(item));
+    return js.map((item) => itemType.serialize(item));
   }
 
   parse(wire: any[]): any {
     let itemType = this.inner;
 
-    return wire.map(item => itemType.parse(item));
+    return wire.map((item) => itemType.parse(item));
   }
 
   validation(): ValidationBuilder<unknown> {
@@ -52,6 +52,6 @@ export function List(
 ): builders.ListBuilder {
   return new builders.ListBuilder({
     args: options,
-    contents: contents.builder.required()
+    contents: contents.builder.required(),
   });
 }

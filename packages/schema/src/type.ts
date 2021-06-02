@@ -1,4 +1,4 @@
-import { ValidationBuilder } from "@cross-check/dsl";
+import { ValidationBuilder } from "@condenast/cross-check-dsl";
 import { dehydrated } from "./descriptors";
 
 /**

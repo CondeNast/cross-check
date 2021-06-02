@@ -1,4 +1,3 @@
-import { Dict, Option } from "ts-std";
 import { titleize } from "../../../utils";
 import formatter from "../formatter";
 import { Accumulator, ReporterDelegate, isRequiredPosition } from "../reporter";
@@ -22,8 +21,8 @@ class TypeBuffer {
 class BufferStack implements Accumulator<string> {
   types: TypeBuffer[] = [];
   finished: TypeBuffer[] = [];
-  key: Option<string> = null;
-  template: Option<string> = null;
+  key: string | null = null;
+  template: string | null = null;
 
   get currentName(): string {
     return this.types[this.types.length - 1].name;
@@ -146,7 +145,7 @@ const delegate: ReporterDelegate<BufferStack, string, GraphqlOptions> = {
 
 export interface GraphqlOptions {
   name: string;
-  scalarMap: Dict;
+  scalarMap: { [key: string]: unknown };
 }
 
 export const graphql = formatter(delegate, BufferStack);

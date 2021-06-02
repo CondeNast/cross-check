@@ -1,26 +1,24 @@
-import { ObjectModel, ValidationError } from "@cross-check/core";
+import { ObjectModel, Task, ValidationError } from "@condenast/cross-check";
 import {
   Record,
   RecordBuilder,
   RecordImpl,
-  Registry
-} from "@cross-check/schema";
-import { Task } from "no-show";
-import { Dict, Option } from "ts-std";
+  Registry,
+} from "@condenast/cross-check-schema";
 
 export const ENV: ObjectModel = {
   get(object: unknown, key: string): unknown {
     if (object === null || object === undefined) return;
-    return (object as Dict<unknown>)[key];
+    return (object as { [key: string]: unknown })[key];
   },
 
-  asList(object: unknown): Option<Array<unknown>> {
+  asList(object: unknown): Array<unknown | null> {
     if (Array.isArray(object)) {
       return object;
     } else {
       return null;
     }
-  }
+  },
 };
 
 export function strip(
@@ -39,14 +37,14 @@ export function strip(
     return Math.min(accum, size);
   }, Infinity);
 
-  lines = lines.map(l => l.slice(leading));
+  lines = lines.map((l) => l.slice(leading));
 
   return lines.join("\n");
 }
 
 export function validate(
   record: RecordImpl,
-  obj: Dict<unknown>
+  obj: { [key: string]: unknown }
 ): Task<ValidationError[]> {
   return record.validate(obj, ENV);
 }
@@ -54,7 +52,7 @@ export function validate(
 export function validateDraft(
   record: RecordBuilder,
   registry: Registry,
-  obj: Dict<unknown>
+  obj: { [key: string]: unknown }
 ): Task<ValidationError[]> {
   return record.with({ draft: true, registry }).validate(obj, ENV);
 }
@@ -62,33 +60,33 @@ export function validateDraft(
 export function validatePublished(
   record: Record,
   registry: Registry,
-  obj: Dict<unknown>
+  obj: { [key: string]: unknown }
 ): Task<ValidationError[]> {
   return record.with({ registry }).validate(obj, ENV);
 }
 
 export function typeError(
   kind: string,
-  path: Option<string> = null
+  path: string | null = null
 ): ValidationError {
   return {
     message: { details: kind, name: "type" },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
-export function missingError(path: Option<string> = null) {
+export function missingError(path: string | null = null) {
   return typeError("present", path);
 }
 
 export function keysError({
   extra = [],
   missing = [],
-  path = null
+  path = null,
 }: {
   extra?: string[];
   missing?: string[];
-  path?: Option<string>;
+  path?: string | null;
 }): ValidationError {
   let errors = [];
 
@@ -102,18 +100,18 @@ export function keysError({
 
   return {
     message: { name: "keys", details: errors },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
 export function error(
   kind: string,
   problem: unknown,
-  path: Option<string> = null
+  path: string | null = null
 ): ValidationError {
   return {
     message: { details: problem, name: kind },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
@@ -127,5 +125,5 @@ export const GRAPHQL_SCALAR_MAP = {
   Text: "String",
   Integer: "Int",
   Number: "Float",
-  Boolean: "Boolean"
+  Boolean: "Boolean",
 };

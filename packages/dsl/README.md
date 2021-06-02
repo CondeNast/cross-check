@@ -1,6 +1,6 @@
-# @cross-check/dsl
+# @condenast/cross-check-dsl
 
-A low-level validation library. Built on top of [@cross-check/core](../core). Detailed philosophy about cross-check can be found in `@cross-check/core`.
+A low-level validation library. Built on top of [@condenast/cross-check](../core). Detailed philosophy about cross-check can be found in `@condenast/cross-check`.
 
 It was originally extracted from Condé Nast's CMS and sponsored by Condé Nast.
 
@@ -16,7 +16,7 @@ The short version of the philosophy of cross-check:
 - Different rules for different contexts. This means, for example, that specific field validations in an object validator can be designated as "publish" validations, and ignored when an article is a "draft".
 - Async-friendly. The validation function itself is asynchronous, which makes it easy to add async behavior to a validator when you need it. For example: validating username uniqueness by hitting a web service.
 
-The `@cross-check/core` repository unpacks these points in much greater detail.
+The `@condenast/cross-check` repository unpacks these points in much greater detail.
 
 ## Install and test
 

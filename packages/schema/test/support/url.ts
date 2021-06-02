@@ -1,5 +1,5 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { builders, scalar } from "@cross-check/schema";
+import { ValidationBuilder, validators } from "@condenast/cross-check-dsl";
+import { builders, scalar } from "@condenast/cross-check-schema";
 import { format } from "./format";
 
 export type UrlKind =
@@ -71,7 +71,7 @@ const URL = scalar("Url", {
 
   parse(input: string): Urlish {
     return urlish(input);
-  }
+  },
 });
 
 export function Url(...kinds: UrlKind[]): builders.PrimitiveBuilder {

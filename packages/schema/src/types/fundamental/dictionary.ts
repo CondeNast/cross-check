@@ -1,5 +1,4 @@
-import { ValidationBuilder, validators } from "@cross-check/dsl";
-import { Dict, Option, assert } from "ts-std";
+import { ValidationBuilder, validators } from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { mapDict } from "../../utils";
@@ -9,37 +8,38 @@ export interface DictionaryImplOptions {
 }
 
 export interface DictionaryType extends Type {
-  readonly members: Dict<Type>;
+  readonly members: { [key: string]: Type };
 }
 
 export class DictionaryImpl implements DictionaryType {
   constructor(
-    readonly members: Dict<Type>,
+    readonly members: { [key: string]: Type },
     private options: DictionaryImplOptions
   ) {}
 
   dehydrate(): dehydrated.Dictionary {
     return {
       type: "Dictionary",
-      members: mapDict(this.members, member => {
+      members: mapDict(this.members, (member) => {
         return {
-          descriptor: member.dehydrate()
+          descriptor: member.dehydrate(),
         };
       }),
-      required: "always"
+      required: "always",
     };
   }
 
-  serialize(js: Dict): Option<Dict> {
+  serialize(js: { [key: string]: unknown }): { [key: string]: unknown } | null {
     if (js === null) {
       return null;
     }
 
     return mapDict(this.members, (member, key) => {
-      assert(
-        key in js,
-        `Serialization error: missing field \`${key}\` (must validate before serializing)`
-      );
+      if (!(key in js)) {
+        throw new Error(
+          `Serialization error: missing field \`${key}\` (must validate before serializing)`
+        );
+      }
 
       let result = member.serialize(js[key]);
 
@@ -49,7 +49,7 @@ export class DictionaryImpl implements DictionaryType {
     });
   }
 
-  parse(wire: Dict): Option<Dict> {
+  parse(wire: { [key: string]: unknown }): { [key: string]: unknown } | null {
     return mapDict(this.members, (member, key) => {
       let raw = wire[key];
 
@@ -64,23 +64,23 @@ export class DictionaryImpl implements DictionaryType {
   validation(): ValidationBuilder<unknown> {
     if (this.options.strictKeys) {
       return validators.strictObject(
-        mapDict(this.members, member => member.validation())
+        mapDict(this.members, (member) => member.validation())
       );
     } else {
       return validators.object(
-        mapDict(this.members, member => member.validation())
+        mapDict(this.members, (member) => member.validation())
       );
     }
   }
 }
 
 export interface DictionaryOptions {
-  members: Dict<builders.MembersMeta>;
+  members: { [key: string]: builders.MembersMeta };
   name?: string;
 }
 
-export function Dictionary(
-  members: Dict<builders.TypeBuilderMember>
-): builders.DictionaryBuilder {
+export function Dictionary(members: {
+  [key: string]: builders.TypeBuilderMember;
+}): builders.DictionaryBuilder {
   return new builders.DictionaryBuilder({ members });
 }

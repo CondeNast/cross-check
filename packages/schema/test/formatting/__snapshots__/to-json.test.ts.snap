@@ -1,0 +1,401 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[schema] formatting - toJSON detailed - draft 1`] = `
+Object {
+  "fields": Object {
+    "author": Object {
+      "members": Object {
+        "first": Object {
+          "args": Object {
+            "allowEmpty": true,
+          },
+          "required": false,
+          "type": "Text",
+        },
+        "last": Object {
+          "args": Object {
+            "allowEmpty": true,
+          },
+          "required": false,
+          "type": "Text",
+        },
+      },
+      "required": false,
+      "type": "Dictionary",
+    },
+    "body": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "canonicalUrl": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "categories": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "of": Object {
+        "required": true,
+        "type": "Text",
+      },
+      "required": false,
+      "type": "List",
+    },
+    "contributors": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "of": Object {
+        "members": Object {
+          "first": Object {
+            "args": Object {
+              "allowEmpty": true,
+            },
+            "required": false,
+            "type": "Text",
+          },
+          "last": Object {
+            "args": Object {
+              "allowEmpty": true,
+            },
+            "required": false,
+            "type": "Text",
+          },
+        },
+        "required": true,
+        "type": "Dictionary",
+      },
+      "required": false,
+      "type": "List",
+    },
+    "dek": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "geo": Object {
+      "members": Object {
+        "lat": Object {
+          "required": false,
+          "type": "Integer",
+        },
+        "long": Object {
+          "required": false,
+          "type": "Integer",
+        },
+      },
+      "required": false,
+      "type": "Dictionary",
+    },
+    "hed": Object {
+      "required": true,
+      "type": "Text",
+    },
+    "issueDate": Object {
+      "required": false,
+      "type": "ISODate",
+    },
+    "relatedArticles": Object {
+      "kind": "hasMany",
+      "of": Object {
+        "alias": "MediumArticle",
+        "required": true,
+      },
+      "required": false,
+      "type": "Iterator",
+    },
+    "tags": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "of": Object {
+        "required": true,
+        "type": "Text",
+      },
+      "required": false,
+      "type": "List",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "medium-articles",
+    "modelName": "medium-article",
+  },
+}
+`;
+
+exports[`[schema] formatting - toJSON detailed - published 1`] = `
+Object {
+  "fields": Object {
+    "author": Object {
+      "members": Object {
+        "first": Object {
+          "args": Object {
+            "allowEmpty": true,
+          },
+          "required": false,
+          "type": "SingleLine",
+        },
+        "last": Object {
+          "args": Object {
+            "allowEmpty": true,
+          },
+          "required": false,
+          "type": "SingleLine",
+        },
+      },
+      "required": false,
+      "type": "Dictionary",
+    },
+    "body": Object {
+      "required": true,
+      "type": "Text",
+    },
+    "canonicalUrl": Object {
+      "args": Array [],
+      "required": false,
+      "type": "Url",
+    },
+    "categories": Object {
+      "of": Object {
+        "required": true,
+        "type": "SingleLine",
+      },
+      "required": true,
+      "type": "List",
+    },
+    "contributors": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "of": Object {
+        "members": Object {
+          "first": Object {
+            "args": Object {
+              "allowEmpty": true,
+            },
+            "required": false,
+            "type": "SingleLine",
+          },
+          "last": Object {
+            "args": Object {
+              "allowEmpty": true,
+            },
+            "required": false,
+            "type": "SingleLine",
+          },
+        },
+        "required": true,
+        "type": "Dictionary",
+      },
+      "required": false,
+      "type": "List",
+    },
+    "dek": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "geo": Object {
+      "members": Object {
+        "lat": Object {
+          "required": true,
+          "type": "Integer",
+        },
+        "long": Object {
+          "required": true,
+          "type": "Integer",
+        },
+      },
+      "required": false,
+      "type": "Dictionary",
+    },
+    "hed": Object {
+      "required": true,
+      "type": "SingleLine",
+    },
+    "issueDate": Object {
+      "required": false,
+      "type": "ISODate",
+    },
+    "relatedArticles": Object {
+      "kind": "hasMany",
+      "of": Object {
+        "alias": "MediumArticle",
+        "required": true,
+      },
+      "required": false,
+      "type": "Iterator",
+    },
+    "tags": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "of": Object {
+        "required": true,
+        "type": "SingleWord",
+      },
+      "required": false,
+      "type": "List",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "medium-articles",
+    "modelName": "medium-article",
+  },
+}
+`;
+
+exports[`[schema] formatting - toJSON relationships - draft 1`] = `
+Object {
+  "fields": Object {
+    "articles": Object {
+      "kind": "hasMany",
+      "of": Object {
+        "alias": "MediumArticle",
+        "required": true,
+      },
+      "required": false,
+      "type": "Iterator",
+    },
+    "first": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "last": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "person": Object {
+      "kind": "hasOne",
+      "of": Object {
+        "alias": "SimpleArticle",
+        "required": true,
+      },
+      "required": false,
+      "type": "Pointer",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "related-articles",
+    "modelName": "related-article",
+  },
+}
+`;
+
+exports[`[schema] formatting - toJSON relationships - published 1`] = `
+Object {
+  "fields": Object {
+    "articles": Object {
+      "kind": "hasMany",
+      "of": Object {
+        "alias": "MediumArticle",
+        "required": true,
+      },
+      "required": false,
+      "type": "Iterator",
+    },
+    "first": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "SingleLine",
+    },
+    "last": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "person": Object {
+      "kind": "hasOne",
+      "of": Object {
+        "alias": "SimpleArticle",
+        "required": true,
+      },
+      "required": true,
+      "type": "Pointer",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "related-articles",
+    "modelName": "related-article",
+  },
+}
+`;
+
+exports[`[schema] formatting - toJSON simple - draft 1`] = `
+Object {
+  "fields": Object {
+    "body": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "dek": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "hed": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "simple-articles",
+    "modelName": "simple-article",
+  },
+}
+`;
+
+exports[`[schema] formatting - toJSON simple - published 1`] = `
+Object {
+  "fields": Object {
+    "body": Object {
+      "required": true,
+      "type": "Text",
+    },
+    "dek": Object {
+      "args": Object {
+        "allowEmpty": true,
+      },
+      "required": false,
+      "type": "Text",
+    },
+    "hed": Object {
+      "required": true,
+      "type": "SingleLine",
+    },
+  },
+  "metadata": Object {
+    "collectionName": "simple-articles",
+    "modelName": "simple-article",
+  },
+}
+`;

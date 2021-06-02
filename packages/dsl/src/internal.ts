@@ -2,7 +2,7 @@
  * The functions in this file should not be re-exported from index.ts
  */
 
-import { ValidationDescriptor, ValidatorFactory } from "@cross-check/core";
+import { ValidationDescriptor, ValidatorFactory } from "@condenast/cross-check";
 
 export function descriptor<T>(
   name: string,

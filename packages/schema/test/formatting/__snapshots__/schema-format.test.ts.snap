@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[schema] formatting - schemaFormat detailed - published 1`] = `
+"Record(\\"MediumArticle\\", {
+  hed: SingleLine().required(),
+  dek: Text(),
+  body: Text().required(),
+  author: Dictionary({
+    first: SingleLine(),
+    last: SingleLine()
+  }),
+  issueDate: ISODate(),
+  canonicalUrl: Url(),
+  tags: List(SingleWord()),
+  categories: List(SingleLine()).required(),
+  geo: Dictionary({
+    lat: Integer().required(),
+    long: Integer().required()
+  }),
+  contributors: List(Dictionary({
+    first: SingleLine(),
+    last: SingleLine()
+  })),
+  relatedArticles: hasMany(MediumArticle)
+}).metadata({
+  collectionName: \\"medium-articles\\",
+  modelName: \\"medium-article\\"
+})"
+`;
+
+exports[`[schema] formatting - schemaFormat relationships 1`] = `
+"Record(\\"Related\\", {
+  first: SingleLine(),
+  last: Text(),
+  person: hasOne(SimpleArticle).required(),
+  articles: hasMany(MediumArticle)
+}).metadata({
+  collectionName: \\"related-articles\\",
+  modelName: \\"related-article\\"
+})"
+`;
+
+exports[`[schema] formatting - schemaFormat simple 1`] = `
+"Record(\\"SimpleArticle\\", {
+  hed: SingleLine().required(),
+  dek: Text(),
+  body: Text().required()
+}).metadata({
+  collectionName: \\"simple-articles\\",
+  modelName: \\"simple-article\\"
+})"
+`;

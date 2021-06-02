@@ -1,5 +1,4 @@
-import { Dict, JSONObject, Option, dict } from "ts-std";
-import { JSONValue, exhausted } from "../../../utils";
+import { JSONObject, JSONValue, exhausted } from "../../../utils";
 import {
   Pos,
   isExplicitRequiredPosition,
@@ -33,7 +32,7 @@ type GenericOptions = Pick<GenericReference, "kind" | "args">;
 
 export interface JSONDictionary {
   type: "Dictionary";
-  members: Dict<Item>;
+  members: { [key: string]: Item };
   required: boolean;
 }
 
@@ -44,8 +43,8 @@ export interface JSONAlias {
 }
 
 export interface JSONRecord {
-  fields: Dict<Item>;
-  metadata?: Option<JSONValue>;
+  fields: { [key: string]: Item };
+  metadata?: JSONValue | null;
 }
 
 export type Item = JSONGeneric | JSONPrimitive | JSONDictionary | JSONAlias;
@@ -88,7 +87,7 @@ class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
     pos: Pos
   ): JSONGeneric {
     let { type } = descriptor;
-    let options: Option<{ kind?: string; args?: JSONObject }> = {};
+    let options: { kind?: string; args?: JSONObject } | null = {};
 
     switch (type) {
       case "Iterator":
@@ -138,8 +137,8 @@ class JSONFormatter implements visitor.RecursiveDelegate<JSONTypes> {
 
   private dictionaryOrRecord(
     descriptor: visitor.Dictionary | visitor.Record
-  ): Dict<Item> {
-    let members = dict<Item>();
+  ): { [key: string]: Item } {
+    let members: { [key: string]: Item } = Object.create(null);
     this.visitor.processDictionary(descriptor, (item, key, pos) => {
       if (isExplicitRequiredPosition(pos)) {
         item.required = true;

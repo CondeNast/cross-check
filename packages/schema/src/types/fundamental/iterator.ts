@@ -1,7 +1,7 @@
-import { JSONObject, Option } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
-import {} from "../../descriptors/dehydrated";
+import "../../descriptors/dehydrated";
 import { RegistryRecord } from "../../registry";
+import { JSONObject } from "../../utils";
 import { ReferenceImpl } from "./reference";
 
 export class IteratorImpl extends ReferenceImpl {
@@ -22,7 +22,7 @@ export class IteratorImpl extends ReferenceImpl {
 
 export function hasMany(
   item: string,
-  options: Option<JSONObject> = null
+  options: JSONObject | null = null
 ): builders.IteratorBuilder {
   return new builders.IteratorBuilder({
     kind: "hasMany",

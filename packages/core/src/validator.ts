@@ -1,17 +1,15 @@
+import { Task } from "./task";
 import {
   ValidationDescriptor,
   ValidationError,
-  ValidatorFactory
+  ValidatorFactory,
 } from "./index";
-
-import { Task } from "no-show";
-import { Option } from "ts-std";
 
 export type BasicValidator<T> = (value: T) => ValidationError[] | void;
 
-export type HigherOrderBasicValidator<T, Options> = ((
+export type HigherOrderBasicValidator<T, Options> = (
   options?: Options
-) => (value: T) => boolean);
+) => (value: T) => boolean;
 
 /**
  * @api primitive
@@ -40,7 +38,7 @@ export function validator<T, Options>(
     return {
       name,
       validator: simpleToFull(name, validatorFunction),
-      options: options as Options
+      options: options as Options,
     };
   };
 }
@@ -50,10 +48,11 @@ function simpleToFull<T, Options>(
   simple: HigherOrderBasicValidator<T, Options>
 ): ValidatorFactory<T, Options> {
   return (options: Options) => {
-    let validate = simple(options);
-    let details = options === undefined ? null : options;
+    const validate = simple(options);
+    const details = options === undefined ? null : options;
 
-    return (value: T, _context: Option<string>) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return (value: T, _context: string | null) => {
       return new Task(async () => {
         if (!validate(value)) {
           return [{ path: [], message: { name, details } }];

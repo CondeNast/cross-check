@@ -1,30 +1,22 @@
 import {
-  DEBUG_LOG,
   Record,
   RecordBuilder,
   formatDescriptor,
-  types
-} from "@cross-check/schema";
-import { Dict } from "ts-std";
+  types,
+} from "@condenast/cross-check-schema";
 import { ISODate, Url } from "../support";
 
 export const SimpleArticle: Record = Record("SimpleArticle", {
   fields: {
     hed: types.SingleLine().required(),
     dek: types.Text(),
-    body: types.Text().required()
+    body: types.Text().required(),
   },
   metadata: {
     collectionName: "simple-articles",
-    modelName: "simple-article"
-  }
+    modelName: "simple-article",
+  },
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(SimpleArticle.descriptor));
-}
 
 export const MediumArticle: Record = Record("MediumArticle", {
   fields: {
@@ -33,7 +25,7 @@ export const MediumArticle: Record = Record("MediumArticle", {
     body: types.Text().required(),
     author: types.Dictionary({
       first: types.SingleLine(),
-      last: types.SingleLine()
+      last: types.SingleLine(),
     }),
     issueDate: ISODate(),
     canonicalUrl: Url(),
@@ -41,24 +33,18 @@ export const MediumArticle: Record = Record("MediumArticle", {
     categories: types.List(types.SingleLine()).required(),
     geo: types.Dictionary({
       lat: types.Integer().required(),
-      long: types.Integer().required()
+      long: types.Integer().required(),
     }),
     contributors: types.List(
       types.Dictionary({ first: types.SingleLine(), last: types.SingleLine() })
     ),
-    relatedArticles: types.hasMany("MediumArticle")
+    relatedArticles: types.hasMany("MediumArticle"),
   },
   metadata: {
     collectionName: "medium-articles",
-    modelName: "medium-article"
-  }
+    modelName: "medium-article",
+  },
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(MediumArticle.descriptor));
-}
 
 export const Related: Record = Record("Related", {
   fields: {
@@ -66,19 +52,13 @@ export const Related: Record = Record("Related", {
     last: types.Text(),
 
     person: types.hasOne("SimpleArticle").required(),
-    articles: types.hasMany("MediumArticle")
+    articles: types.hasMany("MediumArticle"),
   },
   metadata: {
     collectionName: "related-articles",
-    modelName: "related-article"
-  }
+    modelName: "related-article",
+  },
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Related.descriptor));
-}
 
 export const Features: Record = Record("ArticleWithFlags", {
   fields: {
@@ -89,21 +69,15 @@ export const Features: Record = Record("ArticleWithFlags", {
     location: types
       .Dictionary({
         lat: types.Float(),
-        long: types.Float()
+        long: types.Float(),
       })
-      .features(["map"])
+      .features(["map"]),
   },
   metadata: {
     collectionName: "articles-with-flags",
-    modelName: "article-with-flags"
-  }
+    modelName: "article-with-flags",
+  },
 });
-
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Features.descriptor));
-}
 
 export const Nesting: Record = Record("Nesting", {
   fields: {
@@ -111,25 +85,19 @@ export const Nesting: Record = Record("Nesting", {
       .List(
         types.Dictionary({
           first: types.SingleLine(),
-          last: types.Text()
+          last: types.Text(),
         })
       )
-      .required()
-  }
+      .required(),
+  },
 });
 
-if (DEBUG_LOG === "debug") {
-  // @ts-ignore
-  // tslint:disable-next-line
-  console.log(formatDescriptor(Nesting.descriptor));
-}
-
-const Records: Dict<RecordBuilder> = {
+const Records: { [key: string]: RecordBuilder } = {
   SimpleArticle,
   MediumArticle,
   Related,
   Features,
-  Nesting
+  Nesting,
 };
 
 export function resolve(name: string) {
@@ -139,7 +107,7 @@ export function resolve(name: string) {
 
   return {
     dictionary: record.members,
-    metadata: record.metadata
+    metadata: record.metadata,
   };
 }
 

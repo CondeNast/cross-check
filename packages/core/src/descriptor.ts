@@ -1,5 +1,4 @@
-import { Task } from "no-show";
-import { Option } from "ts-std";
+import { Task } from "./task";
 
 export type ErrorPath = ReadonlyArray<string>;
 
@@ -101,7 +100,7 @@ export interface ObjectModel {
    *
    * @param object
    */
-  asList(object: unknown): Option<Iterable<unknown> | Array<unknown>>;
+  asList(object: unknown): Iterable<unknown> | Array<unknown> | null;
 }
 
 /** @deprecated */
@@ -130,7 +129,7 @@ export type ValidatorFactory<T, Options> = (
  */
 export type Validator<T = unknown> = (
   value: T,
-  context: Option<string>
+  context: string | null
 ) => Task<ValidationError[]>;
 
 /**

@@ -3,7 +3,7 @@ export {
   Record,
   RecordBuilder,
   RecordImpl,
-  RecordOptions
+  RecordOptions,
 } from "./record";
 export { Dictionary, List, Scalar, describe, scalar } from "./types";
 export * from "./types/fundamental";
@@ -12,15 +12,14 @@ import * as types from "./types";
 export * from "./type";
 export { types };
 export * from "./descriptors";
-export { DEBUG_LOG } from "./debug";
 export {
   PrimitiveRegistration,
   RecordRegistration,
   Registry,
-  REGISTRY
+  REGISTRY,
 } from "./registry";
 export {
   Environment,
   Formatters as EnvFormatters,
-  RecordFormatters as EnvRecordFormatters
+  RecordFormatters as EnvRecordFormatters,
 } from "./environment";

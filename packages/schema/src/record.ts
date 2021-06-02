@@ -1,19 +1,22 @@
 import {
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
-  validate
-} from "@cross-check/core";
-import build, { BUILD, Buildable, ValidationBuilder } from "@cross-check/dsl";
-import { Task } from "no-show";
-import { Dict, JSONObject, dict, entries } from "ts-std";
+  validate,
+} from "@condenast/cross-check";
+import build, {
+  BUILD,
+  Buildable,
+  ValidationBuilder,
+} from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "./descriptors";
 import { finalizeMeta } from "./descriptors/builders";
 import { visitorDescriptor } from "./descriptors/dehydrated";
 import { Registry } from "./registry";
 import { Type } from "./type";
 import * as visitor from "./types/describe/visitor";
-import { mapDict } from "./utils";
+import { JSONObject, mapDict } from "./utils";
 
 export interface RecordState {
   name: string;
@@ -25,10 +28,11 @@ export interface FormattableRecord {
   metadata: JSONObject | null;
 }
 
-export interface RecordDetails {}
+export type RecordDetails = { [key: string]: unknown };
 
 export class RecordBuilder
-  implements builders.TypeBuilderMember, FormattableRecord {
+  implements builders.TypeBuilderMember, FormattableRecord
+{
   constructor(
     readonly name: string,
     readonly members: dehydrated.Dictionary,
@@ -38,7 +42,7 @@ export class RecordBuilder
   get builder(): builders.NamedBuilder {
     return new builders.NamedBuilder({
       target: "Record",
-      name: this.name
+      name: this.name,
     });
   }
 
@@ -47,7 +51,7 @@ export class RecordBuilder
       type: "Named",
       target: "Record",
       name: this.name,
-      required: "always"
+      required: "always",
     };
   }
 
@@ -55,21 +59,25 @@ export class RecordBuilder
     return {
       type: "Record",
       name: this.name,
-      members: mapDict(this.members.members, member => {
+      members: mapDict(this.members.members, (member) => {
         return {
           descriptor: visitorDescriptor(member.descriptor, registry),
-          meta: member.meta
+          meta: member.meta,
         };
       }),
       metadata: this.metadata,
       required:
         this.members.required === "always" ||
-        this.members.required === "published"
+        this.members.required === "published",
     };
   }
 
   with(params: dehydrated.HydrateParameters): RecordImpl {
-    let dictionary = dehydrated.hydrate(this.members, params.registry, params);
+    const dictionary = dehydrated.hydrate(
+      this.members,
+      params.registry,
+      params
+    );
     return new RecordImpl(dictionary, this.metadata, this.name);
   }
 
@@ -129,28 +137,33 @@ export class RecordBuilder
    * kind of generic casting that this use-case desires, but this
    * method is not it.
    */
-  merge({ fields, metadata, remove, name = this.name }: ExtendOptions) {
-    let merged = fields
+  merge({
+    fields,
+    metadata,
+    remove,
+    name = this.name,
+  }: ExtendOptions): RecordBuilder {
+    const merged = fields
       ? { ...this.members.members, ...dehydrate(fields) }
       : this.members.members;
 
-    let members: Dict<dehydrated.Member>;
+    let members: { [key: string]: dehydrated.Member };
 
     if (remove) {
-      members = dict();
-      for (let [key, value] of entries(merged)) {
+      members = Object.create(null);
+      for (const [key, value] of Object.entries(merged)) {
         if (remove.indexOf(key as string) === -1) {
-          members[key] = value!;
+          members[key] = value;
         }
       }
     } else {
       members = merged;
     }
 
-    let dictionary: dehydrated.Dictionary = {
+    const dictionary: dehydrated.Dictionary = {
       type: "Dictionary",
       members,
-      required: "always"
+      required: "always",
     };
 
     return new RecordBuilder(name, dictionary, metadata || this.metadata);
@@ -172,8 +185,11 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.dehydrate() as dehydrated.Dictionary;
   }
 
-  validate(obj: Dict, objectModel: ObjectModel): Task<ValidationError[]> {
-    let validation = this.dictionary.validation();
+  validate(
+    obj: { [key: string]: unknown },
+    objectModel: ObjectModel
+  ): Task<ValidationError[]> {
+    const validation = this.dictionary.validation();
 
     return validate(obj, build(validation), null, objectModel);
   }
@@ -182,11 +198,11 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
     return this.dictionary.validation();
   }
 
-  parse(value: Dict): unknown {
+  parse(value: { [key: string]: unknown }): unknown {
     return this.dictionary.parse(value);
   }
 
-  serialize(value: Dict): unknown {
+  serialize(value: { [key: string]: unknown }): unknown {
     return this.dictionary.serialize(value);
   }
 
@@ -196,13 +212,13 @@ export class RecordImpl implements Type, Buildable, FormattableRecord {
 }
 
 export interface RecordOptions {
-  fields: Dict<builders.TypeBuilder>;
+  fields: { [key: string]: builders.TypeBuilder };
   metadata?: JSONObject | null;
 }
 
 export interface ExtendOptions {
   name?: string;
-  fields?: Dict<builders.TypeBuilder>;
+  fields?: { [key: string]: builders.TypeBuilder };
   metadata?: JSONObject | null;
   remove?: string[];
 }
@@ -211,22 +227,22 @@ export function Record(
   name: string,
   { fields, metadata }: RecordOptions
 ): RecordBuilder {
-  let dictionary: dehydrated.Dictionary = {
+  const dictionary: dehydrated.Dictionary = {
     type: "Dictionary",
     members: dehydrate(fields),
-    required: "always"
+    required: "always",
   };
 
   return new RecordBuilder(name, dictionary, metadata || null);
 }
 
-function dehydrate(
-  fields: Dict<builders.TypeBuilder>
-): Dict<dehydrated.Member> {
-  return mapDict(fields, member => {
+function dehydrate(fields: { [key: string]: builders.TypeBuilder }): {
+  [key: string]: dehydrated.Member;
+} {
+  return mapDict(fields, (member) => {
     return {
       descriptor: member.dehydrate("never"),
-      meta: finalizeMeta(member.meta)
+      meta: finalizeMeta(member.meta),
     };
   });
 }

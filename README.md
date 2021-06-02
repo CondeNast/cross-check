@@ -2,9 +2,9 @@
 
 This repo contains three packages:
 
-* [@cross-check/core](./packages/core)
-* [@cross-check/dsl](./packages/dsl)
-* [@cross-check/schema](./packages/schema)
+* [@condenast/cross-check](./packages/core)
+* [@condenast/cross-check-dsl](./packages/dsl)
+* [@condenast/cross-check-schema](./packages/schema)
 
 ## Sponsors
 

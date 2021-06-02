@@ -1,10 +1,10 @@
-# @cross-check/core
+# @condenast/cross-check
 
 The core primitive data structures and functions for a validation library.
 
-The primitives in `@cross-check/core` are used to implement `@cross-check/dsl`. In general, you probably want to use that library, even for primitive use-cases.
+The primitives in `@condenast/cross-check` are used to implement `@condenast/cross-check-dsl`. In general, you probably want to use that library, even for primitive use-cases.
 
-The data structures and core functions are extracted into a separate library to create a small, well-defined composition boundary. Any validators written against the interfaces in `@cross-check/core` will compose reliably with validators created using the higher level abstractions (including the object oriented abstractions) provided using `@cross-check/dsl`.
+The data structures and core functions are extracted into a separate library to create a small, well-defined composition boundary. Any validators written against the interfaces in `@condenast/cross-check` will compose reliably with validators created using the higher level abstractions (including the object oriented abstractions) provided using `@condenast/cross-check-dsl`.
 
 ## Composition Goals
 
@@ -46,7 +46,7 @@ Second, it should be possible to write a validator that looks up properties on a
 
 In the case of both of these issues (services and getters), the philosophy of cross-check is to expose hooks on an "ObjectModel" (see below) that framework integrators can use to abstract these distinctions. Validators receive this object model as a parameter, and if validator definitions work through the `ObjectModel` (e.g. looking up properties by using `objectModel.get` rather than direct indexing), they will be reusable in more environments and with more kinds of data structures.
 
-Because it can be difficult to remember to work through the object model all the time, the `@cross-check/dsl` library provides a number of abstractions that do the work for you. For example, the `object()` validator provided by `@cross-check/dsl` automatically looks up sub-properties by using `objectModel.get`.
+Because it can be difficult to remember to work through the object model all the time, the `@condenast/cross-check-dsl` library provides a number of abstractions that do the work for you. For example, the `object()` validator provided by `@condenast/cross-check-dsl` automatically looks up sub-properties by using `objectModel.get`.
 
 ### Values, Not Models
 
@@ -128,7 +128,7 @@ const SimpleObjectModel = {
 
 As described above, this allows users of frameworks like Ember and Knockout, as well as libraries like Immutable.js, to describe how to look up properties.
 
-Validators implemented using `@cross-check/dsl` automatically use this interface to look up sub-properties, which means that normally-written validators will work just fine in many environments.
+Validators implemented using `@condenast/cross-check-dsl` automatically use this interface to look up sub-properties, which means that normally-written validators will work just fine in many environments.
 
 ### The `asList` Function
 

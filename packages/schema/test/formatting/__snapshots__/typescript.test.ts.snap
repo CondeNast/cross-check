@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[schema] formatting - typescript detailed - published 1`] = `
+"export interface MediumArticle {
+  hed: string;
+  dek?: string;
+  body: string;
+  author?: {
+    first?: string;
+    last?: string;
+  };
+  issueDate?: Date;
+  canonicalUrl?: URL;
+  tags?: Array<string>;
+  categories: Array<string>;
+  geo?: {
+    lat: number;
+    long: number;
+  };
+  contributors?: Array<{
+    first?: string;
+    last?: string;
+  }>;
+  relatedArticles?: Array<MediumArticle>;
+}"
+`;
+
+exports[`[schema] formatting - typescript simple - draft 1`] = `
+"export interface SimpleArticleDraft {
+  hed?: string;
+  dek?: string;
+  body?: string;
+}"
+`;
+
+exports[`[schema] formatting - typescript simple - published 1`] = `
+"export interface SimpleArticle {
+  hed: string;
+  dek?: string;
+  body: string;
+}"
+`;

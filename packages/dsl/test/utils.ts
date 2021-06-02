@@ -1,51 +1,50 @@
-import { ValidationError } from "@cross-check/core";
-import { Option } from "ts-std";
+import { ValidationError } from "@condenast/cross-check";
 
 /// TODO: Extract into
 
-export function typeError(kind: string, path: Option<string>): ValidationError {
+export function typeError(kind: string, path: string | null): ValidationError {
   return {
     message: { details: kind, name: "type" },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
-export function missingError(path: string) {
+export function missingError(path: string): ValidationError {
   return typeError("present", path);
 }
 
 export function keysError({
   extra = [],
   missing = [],
-  path = null
+  path = null,
 }: {
   extra?: string[];
   missing?: string[];
-  path?: Option<string>;
+  path?: string | null;
 }): ValidationError {
-  let errors = [];
+  const errors = [];
 
-  for (let m of missing) {
+  for (const m of missing) {
     errors.push(typeError("present", m));
   }
 
-  for (let e of extra) {
+  for (const e of extra) {
     errors.push(typeError("absent", e));
   }
 
   return {
     message: { name: "keys", details: errors },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }
 
 export function error(
   kind: string,
   problem: unknown,
-  path: Option<string>
+  path: string | null
 ): ValidationError {
   return {
     message: { details: problem, name: kind },
-    path: path ? path.split(".") : []
+    path: path ? path.split(".") : [],
   };
 }

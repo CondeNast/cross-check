@@ -1,5 +1,9 @@
-import { ErrorMessage, ObjectModel, Validator } from "@cross-check/core";
-import { Task } from "no-show";
+import {
+  ErrorMessage,
+  ObjectModel,
+  Task,
+  Validator,
+} from "@condenast/cross-check";
 
 export type ValidationResult = ErrorMessage | void;
 export type ValidationCallback<T> = (
@@ -11,8 +15,8 @@ export function factoryForCallback<T>(
   cb: ValidationCallback<T>,
   objectModel: ObjectModel
 ): Validator<T> {
-  return value => {
-    return new Task(async run => {
+  return (value) => {
+    return new Task(async (run) => {
       let message = await run(cb(value, objectModel));
 
       if (message) {

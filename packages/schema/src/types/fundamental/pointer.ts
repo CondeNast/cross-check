@@ -1,6 +1,6 @@
-import { JSONObject, Option } from "ts-std";
 import { builders, dehydrated } from "../../descriptors";
 import { RegistryRecord } from "../../registry";
+import { JSONObject } from "../../utils";
 import { ReferenceImpl } from "./reference";
 
 export class PointerImpl extends ReferenceImpl {
@@ -21,7 +21,7 @@ export class PointerImpl extends ReferenceImpl {
 
 export function hasOne(
   item: string,
-  options: Option<JSONObject> = null
+  options: JSONObject | null = null
 ): builders.PointerBuilder {
   return new builders.PointerBuilder({
     kind: "hasOne",

@@ -1,15 +1,14 @@
-import { ErrorMessage } from "@cross-check/core";
+import { ErrorMessage } from "@condenast/cross-check";
 import {
   ValidationBuilder,
   ValueValidator,
   builderFor,
-  validators
-} from "@cross-check/dsl";
-import { JSONObject } from "ts-std";
+  validators,
+} from "@condenast/cross-check-dsl";
 import { builders, dehydrated } from "../../descriptors";
 import { REGISTRY } from "../../registry";
 import * as type from "../../type";
-import { JSONValue } from "../../utils";
+import { JSONObject, JSONValue } from "../../utils";
 import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args extends JSONValue | undefined>
@@ -23,7 +22,7 @@ export abstract class Scalar<Args extends JSONValue | undefined>
       type: "Primitive",
       name: this.name,
       args: this.args,
-      required: "always"
+      required: "always",
     };
   }
 
@@ -53,7 +52,7 @@ export const isNotBlank = builderFor(NotBlankValidator);
 
 export function isRequired(): ValidationBuilder<string> {
   return isNotBlank().catch(() => [
-    { path: [], message: { name: "blank", details: null } }
+    { path: [], message: { name: "blank", details: null } },
   ]);
 }
 
@@ -76,7 +75,7 @@ export function buildTextArgs(
   if (required === false) {
     return {
       ...args,
-      allowEmpty: true
+      allowEmpty: true,
     };
   } else {
     return args;
@@ -91,7 +90,7 @@ export const Text = scalar("Text", {
     return text(args);
   },
 
-  buildArgs: buildTextArgs
+  buildArgs: buildTextArgs,
 });
 
 export interface TextOptions extends JSONObject {
@@ -104,7 +103,7 @@ export const Float = scalar("Float", {
 
   validation() {
     return validators.isNumber();
-  }
+  },
 });
 
 export const Integer = scalar("Integer", {
@@ -118,7 +117,7 @@ export const Integer = scalar("Integer", {
         (value: number): value is number => Number.isInteger(value),
         "number:integer"
       )()
-    )
+    ),
 });
 
 export const SingleLine = scalar("SingleLine", {
@@ -135,7 +134,7 @@ export const SingleLine = scalar("SingleLine", {
     );
   },
 
-  buildArgs: buildTextArgs
+  buildArgs: buildTextArgs,
 });
 
 export const SingleWord = scalar("SingleWord", {
@@ -152,7 +151,7 @@ export const SingleWord = scalar("SingleWord", {
     );
   },
 
-  buildArgs: buildTextArgs
+  buildArgs: buildTextArgs,
 });
 
 // tslint:disable-next-line:variable-name
@@ -162,7 +161,7 @@ export const Boolean = scalar("Boolean", {
 
   validation() {
     return validators.isBoolean();
-  }
+  },
 });
 
 export const Any = scalar("Any", {
@@ -171,7 +170,7 @@ export const Any = scalar("Any", {
 
   validation() {
     return ANY;
-  }
+  },
 });
 
 export interface RegisterOptions {
@@ -256,7 +255,7 @@ export function scalar<Args>(
     typescript,
     base: base === undefined ? undefined : { name: base, args: undefined },
     factory: Factory,
-    buildArgs: options.buildArgs
+    buildArgs: options.buildArgs,
   });
 
   return (args: any) => {
@@ -265,7 +264,7 @@ export function scalar<Args>(
     return new builders.PrimitiveBuilder({
       name: primitive.name,
       args,
-      base: primitive.base
+      base: primitive.base,
     });
   };
 }

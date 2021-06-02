@@ -1,11 +1,10 @@
 import {
   ObjectModel,
+  Task,
   ValidationDescriptor,
   ValidationError,
-  validate
-} from "@cross-check/core";
-import { Task } from "no-show";
-import { Option } from "ts-std";
+  validate,
+} from "@condenast/cross-check";
 import { ValidationBuilder, build } from "../builders";
 import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
@@ -33,8 +32,8 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
     protected descriptor: ValidationDescriptor<unknown>
   ) {}
 
-  run(value: unknown, context: Option<string>): Task<ValidationError[]> {
-    return new Task(async run => {
+  run(value: unknown, context: string | null): Task<ValidationError[]> {
+    return new Task(async (run) => {
       let errors: ValidationError[] = [];
 
       let list = this.env.asList(value)!;
@@ -44,7 +43,7 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
         let suberrors = await run(
           validate(item, this.descriptor, context, this.env)
         );
-        errors.push(...suberrors.map(error => mapError(error, index)));
+        errors.push(...suberrors.map((error) => mapError(error, index)));
         index++;
       }
 
@@ -72,10 +71,9 @@ export class ItemsValidator<T = unknown> implements ValidatorInstance<T[]> {
 export function items<T>(
   builder: ValidationBuilder<T>
 ): ValidationBuilder<T[]> {
-  return builderFor(ItemsValidator as ValidatorClass<
-    T[],
-    ValidationDescriptor<T>
-  >)(build(builder));
+  return builderFor(
+    ItemsValidator as ValidatorClass<T[], ValidationDescriptor<T>>
+  )(build(builder));
 }
 
 /**

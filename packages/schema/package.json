@@ -1,48 +1,21 @@
 {
-  "name": "@cross-check/schema",
-  "version": "0.11.4",
+  "name": "@condenast/cross-check-schema",
+  "version": "0.12.0-dev.1",
   "description": "A library for schema validations",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>",
     "Yehuda Katz <yehuda@tilde.io>"
   ],
-  "repository": "https://github.com/cross-check/cross-check",
-  "main": "dist/commonjs/src/index.js",
-  "module": "dist/modules/src/index.js",
-  "types": "dist/types/src/index.d.ts",
-  "ember-addon": {
-    "main": "ember-addon.js"
-  },
-  "keywords": [
-    "ember-addon"
-  ],
-  "scripts": {
-    "problems": "node ../../scripts/problems.js",
-    "preversion": "\"$npm_execpath\" run test",
-    "prepare": "ember build -prod",
-    "build": "ember build -prod",
-    "build-tests": "ember build",
-    "pretest": "\"$npm_execpath\" run problems",
-    "test": "ember test",
-    "tdd": "ember test --server",
-    "version": "node ../../scripts/bump.js"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@types/commonmark": "*",
-    "@types/qunit": "*",
-    "ember-cli": "*",
-    "libkit": "*",
-    "qunitjs": "*",
-    "shelljs": "*",
-    "tslint": "*",
-    "typescript": "*",
-    "write-pkg": "*"
+  "repository": "https://github.com/CondeNast/cross-check",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/modules/index.js",
+  "types": "dist/types/index.d.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
-    "@cross-check/core": "0.11.4",
-    "@cross-check/dsl": "0.11.4",
-    "no-show": "^0.6.2",
-    "ts-std": "^0.7.0"
+    "@condenast/cross-check": "*",
+    "@condenast/cross-check-dsl": "*"
   }
 }

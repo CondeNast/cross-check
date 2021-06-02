@@ -4,11 +4,11 @@ CrossCheck's primary goal is to create a highly composable and ergonomic validat
 
 ## High Level Architecture
 
-The data structures and core functions are found in `@cross-check/core` to create a small, well-defined composition boundary. The primary data structure in `@cross-check/core` is `ValidationDescriptor`.
+The data structures and core functions are found in `@condenast/cross-check` to create a small, well-defined composition boundary. The primary data structure in `@condenast/cross-check` is `ValidationDescriptor`.
 
-Higher level tools for building up validations are found in `@cross-check/dsl`. Validators written against the interfaces in `@cross-check/core` will compose reliably with validators created using the higher level abstractions (including the object oriented abstractions).
+Higher level tools for building up validations are found in `@condenast/cross-check-dsl`. Validators written against the interfaces in `@condenast/cross-check` will compose reliably with validators created using the higher level abstractions (including the object oriented abstractions).
 
-Finally, while `@cross-check/core` and `@cross-check/dsl` validate values, `@cross-check/schema` validates entire records against a schema, with facilities optimized for that use case. The `@cross-check/schema` library also creates `ValidationDescriptor`, and the errors produced when validating a schema are the same `ValidationError`s in `@cross-check/core`.
+Finally, while `@condenast/cross-check` and `@condenast/cross-check-dsl` validate values, `@condenast/cross-check-schema` validates entire records against a schema, with facilities optimized for that use case. The `@condenast/cross-check-schema` library also creates `ValidationDescriptor`, and the errors produced when validating a schema are the same `ValidationError`s in `@condenast/cross-check`.
 
 ## TypeScript Hardened
 
@@ -131,5 +131,5 @@ In practice, this means that integrations can expose things like a configuration
 
 In the case of both of these issues (services and getters), the philosophy of CrossCheck is to expose hooks on an "Environment" that framework integrators can use to abstract these distinctions. Validators receive this environment as a parameter, and if validator definitions work through the Environment (e.g. looking up properties by using environment.get rather than direct indexing), they will be reusable in more environments and with more kinds of data structures.
 
-Because it can be difficult to remember to work through the environment all the time, the @cross-check/dsl library provides a number of abstractions that do the work for you. For example, the object() validator provided by @cross-check/dsl automatically looks up sub-properties by using environment.get.
+Because it can be difficult to remember to work through the environment all the time, the @condenast/cross-check-dsl library provides a number of abstractions that do the work for you. For example, the object() validator provided by @condenast/cross-check-dsl automatically looks up sub-properties by using environment.get.
 

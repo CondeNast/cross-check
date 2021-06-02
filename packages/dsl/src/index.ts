@@ -6,7 +6,7 @@ export {
   ValidationBuilder,
   validates,
   extend,
-  builderForDescriptor
+  builderForDescriptor,
 } from "./builders";
 export * from "./combinators";
 import * as validators from "./validators";
@@ -18,5 +18,5 @@ export {
   ValidatorInstance,
   ValueValidator,
   builderFor,
-  factoryForCallback
+  factoryForCallback,
 } from "./validators";

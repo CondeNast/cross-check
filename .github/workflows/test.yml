@@ -1,0 +1,24 @@
+name: Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Install
+        run: |
+          npm ci
+      - name: 🔎 ESLint
+        run: |
+          npm run lint
+      - name: 🃏 Jest
+        run: |
+          npm test -- --no-cache --maxWorkers=4
+      - name: ✅ Type Check
+        run: |
+          npm run typecheck

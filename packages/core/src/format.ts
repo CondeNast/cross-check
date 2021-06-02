@@ -1,4 +1,3 @@
-import { Dict, Option, entries } from "ts-std";
 import { ValidationDescriptor } from "./descriptor";
 
 type PrimitiveOptions =
@@ -7,19 +6,18 @@ type PrimitiveOptions =
   | number
   | boolean
   | RegExp
-  // tslint:disable-next-line:ban-types
-  | Function
+  | Function // eslint-disable-line @typescript-eslint/ban-types
   | null
   | undefined;
 
-interface OptionsArray extends Array<PrimitiveOptions> {}
-interface OptionsDict extends Dict<Options> {}
-
-type Options = PrimitiveOptions | OptionsArray | OptionsDict;
+type Options =
+  | PrimitiveOptions
+  | PrimitiveOptions[]
+  | { [key: string]: Options };
 
 export function format(descriptor: ValidationDescriptor<any, any>): string {
   let out = `(${descriptor.name}`;
-  let options = formatOption(descriptor.options, Position.Top);
+  const options = formatOption(descriptor.options, Position.Top);
 
   if (options !== null) {
     out = `${out} ${options})`;
@@ -37,10 +35,10 @@ export function format(descriptor: ValidationDescriptor<any, any>): string {
 export enum Position {
   Top,
   InArray,
-  InDictionary
+  InDictionary,
 }
 
-function formatOption(option: unknown, position: Position): Option<string> {
+function formatOption(option: unknown, position: Position): string | null {
   switch (optionType(option)) {
     case "String":
     case "Boolean":
@@ -50,7 +48,7 @@ function formatOption(option: unknown, position: Position): Option<string> {
     case "Undefined":
       return position === Position.Top ? null : "undefined";
     case "Array": {
-      let items = castOption<"Array">(option).map(o =>
+      const items = castOption<"Array">(option).map((o) =>
         formatOption(o, Position.InArray)
       );
 
@@ -65,9 +63,11 @@ function formatOption(option: unknown, position: Position): Option<string> {
       return String(option);
     case "Dictionary":
     case "DescriptorDict": {
-      let out = [];
+      const out = [];
 
-      for (let [key, value] of entries(castOption<"Dictionary">(option))) {
+      for (const [key, value] of Object.entries(
+        castOption<"Dictionary">(option)
+      )) {
         out.push(`${key}=${formatOption(value, Position.InDictionary)}`);
       }
 
@@ -78,7 +78,7 @@ function formatOption(option: unknown, position: Position): Option<string> {
     case "Function":
       return `function() { ... }`;
     case "Class": {
-      let c = castOption<"Class">(option);
+      const c = castOption<"Class">(option);
 
       if (c.name) {
         return `class ${c.name} { ... }`;
@@ -99,12 +99,11 @@ interface OptionType {
   Null: null;
   Undefined: undefined;
   Array: Options[];
-  Dictionary: Dict<Options>;
-  // tslint:disable-next-line:ban-types
-  Function: Function;
+  Dictionary: Record<string, Options>;
+  Function: Function; // eslint-disable-line @typescript-eslint/ban-types
   Class: typeof Object;
   Descriptor: ValidationDescriptor;
-  DescriptorDict: Dict<ValidationDescriptor>;
+  DescriptorDict: Record<string, ValidationDescriptor>;
   None: unknown;
 }
 
@@ -140,13 +139,13 @@ function optionType(option: unknown): keyof OptionType {
       }
     }
     case "object":
-      return objectOptionType(option as object);
+      return objectOptionType(option as Record<string, unknown>);
     default:
       return "None";
   }
 }
 
-function objectOptionType(option: object): keyof OptionType {
+function objectOptionType(option: Record<string, unknown>): keyof OptionType {
   if (isValidationDescriptor(option)) {
     return "Descriptor";
   } else if (isPlainObject(option)) {
@@ -156,8 +155,8 @@ function objectOptionType(option: object): keyof OptionType {
   }
 }
 
-function isPlainObject(obj: object): boolean {
-  let proto = Object.getPrototypeOf(obj);
+function isPlainObject(obj: Record<string, unknown>): boolean {
+  const proto = Object.getPrototypeOf(obj);
   return proto === Object.prototype || proto === null;
 }
 

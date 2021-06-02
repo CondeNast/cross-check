@@ -1,10 +1,10 @@
-import { ErrorMessage } from "@cross-check/core";
+import { ErrorMessage } from "@condenast/cross-check";
 import {
   ValidationBuilder,
   ValueValidator,
   builderFor,
-  validators
-} from "@cross-check/dsl";
+  validators,
+} from "@condenast/cross-check-dsl";
 
 export class FormatValidator extends ValueValidator<string, RegExp> {
   static validatorName = "format";

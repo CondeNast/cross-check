@@ -1,9 +1,8 @@
-import { Dict, JSONObject } from "ts-std";
 import { builders } from "../../descriptors";
 import { visitorDescriptor } from "../../descriptors/dehydrated";
 import { FormattableRecord } from "../../record";
 import { Registry, RegistryName } from "../../registry";
-import { JSONValue } from "../../utils";
+import { JSONObject, JSONValue } from "../../utils";
 import { ListArgs } from "../fundamental";
 import {
   Accumulator,
@@ -147,14 +146,14 @@ export interface Member {
 
 export interface Dictionary {
   type: "Dictionary";
-  members: Dict<Member>;
+  members: { [key: string]: Member };
   required: boolean;
 }
 
 export interface Record {
   type: "Record";
   name: string;
-  members: Dict<Member>;
+  members: { [key: string]: Member };
   metadata: JSONObject | null;
   required: boolean;
 }
@@ -287,7 +286,7 @@ export class RecursiveVisitor<T extends RecursiveDelegateTypes>
   processDictionary(
     descriptor: Dictionary | Record,
     callback: (item: DelegateItem<T>, key: string, position: Pos) => void
-  ): unknown {
+  ): void {
     let input = descriptor.members;
     let keys = Object.keys(input);
     let last = keys.length - 1;
@@ -322,12 +321,12 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
 
   private constructor(private reporter: Reporter<Buffer, Inner, Options>) {}
 
-  alias(descriptor: Alias, position: Pos): unknown {
+  alias(descriptor: Alias, position: Pos): void {
     this.reporter.startAlias(position, descriptor);
     this.reporter.endAlias(position, descriptor);
   }
 
-  generic(descriptor: Container, position: Pos): unknown {
+  generic(descriptor: Container, position: Pos): void {
     this.reporter.startGenericValue(position, descriptor);
     let pos = genericPosition(descriptor.type, descriptor.inner);
     this.visitor.visit(descriptor.inner, pos);
@@ -355,7 +354,7 @@ export class StringVisitor<Buffer extends Accumulator<Inner>, Inner, Options>
     return this.reporter.finish();
   }
 
-  primitive(descriptor: Primitive, position: Pos): unknown {
+  primitive(descriptor: Primitive, position: Pos): void {
     this.reporter.primitiveValue(position, descriptor);
   }
 

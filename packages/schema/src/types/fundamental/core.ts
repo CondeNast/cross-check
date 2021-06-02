@@ -2,9 +2,8 @@ import {
   ValidationBuilder,
   ValueValidator,
   builderFor,
-  validators
-} from "@cross-check/dsl";
-import { Option, assert } from "ts-std";
+  validators,
+} from "@condenast/cross-check-dsl";
 import { dehydrated } from "../../descriptors";
 import { Type } from "../../type";
 import { maybe } from "../../utils";
@@ -19,7 +18,7 @@ export class OptionalityImpl implements Type {
   dehydrate(): dehydrated.Descriptor {
     return {
       ...this.type.dehydrate(),
-      required: this.args.isOptional ? "never" : "always"
+      required: this.args.isOptional ? "never" : "always",
     };
   }
 
@@ -33,10 +32,11 @@ export class OptionalityImpl implements Type {
 
   serialize(input: unknown): unknown {
     if (input === null) {
-      assert(
-        this.isOptional,
-        "Serialization error: unexpected null (must validate before serializing)"
-      );
+      if (!this.isOptional) {
+        throw new Error(
+          "Serialization error: unexpected null (must validate before serializing)"
+        );
+      }
 
       return input;
     } else {
@@ -46,7 +46,9 @@ export class OptionalityImpl implements Type {
 
   parse(input: unknown): unknown {
     if (input === null) {
-      assert(this.isOptional, "Parse error: unexpected null.");
+      if (!this.isOptional) {
+        throw new Error("Parse error: unexpected null.");
+      }
       return null;
     } else {
       return this.type.parse(input);
@@ -61,7 +63,7 @@ export class OptionalityImpl implements Type {
 class AnyValidator extends ValueValidator<unknown, void> {
   static validatorName = "any";
 
-  validate(_value: unknown, _context: Option<string>): void {
+  validate(_value: unknown, _context: string | null): void {
     return;
   }
 }

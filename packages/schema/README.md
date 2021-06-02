@@ -1,4 +1,4 @@
-# @cross-check/schema
+# @condenast/cross-check-schema
 
 Crosscheck Schemas allow you to define a schema for your data and use the schema to validate the data.
 
@@ -13,7 +13,7 @@ This reduces friction when saving initial drafts of content types. It also makes
 First, let's define a schema.
 
 ```ts
-import { Schema, type } from "@cross-check/schema";
+import { Schema, type } from "@condenast/cross-check-schema";
 
 const schema = new Schema({
   // SingleLine is a string that contains no newlines.
@@ -51,7 +51,7 @@ The first thing to notice here is that Crosscheck returns a list of errors, rath
 
 Additionally, Crosscheck errors are returned as data: a kind of error and the arguments to the validation. This allows you to present the errors in using application-appropriate language, as well as properly internationalize error messages.
 
-Under the hood, Crosscheck Schema uses the advanced `@cross-check/core` validation library to validate objects, a validation library extracted from the real-world requirements of the Conde Nast CMS. Its compositional, asynchronous core makes it a perfect fit for validating schemas with embedded lists and dictionaries. To learn more about the philosophy and mechanics of Crosscheck Validations, check out its [README][cross-check-core-readme].
+Under the hood, Crosscheck Schema uses the advanced `@condenast/cross-check` validation library to validate objects, a validation library extracted from the real-world requirements of the Conde Nast CMS. Its compositional, asynchronous core makes it a perfect fit for validating schemas with embedded lists and dictionaries. To learn more about the philosophy and mechanics of Crosscheck Validations, check out its [README][cross-check-core-readme].
 
 [cross-check-core-readme]: https://github.com/cross-check/core/blob/master/README.md
 
@@ -98,7 +98,7 @@ To give a concrete example, consider a `Url` type that requires that its data is
 As the above example illustrated, you can mark any field as required. If a field is not marked as required, it is optional.
 
 ```ts
-import { Schema, type } from "@cross-check/schema";
+import { Schema, type } from "@condenast/cross-check-schema";
 
 const Person = new Schema({
   first: type.SingleLine().required(),
@@ -146,7 +146,7 @@ This `Person` schema requires a first and last name, but makes the middle name o
 You can also say that a field contains a list of items of a particular type.
 
 ```ts
-import { Schema, type } from "@cross-check/schema";
+import { Schema, type } from "@condenast/cross-check-schema";
 
 const Article = new Schema({
   headline: type.SingleLine(),
@@ -199,7 +199,7 @@ A list can contain other lists, dictionaries, or any other type.
 A field can also contain a dictionary.
 
 ```ts
-import { Schema, type } from "@cross-check/schema";
+import { Schema, type } from "@condenast/cross-check-schema";
 
 const Location = new Schema({
   geo: type.Dictionary({
