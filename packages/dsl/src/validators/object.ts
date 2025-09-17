@@ -62,7 +62,8 @@ export class FieldsValidator<T> implements ValidatorInstance<Present> {
  * and also does not contain any extra fields.
  */
 export class KeysValidator<T>
-  implements ValidatorInstance<Readonly<Record<string, T>>> {
+  implements ValidatorInstance<Readonly<Record<string, T>>>
+{
   static validatorName = "keys";
 
   constructor(

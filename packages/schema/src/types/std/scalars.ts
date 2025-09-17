@@ -12,7 +12,8 @@ import { JSONObject, JSONValue } from "../../utils";
 import { ANY } from "../fundamental";
 
 export abstract class Scalar<Args extends JSONValue | undefined>
-  implements type.Type {
+  implements type.Type
+{
   constructor(protected readonly args: Args, readonly name: string) {}
 
   abstract validation(): ValidationBuilder<unknown>;

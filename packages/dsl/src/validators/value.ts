@@ -14,7 +14,8 @@ import { ValidationResult } from "./callback";
  * `BasicValidator` superclass instead.
  */
 export abstract class ValueValidator<T, Options = void>
-  implements ValidatorInstance<T> {
+  implements ValidatorInstance<T>
+{
   constructor(protected objectModel: ObjectModel, protected options: Options) {}
 
   get env(): ObjectModel {

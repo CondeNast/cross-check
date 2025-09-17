@@ -113,10 +113,10 @@ export type Environment = ObjectModel;
  * A function that takes an object model and validator options and produces a new
  * Validator function. In other words, it curries the object model and options.
  */
-export type ValidatorFactory<T, Options> = (
-  options: Options,
-  objectModel: ObjectModel
-) => Validator<T>;
+export type ValidatorFactory<T, Options> = {
+  name: string;
+  (options: Options, objectModel: ObjectModel): Validator<T>;
+};
 
 /**
  * @api primitive

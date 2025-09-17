@@ -41,13 +41,17 @@ export interface ValidatorInstance<T> {
  * Turns a `ValidatorClass` into a `ValidatorFactory`. Used internally by `builderFor`
  *
  */
-export function factoryFor<T, Options>(
-  Class: ValidatorClass<T, Options>
-): ValidatorFactory<T, Options> {
-  return (options: Options, objectModel: ObjectModel): Validator<T> => {
+export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>) {
+  let factory: ValidatorFactory<T, Options> = (
+    options: Options,
+    objectModel: ObjectModel
+  ): Validator<T> => {
     let validator = new Class(objectModel, options);
     return (value, context) => validator.run(value, context);
   };
+  factory.name = Class.validatorName;
+
+  return factory;
 }
 
 /**
