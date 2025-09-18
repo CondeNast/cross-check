@@ -14,6 +14,7 @@ describe("validator", () => {
           name: "is-all-caps",
           details: null,
         },
+        level: "error",
       },
     ]);
 
@@ -24,6 +25,7 @@ describe("validator", () => {
           name: "is-all-caps",
           details: null,
         },
+        level: "error",
       },
     ]);
 
@@ -43,6 +45,7 @@ describe("validator", () => {
           name: "lt",
           details: 5,
         },
+        level: "error",
       },
     ]);
 
@@ -53,6 +56,7 @@ describe("validator", () => {
           name: "lt",
           details: 5,
         },
+        level: "error",
       },
     ]);
 

@@ -100,7 +100,7 @@ export interface ValidationBuilder<T> {
    * const email =
    *   string()
    *     .andThen(format(EMAIL_REGEXP))
-   *     .catch(errors => [{ path: [], message: { key: 'email', args: null } }])
+   *     .catch(errors => [{ path: [], message: { key: 'email', args: null }, level: "error" }])
    * ```
    *
    * Note that the `.catch` transformer will only run if there is at least
@@ -204,7 +204,7 @@ export function validates<T, Options>(
  * let uniqueEmail =
  *   uniqueness()
  *     .on('create')
- *     .catch(errors => [{ path: [], message: { key: 'unique-email', args: null } }])
+ *     .catch(errors => [{ path: [], message: { key: 'unique-email', args: null }, level: "error" }])
  *
  * let extended = build(
  *   extend(validations)

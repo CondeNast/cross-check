@@ -15,6 +15,7 @@ describe("Validators (nullable)", () => {
           name: "type",
           details: type,
         },
+        level: "error",
       },
     ];
   }

@@ -36,7 +36,9 @@ export function url(...details: UrlKind[]): ValidationBuilder<unknown> {
     .map(formatForType)
     .map(format)
     .reduce((chain, validator) => chain.or(validator))
-    .catch(() => [{ path: [], message: { name: "url", details } }]);
+    .catch(() => [
+      { path: [], message: { name: "url", details }, level: "error" },
+    ]);
 }
 
 export class Urlish {

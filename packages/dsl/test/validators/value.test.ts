@@ -34,6 +34,7 @@ describe("Validators (value)", () => {
             name: "format",
             details: EMAIL_REGEX,
           },
+          level: "error",
         },
       ];
     }
@@ -46,6 +47,7 @@ describe("Validators (value)", () => {
             name: "type",
             details: "string",
           },
+          level: "error",
         },
       ];
     }

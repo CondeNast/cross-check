@@ -22,6 +22,7 @@ describe("Validators (callback)", () => {
             name: "alpha-numeric",
             details: undefined,
           },
+          level: "error",
         },
       ];
     }

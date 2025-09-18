@@ -40,10 +40,12 @@ Now, let's try to validate some content:
 > schema.validate({});
 [{
   message: { key: "type", args: "present" },
-  path: ["title"]
+  path: ["title"],
+  level: "error"
 }, {
   message: { key: "type", args: "present" },
-  path: ["body"]
+  path: ["body"],
+  level: "error"
 }]
 ```
 
@@ -74,13 +76,16 @@ But not any kind of document will validate in the draft schema.
 > schema.draft.validate({ title: 12, geo: { lat: "100", long: "50" } });
 [{
   message: { key: "type", args: "string" },
-  path: ["title"]
+  path: ["title"],
+  level: "error"
 }, {
   message: { key: "type", args: "number" },
-  path: ["geo", "lat"]
+  path: ["geo", "lat"],
+  level: "error"
 }, {
   message: { key: "type", args: "number" },
-  path: ["geo", "long"]
+  path: ["geo", "long"],
+  level: "error"
 }]
 ```
 
@@ -113,10 +118,12 @@ This `Person` schema requires a first and last name, but makes the middle name o
 > Person.validate({})
 [{
   message: { key: "first", args: "present" },
-  path: ["title"]
+  path: ["title"],
+  level: "error"
 }, {
   message: { key: "last", args: "present" },
-  path: ["body"]
+  path: ["body"],
+  level: "error"
 }]
 
 > Person.draft.validate({})
@@ -128,7 +135,8 @@ This `Person` schema requires a first and last name, but makes the middle name o
 > Person.validate({ first: "Christina", middle: "multi\nline", last: "Kung" })
 [{
   message: { key: "type", args: "string:single-line" },
-  path: ["middle"]
+  path: ["middle"],
+  level: "error"
 }]
 
 > Person.draft.validate({ first: "Christina", middle: "multi\nline", last: "Kung" })
@@ -137,7 +145,8 @@ This `Person` schema requires a first and last name, but makes the middle name o
 > Person.draft.validate({ first: "Christina", middle: 12, last: "Kung" })
 [{
   message: { key: "type", args: "string" },
-  path: ["middle"]
+  path: ["middle"],
+  level: "error"
 }] // but you still can't pass a number
 ```
 
@@ -161,31 +170,37 @@ This Article schema has an optional headline and body, and an optional list of s
 > Article.validate({ tags: "sometag" })
 [{
   message: { key: "type", args: "array" },
-  path: ["tags"]
+  path: ["tags"],
+  level: "error"
 }]
 
 > Article.validate({ tags: [12, 15] })
 [{
   message: { key: "type", args: "string" },
-  path: ["tags", "0"]
+  path: ["tags", "0"],
+  level: "error"
 }, {
   message: { key: "type", args: "string" },
-  path: ["tags", "1"]
+  path: ["tags", "1"],
+  level: "error"
 }]
 
 > Article.validate({ tags: ["whoops too many words", "totes-fine"] })
 [{
   message: { key: "type", args: "string:single-word" },
-  path: ["tags", "0"]
+  path: ["tags", "0"],
+  level: "error"
 }]
 
 > Article.draft.validate({ tags: [12, 15] })
 [{
   message: { key: "type", args: "string" },
-  path: ["tags", "0"]
+  path: ["tags", "0"],
+  level: "error"
 }, {
   message: { key: "type", args: "string" },
-  path: ["tags", "1"]
+  path: ["tags", "1"],
+  level: "error"
 }] // Even in draft mode, a number is not a string
 
 > Article.validate({ tags: ["too many words", "totes-fine"] })
@@ -220,7 +235,8 @@ Since the dictionary itself is optional, you can leave off the dictionary itself
 > Location.validate({ geo: { lat: 12 } })
 [{
   message: { key: "type", args: "present" },
-  path: ["geo", "long"]
+  path: ["geo", "long"],
+  level: "error"
 }]
 ```
 

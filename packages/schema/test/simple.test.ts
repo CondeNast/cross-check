@@ -92,6 +92,7 @@ describe("[schema] - simple schema", () => {
           name: "blank",
         },
         path: ["hed"],
+        level: "error",
       },
       {
         message: {
@@ -99,6 +100,7 @@ describe("[schema] - simple schema", () => {
           name: "blank",
         },
         path: ["body"],
+        level: "error",
       },
     ]);
   });
