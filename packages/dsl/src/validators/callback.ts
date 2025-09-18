@@ -17,10 +17,10 @@ export function factoryForCallback<T>(
 ): Validator<T> {
   return (value) => {
     return new Task(async (run) => {
-      let message = await run(cb(value, objectModel));
+      const message = await run(cb(value, objectModel));
 
       if (message) {
-        return [{ path: [], message }];
+        return [{ path: [], message, level: "error" }];
       } else {
         return [];
       }

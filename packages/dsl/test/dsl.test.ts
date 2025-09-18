@@ -266,6 +266,57 @@ describe("DSL", () => {
     expect(validations).toEqual(expected);
   });
 
+  test("level", () => {
+    const mapper: MapErrorTransform = () => [];
+
+    const validations = validates(
+      str()
+        .andThen(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
+        .andThen(uniqueness())
+        .catch(mapper)
+    );
+
+    expect(format(validations)).toEqual(
+      `(try do=(pipe (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness)) catch=function() { ... })`
+    );
+
+    const expected = {
+      name: "try",
+      validator: mapError,
+      options: {
+        catch: mapper,
+        do: {
+          name: "pipe",
+          validator: chain,
+          options: [
+            {
+              name: "str",
+              validator: factory("str"),
+              options: undefined,
+              contexts: [],
+            },
+            {
+              name: "isEmail",
+              validator: factory("isEmail"),
+              options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
+              contexts: [],
+            },
+            {
+              name: "uniqueness",
+              validator: factory("uniqueness"),
+              options: undefined,
+              contexts: [],
+            },
+          ],
+          contexts: [],
+        },
+      },
+      contexts: [],
+    };
+
+    expect(validations).toEqual(expected);
+  });
+
   test("validation contexts", () => {
     expect(() => str().on()).toThrow(
       /must provide at least one validation context/

@@ -334,6 +334,16 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
     );
   }
 
+  level(errorLevel: "error" | "warning"): ValidationBuilder<T> {
+    return this.catch((errors) =>
+      errors.map((e) => ({
+        ...e,
+        message: { ...e.message },
+        level: errorLevel,
+      }))
+    );
+  }
+
   on(...contexts: string[]): BaseValidationBuilder<T, Options> {
     if (contexts.length === 0) {
       throw new Error("You must provide at least one validation context");

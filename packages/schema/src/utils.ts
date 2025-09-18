@@ -23,6 +23,7 @@ export interface Multiple {
     details: ValidationError[][];
   };
   path: ErrorPath;
+  level: "error" | "warning";
 }
 
 function isMultiple(error: ValidationError): error is Multiple {
