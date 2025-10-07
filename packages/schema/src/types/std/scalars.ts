@@ -52,7 +52,7 @@ export const isNotBlank = builderFor(NotBlankValidator);
 
 export function isRequired(): ValidationBuilder<string> {
   return isNotBlank().catch(() => [
-    { path: [], message: { name: "blank", details: null } },
+    { path: [], message: { name: "blank", details: null }, level: "error" },
   ]);
 }
 

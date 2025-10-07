@@ -24,6 +24,7 @@ export interface ErrorMessage {
 export interface ValidationError {
   path: ErrorPath;
   message: ErrorMessage;
+  level: "error" | "warning";
 }
 
 /**

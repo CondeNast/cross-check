@@ -55,7 +55,7 @@ function simpleToFull<T, Options>(
     return (value: T, _context: string | null) => {
       return new Task(async () => {
         if (!validate(value)) {
-          return [{ path: [], message: { name, details } }];
+          return [{ path: [], message: { name, details }, level: "error" }];
         } else {
           return [];
         }

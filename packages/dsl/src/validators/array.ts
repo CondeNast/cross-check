@@ -10,10 +10,10 @@ import { ValidatorClass, ValidatorInstance, builderFor } from "./abstract";
 import { isArray } from "./is";
 
 function mapError(
-  { path, message }: ValidationError,
+  { path, message, level }: ValidationError,
   index: number
 ): ValidationError {
-  return { path: [String(index), ...path], message };
+  return { path: [String(index), ...path], message, level };
 }
 
 /**

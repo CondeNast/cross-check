@@ -15,6 +15,7 @@ describe("Validators (is)", () => {
           name: "type",
           details: type,
         },
+        level: "error",
       },
     ];
   }

@@ -28,10 +28,10 @@ export abstract class ValueValidator<T, Options = void>
 
   run(value: T, context: string | null): Task<ValidationError[]> {
     return new Task(async (run) => {
-      let message = await run(this.validate(value, context));
+      const message = await run(this.validate(value, context));
 
       if (message) {
-        return [{ path: [], message }];
+        return [{ path: [], message, level: "error" }];
       } else {
         return [];
       }

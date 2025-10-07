@@ -1,7 +1,16 @@
-import { format } from "@condenast/cross-check";
+import {
+  ErrorPath,
+  format,
+  Task,
+  ValidationDescriptor,
+  ValidationError,
+  ValidatorFactory,
+} from "@condenast/cross-check";
 import validates, {
   MapErrorTransform,
+  ValidationBuilder,
   and,
+  builderForDescriptor,
   chain,
   extend,
   factoryForCallback,
@@ -9,13 +18,73 @@ import validates, {
   mapError,
   or,
 } from "@condenast/cross-check-dsl";
-import { email, factory, isEmail, presence, str, uniqueness } from "./support";
+import {
+  buildAndRun,
+  email,
+  factory,
+  isEmail,
+  presence,
+  str,
+  uniqueness,
+} from "./support";
 
 function validationCallback() {
   /* no-op */
 }
 
 describe("DSL", () => {
+  interface FailOptions {
+    reason: string;
+    path: ErrorPath;
+  }
+
+  const Fail: ValidatorFactory<unknown, FailOptions> = ({
+    reason,
+    path,
+  }: FailOptions) => {
+    return () =>
+      new Task<ValidationError[]>(async () => [error(reason, null, path)]);
+  };
+
+  function error(
+    reason: string,
+    details: unknown = null,
+    path: ErrorPath = []
+  ): ValidationError {
+    return {
+      path,
+      message: {
+        name: reason,
+        details,
+      },
+      level: "error",
+    };
+  }
+  function builderFor<T>(
+    name: string,
+    factory: ValidatorFactory<T, void>
+  ): ValidationBuilder<T>;
+  function builderFor<T, Options>(
+    name: string,
+    factory: ValidatorFactory<T, Options>,
+    options: Options
+  ): ValidationBuilder<T>;
+  function builderFor<T>(
+    name: string,
+    validator: ValidatorFactory<T, any>,
+    options?: any
+  ): ValidationBuilder<T> {
+    return builderForDescriptor({
+      name,
+      validator,
+      options,
+      contexts: [],
+    });
+  }
+
+  const fail = (reason: string, path: ErrorPath = []) =>
+    builderFor("Fail", Fail, { reason, path });
+
   test("basic DSL", () => {
     expect(validates(str())).toEqual({
       name: "str",
@@ -264,6 +333,76 @@ describe("DSL", () => {
     };
 
     expect(validations).toEqual(expected);
+  });
+
+  test("level", async () => {
+    const mapper: MapErrorTransform = () => [];
+
+    const validations = validates(
+      str()
+        .andThen(isEmail({ tlds: [".com", ".net", ".org", ".edu", ".gov"] }))
+        .andThen(uniqueness())
+        .catch(mapper)
+        .level("warning")
+    );
+
+    expect(format(validations)).toEqual(
+      `(try do=(try do=(pipe (str) (isEmail tlds=[".com", ".net", ".org", ".edu", ".gov"]) (uniqueness)) catch=function() { ... }) catch=function() { ... })`
+    );
+
+    const expected = {
+      name: "try",
+      validator: mapError,
+      options: {
+        catch: expect.anything(),
+        do: {
+          name: "try",
+          validator: mapError,
+          options: {
+            catch: mapper,
+            do: {
+              name: "pipe",
+              validator: chain,
+              options: [
+                {
+                  name: "str",
+                  validator: factory("str"),
+                  options: undefined,
+                  contexts: [],
+                },
+                {
+                  name: "isEmail",
+                  validator: factory("isEmail"),
+                  options: { tlds: [".com", ".net", ".org", ".edu", ".gov"] },
+                  contexts: [],
+                },
+                {
+                  name: "uniqueness",
+                  validator: factory("uniqueness"),
+                  options: undefined,
+                  contexts: [],
+                },
+              ],
+              contexts: [],
+            },
+          },
+          contexts: [],
+        },
+      },
+      contexts: [],
+    };
+
+    expect(validations).toEqual(expected);
+
+    expect(
+      await buildAndRun(fail("non-null", []).level("warning"), null)
+    ).toEqual([
+      {
+        path: [],
+        message: { name: "non-null", details: null },
+        level: "warning",
+      },
+    ]);
   });
 
   test("validation contexts", () => {

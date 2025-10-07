@@ -71,6 +71,7 @@ describe("Combinators", () => {
         name: reason,
         details,
       },
+      level: "error",
     };
   }
 

@@ -100,13 +100,30 @@ export interface ValidationBuilder<T> {
    * const email =
    *   string()
    *     .andThen(format(EMAIL_REGEXP))
-   *     .catch(errors => [{ path: [], message: { key: 'email', args: null } }])
+   *     .catch(errors => [{ path: [], message: { key: 'email', args: null }, level: "error" }])
    * ```
    *
    * Note that the `.catch` transformer will only run if there is at least
    * one validation error.
    */
   catch(transform: MapErrorTransform): ValidationBuilder<T>;
+
+  /**
+   * @api public
+   *
+   * Catch errors and change all of their `level` properties at once.
+   *
+   * For example, if you wanted to warn a user that an input value should have been a string
+   * but your application can proceed with a non-string input you might use:
+   *
+   * ```ts
+   * const input = string().level("warning");
+   * ```
+   *
+   * This will produce the same error message as the `string` validator normally does, but with
+   * the `level` property set to `"warning"`
+   */
+  level(level: "error" | "warning"): ValidationBuilder<T>;
 
   /**
    * @api public
@@ -204,7 +221,7 @@ export function validates<T, Options>(
  * let uniqueEmail =
  *   uniqueness()
  *     .on('create')
- *     .catch(errors => [{ path: [], message: { key: 'unique-email', args: null } }])
+ *     .catch(errors => [{ path: [], message: { key: 'unique-email', args: null }, level: "error" }])
  *
  * let extended = build(
  *   extend(validations)
@@ -332,6 +349,16 @@ class BaseValidationBuilder<T, Options> implements ValidationBuilder<T> {
       { do: build(this), catch: onError },
       this.contexts
     );
+  }
+
+  level(errorLevel: "error" | "warning"): ValidationBuilder<T> {
+    return this.catch(function mapLevel(errors) {
+      return errors.map((e) => ({
+        ...e,
+        message: { ...e.message },
+        level: errorLevel,
+      }));
+    });
   }
 
   on(...contexts: string[]): BaseValidationBuilder<T, Options> {

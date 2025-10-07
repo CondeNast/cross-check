@@ -95,7 +95,17 @@ export function or<T>(
         }
       }
 
-      return [{ path: [], message: { name: "multiple", details: result } }];
+      return [
+        {
+          path: [],
+          message: { name: "multiple", details: result },
+          level: result.some((errorList) =>
+            errorList.some((error) => error.level === "error")
+          )
+            ? "error"
+            : "warning",
+        },
+      ];
     });
   };
 }

@@ -81,7 +81,13 @@ export class IsArrayValidator extends BasicValidator<unknown> {
     if (this.objectModel.asList(value) !== null) {
       return [];
     } else {
-      return [{ path: [], message: { name: "type", details: "array" } }];
+      return [
+        {
+          path: [],
+          message: { name: "type", details: "array" },
+          level: "error",
+        },
+      ];
     }
   }
 }

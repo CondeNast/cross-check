@@ -10,10 +10,10 @@ import { ValidatorClass, ValidatorInstance, factoryFor } from "./abstract";
 import { isObject, Present } from "./is";
 
 function mapError(
-  { path, message }: ValidationError,
+  { path, message, level }: ValidationError,
   key: string | number
 ): ValidationError {
-  return { path: [String(key), ...path], message };
+  return { path: [String(key), ...path], message, level };
 }
 
 /**
@@ -72,16 +72,17 @@ export class KeysValidator<T>
 
   run(value: Readonly<Record<string, T>>): Task<ValidationError[]> {
     return new Task(async () => {
-      let errors: ValidationError[] = [];
-      let valueKeys = Object.keys(value);
+      const errors: ValidationError[] = [];
+      const valueKeys = Object.keys(value);
 
-      for (let key of this.descriptorKeys) {
-        let index = valueKeys.indexOf(key);
+      for (const key of this.descriptorKeys) {
+        const index = valueKeys.indexOf(key);
         if (index === -1) {
           // descriptor field is not present in the value
           errors.push({
             path: [key],
             message: { name: "type", details: "present" },
+            level: "error",
           });
         } else {
           valueKeys.splice(index, 1);
@@ -90,14 +91,24 @@ export class KeysValidator<T>
 
       // these fields were not present in the descriptors
       errors.push(
-        ...valueKeys.map((key) => ({
-          path: [key],
-          message: { name: "type", details: "absent" },
-        }))
+        ...valueKeys.map(
+          (key) =>
+            ({
+              path: [key],
+              message: { name: "type", details: "absent" },
+              level: "error",
+            } as ValidationError)
+        )
       );
 
       if (errors.length) {
-        return [{ path: [], message: { name: "keys", details: errors } }];
+        return [
+          {
+            path: [],
+            message: { name: "keys", details: errors },
+            level: "error",
+          },
+        ];
       } else {
         return [];
       }

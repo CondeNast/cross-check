@@ -6,6 +6,7 @@ export function typeError(kind: string, path: string | null): ValidationError {
   return {
     message: { details: kind, name: "type" },
     path: path ? path.split(".") : [],
+    level: "error",
   };
 }
 
@@ -35,6 +36,7 @@ export function keysError({
   return {
     message: { name: "keys", details: errors },
     path: path ? path.split(".") : [],
+    level: "error",
   };
 }
 
@@ -46,5 +48,6 @@ export function error(
   return {
     message: { details: problem, name: kind },
     path: path ? path.split(".") : [],
+    level: "error",
   };
 }

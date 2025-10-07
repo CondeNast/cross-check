@@ -31,7 +31,7 @@ describe("Validators (basic)", () => {
       static validatorName = "package-json";
 
       validate(json: Readonly<Record<string, unknown>>): ValidationError[] {
-        let errors = [];
+        const errors: ValidationError[] = [];
 
         if (!hasPackageName(json)) {
           errors.push({
@@ -40,6 +40,7 @@ describe("Validators (basic)", () => {
               name: "required",
               details: undefined,
             },
+            level: "error",
           });
         }
 
@@ -50,6 +51,7 @@ describe("Validators (basic)", () => {
               name: "authorship",
               details: undefined,
             },
+            level: "error",
           });
         }
 
@@ -73,6 +75,7 @@ describe("Validators (basic)", () => {
             name: "required",
             details: undefined,
           },
+          level: "error",
         },
       ];
     }
@@ -85,6 +88,7 @@ describe("Validators (basic)", () => {
             name: "authorship",
             details: undefined,
           },
+          level: "error",
         },
       ];
     }
