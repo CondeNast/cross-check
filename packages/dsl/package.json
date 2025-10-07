@@ -1,6 +1,6 @@
 {
   "name": "@condenast/cross-check-dsl",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "A DSL for building validations.",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>",

@@ -1,6 +1,6 @@
 {
   "name": "@condenast/cross-check",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "The primitives for building validations.",
   "contributors": [
     "Godfrey Chan <godfrey@tilde.io>",
