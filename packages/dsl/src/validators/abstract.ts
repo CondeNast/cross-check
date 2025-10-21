@@ -3,7 +3,6 @@ import {
   Task,
   ValidationError,
   Validator,
-  ValidatorFactory,
 } from "@condenast/cross-check";
 import { ValidationBuilder, validates } from "../builders";
 
