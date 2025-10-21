@@ -3,7 +3,6 @@ import {
   Task,
   ValidationError,
   Validator,
-  ValidatorFactory,
 } from "@condenast/cross-check";
 import { ValidationBuilder, validates } from "../builders";
 
@@ -42,16 +41,10 @@ export interface ValidatorInstance<T> {
  *
  */
 export function factoryFor<T, Options>(Class: ValidatorClass<T, Options>) {
-  let factory: ValidatorFactory<T, Options> = (
-    options: Options,
-    objectModel: ObjectModel
-  ): Validator<T> => {
-    let validator = new Class(objectModel, options);
+  return (options: Options, objectModel: ObjectModel): Validator<T> => {
+    const validator = new Class(objectModel, options);
     return (value, context) => validator.run(value, context);
   };
-  factory.name = Class.validatorName;
-
-  return factory;
 }
 
 /**
@@ -86,7 +79,7 @@ export function builderFor<T, Options>(
 export function builderFor<T, Options>(
   Class: ValidatorClass<T, Options>
 ): (options: Options) => ValidationBuilder<T> {
-  let factory = factoryFor(Class);
+  const factory = factoryFor(Class);
 
   return (options: Options) => validates(Class.validatorName, factory, options);
 }
